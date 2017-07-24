@@ -1,0 +1,13 @@
+.*.swp
+.git/
+src/php/
+src/python/*.pyc
+
+ipython/config.ini
+ipython/study_pixnet/config.ini
+
+ipython/.ipynb_checkpoints/
+ipython/study_pixnet/.ipynb_checkpoints/
+ipython/study_sinica/.ipynb_checkpoints/
+
+
