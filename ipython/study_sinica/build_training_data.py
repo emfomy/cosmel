@@ -8,16 +8,17 @@ import jieba
 import codecs
 
 ### load dictionary
-cosmetic_dict_path = './dict.txt.big'
-jieba.set_dictionary(cosmetic_dict_path)
+def load_dictionary():
+    cosmetic_dict_path = './dict.txt.big'
+    jieba.set_dictionary(cosmetic_dict_path)
 
-f = codecs.open('./resources/cosmetic_headwords.txt', 'r', encoding='utf-8')
-# with open('../Data/cosmetic_headwords.txt', 'r') as f:
-lines = f.readlines()
-pheads = [l.strip() for l in lines]
-f.close()
-for hw in pheads:
-    jieba.add_word(hw)
+    f = codecs.open('./resources/cosmetic_headwords.txt', 'r', encoding='utf-8')
+    # with open('../Data/cosmetic_headwords.txt', 'r') as f:
+    lines = f.readlines()
+    pheads = [l.strip() for l in lines]
+    f.close()
+    for hw in pheads:
+        jieba.add_word(hw)
 
 column_list = ['編號', '品牌通路', '品牌', '系列中文名稱', '系列英文名稱', '中文品名', '英文品名', '中文簡介', '英文簡介', '用途', '品項', '功效', '上市日期', '規格', '販售國家', '停產國家', '是否限量', '產品別名', '建立時間', '修改時間', '是否為口碑之星', '是否在前台隱藏', '精選文章數', '是否上過首頁推薦', '產品圖', '圖1', '圖2', '圖3', '圖4', '圖5']
 column_dict = {'ID':'編號', 'brand':'品牌', 'zh_series_name':'系列中文名稱', 'en_series_name':'系列英文名稱', 'zh_product_name':'中文品名', 'en_product_name':'英文品名', 'zh_intro':'中文簡介', 'en_intro':'英文簡介', 'usage':'用途', 'items':'品項', 'effect':'功效', 'date':'上市日期', 'spec':'規格', 'sell_country':'販售國家', 'unsold_country':'停產國家', 'limit_edition':'是否限量', 'product_alias':'產品別名', 'built_date':'建立時間', 'edit_date':'修改時間', 'article_num':'精選文章數'}
@@ -26,6 +27,11 @@ product_name = {} # filter by chinese product name (key: product name; value: li
 brand_alias_dict = {}
 
 def classification(col, data):
+    ''' This is a function to classify the products in database by 品牌 and 中文品名 relatively
+    
+    :param col: 品牌 or 中文品名
+    :param data: single product to be classified 
+    '''
     valid_col = False
     if col=='品牌':
         # print data[col], len(data), data
@@ -55,8 +61,9 @@ def load_style_me_data(file):
             classification(column_list[2], row)
             classification(column_list[5], row)
 
-styleMe_file = './resources/StyleMe.csv'
-load_style_me_data(styleMe_file)
+    # store brand alias as a dictionary. (K, V) = (brand name <type 'str'>, brand alias <type 'list'>)
+    for b in brand.keys():
+        brand_alias_dict[b] = get_brand_alias(b)
 
 def get_brand_alias(b):
     b_ = b
@@ -70,17 +77,10 @@ def get_brand_alias(b):
         for p_a in p_name_alias:
             if p_name in p_a:
                 a_ = p_a.replace(p_name, '').strip()
-#                 if b=='CHANEL 香奈兒':
-#                     print p_a
                 if len(a_)>0 and not a_ in b_alias:
                     b_alias.append(a_)
     
     return b_alias
-
-for b in brand.keys():
-    brand_alias_dict[b] = get_brand_alias(b)
-    # print b, brand_alias_dict[b]
-
 
 def remove_special_char(product):
     product = product.decode('utf-8')
@@ -94,6 +94,10 @@ def remove_special_char(product):
     return product
 
 def has_exact_match(title):
+    ''' This is a function to check if title has exact match(es) of brand and product
+    :param title: title to check
+    :return: exact_match, found_product
+    '''
     exact_match = False
     found_product = []
     for b in brand.keys():
@@ -126,27 +130,31 @@ def has_exact_match(title):
 
 
 def main():
+
+    load_dictionary()
+
+    styleMe_file = './resources/StyleMe.csv'
+    load_style_me_data(styleMe_file)
+
     article_dir = '../../data/styleMe/article_filtered'
     file_list = [os.path.join(article_dir, f) for f in sorted(os.listdir(article_dir))]
 
-    key_list = ['category', 'content', 'hits', 'title', 'url', 'author', 'post_date', 'comment_count', 'post_at', 'comment_ids', 'article_id', 'tags', 'is_spam']
-
+    ### log data for pattern matching
     num_of_sen = [0, 0, 0, 0, 0]
     str_of_sen = ['', '', '', '', '']
     total_sen_num = 0
+    ###
     for i in range(len(file_list)):
-    # for i in range(1):
         current_filename = file_list[i].split('\\')[-1]
         print 'current file:', current_filename
         with open(file_list[i], 'r') as fin:
             output_str = ''
             for line in fin:
-                contain_same_product_head = False
+                # contain_same_product_head = False
                 data = json.loads(line)
-        #             print data['url'], data['title']
                 title = data['title'].encode('utf-8')
                 print data['url'].encode('utf-8'), data['title'].encode('utf-8')
-                exact_match, found_list = has_exact_match(title)
+                exact_match, found_list = has_exact_match(title) # see if current title contains exact match
                 if exact_match is True:
                     output_str += json.dumps({'title': title, 'url': data['url'].encode('utf-8'), 'sentence': title, 'product': found_list, 'pattern':'(0) title exact match'})+'\n'
                     ### for log
@@ -154,52 +162,34 @@ def main():
                     str_of_sen[0] += '\t(0) title: '+title+';'+str(found_list)+';url:'+data['url'].encode('utf-8')+'\n'
                     total_sen_num += 1
                     ###
-    #                 print data['url'], data['title']
                     content = data['content'].encode('utf-8')
                     soup = BeautifulSoup(content, 'html.parser')
-        #             print content
-        #             pure_text = soup.get_text().encode('utf-8')
-                    pure_text = [text for text in soup.stripped_strings]
+                    pure_text = [text for text in soup.stripped_strings] # get pure text of content
 
                     ### Find product head list
                     p_head_list = []
-                    p_describe_list = []
                     for p in found_list:
                         product = remove_special_char(p[-1])
-    #                     print product
                         seg_list = jieba.lcut(product)
                         seg_list = [t for t in seg_list if not t.isspace()]
-                        # print seg_list[-1]
-                        if seg_list[-1] in p_head_list:
-                            contain_same_product_head = True
                         p_head_list.append((seg_list[:-1], seg_list[-1])) # (description, product_head)
-    #                     if len(seg_list)>1:
-    #                         ### product contains B
-    #                         p_describe_list.append(seg_list[:-1])
-    #                     else:
-    #                         p_decribe_list.append([])
 
                     label_data = []
                     for line in pure_text:
-                        #### type(line)='unicode'
-    #                     print line
+                        #### type(line)=< type 'unicode'>
                         ### for log
                         total_sen_num += 1
                         ###
                         tag = []
                         for idx, p_head in enumerate(p_head_list):
-                            # print type(p_head[1])
-                            #  print idx, p_head, type(p_head), found_list[idx][1].decode('utf-8'), type(found_list[idx][1].decode('utf-8')), type(line)
                             if len(p_head[0])>0:
                                 ### product[idx] has description B, segmented as n B_
                                 ### (1) if sentence contains A: match A + at least one B_ + C
-                                ### (2) else: if n=2, at least n B_; else, at least n/2 B_
+                                ### (2) else: if n=2, match n B_ + C; else, at least n/2 B_ + C
                                 b_ = r'\b(?:%s)\b' % '|'.join(v for v in brand_alias_dict[found_list[idx][1]]) # type(b_) = <type 'str'>
                                 if re.search(b_, line.encode('utf-8')):
                                     p_des = r'\b(?:%s)\b' % '|'.join(v for v in p_head[0])
                                     if re.search(p_des, line) and p_head[1] in line:
-                                        # print '(1)'+p_des.encode('utf-8')+';('+found_list[idx][1]+','+found_list[idx][2]+');'+line.encode('utf-8')
-                                        # print type(p_des)
                                         match_str = '(1)' + p_des.encode('utf-8') + ';' + p_head[1].encode('utf-8')
                                         tag.append((found_list[idx], match_str))
                                         ### for log
@@ -210,7 +200,6 @@ def main():
                                     if len(p_head[0])==2:
                                         p_des = r'\b(?:%s)\b' % '.*'.join(v for v in p_head[0])
                                         if re.search(p_des, line) and p_head[1] in line:
-                                            # print '(2-1)' + p_des.encode('utf-8')+';('+found_list[idx][1]+','+found_list[idx][2]+');'+line.encode('utf-8')
                                             match_str = '(2-1)' + p_des.encode('utf-8') + ';' + p_head[1].encode('utf-8')
                                             tag.append((found_list[idx], match_str))
                                             ### for log
@@ -224,7 +213,6 @@ def main():
                                             for j in range(0, i+1):
                                                 p_des = r'\b(?:%s)\b' % '.*'.join(v for v in p_head[0][j:n-i+j])
                                                 if re.search(p_des, line) and p_head[1] in line:
-                                                    # print '(2-2)' + p_des.encode('utf-8')+';('+found_list[idx][1]+','+found_list[idx][2]+');'+line.encode('utf-8')
                                                     match_str = '(2-2)' + p_des.encode('utf-8') + ';' + p_head[1].encode('utf-8')
                                                     tag.append((found_list[idx], match_str))
                                                     searched = True
@@ -239,7 +227,6 @@ def main():
                                 ### (3) A + C
                                 b_ = r'\b(?:%s)\b' % '|'.join(v for v in brand_alias_dict[found_list[idx][1]])
                                 if re.search(b_, line) and p_head[1] in line:
-                                    # print '(3)' + b_ +';('+found_list[idx][1]+','+found_list[idx][2]+');'+line.encode('utf-8')
                                     match_str = '(3)'+b_+';'+p_head[1].encode('utf-8')
                                     tag.append((found_list[idx], match_str))
                                     ### for log
@@ -249,10 +236,9 @@ def main():
 
                         if len(tag)>0:
                             label_data.append((line, tag))
-                    # print len(label_data), label_data
+
                     for idx, label in enumerate(label_data):
-                        # print label_data[idx][0], label_data[idx][1][0]
-                        # print label_data[idx][1][0][0], label_data[idx][1][0][1]
+                        # dump every labeled data as json file
                         output_str += json.dumps({'title': title, 'url': data['url'].encode('utf-8'), 'sentence': label_data[idx][0], 'product': label_data[idx][1][0][0], 'pattern': label_data[idx][1][0][1]})+'\n'
 
         # print output_str
