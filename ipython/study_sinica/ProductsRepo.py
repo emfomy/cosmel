@@ -39,6 +39,8 @@ class ProductsRepo():
         self.pname_to_pind = {}
         self.pind_to_pname = {}
         self.pname_to_brand = {}
+        self.bind_to_brand = {}
+        self.brand_to_bind = {}
 
         for item in p_repo:
             name = item['中文品名']
@@ -53,7 +55,16 @@ class ProductsRepo():
             self.pname_to_pind[name] = ind
             self.pind_to_pname[ind] = name
             self.pname_to_brand[name] = brand
-            
+        
+        brands_set = set( [b.lower() for b in self.pname_to_brand.values()])
+        try:
+            brands_set.remove('')
+        except ValueError:
+            pass  
+        for i, b in enumerate(brands_set):
+            self.bind_to_brand[i] = b
+            self.brand_to_bind[b]=i
+        
         self.allproducts_seg = []
         self.pind_to_pname_seg = {}
         for p in self.allproducts:
@@ -62,6 +73,14 @@ class ProductsRepo():
             ind = self.pname_to_pind[p]
             self.pind_to_pname_seg[ind] = pseg
         
+    def get_all_descriptive_termset(self):
+        # from collections import Counter
+        # desc_set = Counter()
+        desc_set = set()
+        for p_seg in self.allproducts_seg:
+            desc_set.update(p_seg[:-1])
+        return desc_set
+
     @staticmethod
     def remove_special_char_in_product(product):
         product = re.sub(r'SPF\s?\d+\+?[\/\s\.]PA\+*', '', product, re.IGNORECASE)
@@ -99,12 +118,7 @@ class ProductsRepo():
         return alias
     
     def get_all_brands(self):
-        brands_lst = list(set( [b.lower() for b in self.pname_to_brand.values()] ))
-        try:
-            brands_lst.remove('')
-        except ValueError:
-            pass
-        return brands_lst
+        return list(self.bind_to_brand.values())
         
     def get_all_brands_chinese(self):
         b_set = set()
@@ -126,4 +140,8 @@ if __name__ == '__main__':
     print(style_repo.allproducts[:10])
     print(style_repo.allproducts_seg[:10])
     print(style_repo.get_brand_alias('L\'OREAL PARIS 巴黎萊雅'))
+    # print(style_repo.get_all_descriptive_termset())
+    # print(style_repo.brand_to_bind)
+    # print(style_repo.bind_to_brand)
+    print(style_repo.get_all_brands())
     

@@ -7,6 +7,8 @@ import jieba
 
 from ProductsRepo import ProductsRepo
 
+from CKIPParser.call_ckip_parser import *
+from CKIPParser.parse_tree import TreeNode
 
 def check_contain_chinese(check_str):
     for ch in check_str:
@@ -47,9 +49,66 @@ class Sentence():
     def __init__(self, aid, line_no, content):
         self.aid = aid
         self.line_no = line_no
+        self.sid = (aid,line_no)
+        content = content.lower()
         self.content = content
         self.content_seg = jieba.lcut(content)
         self.product_id = []
+        self.brand_id = []
+        self.span_list = []
+    
+    def search_span(self, headword_set, decription_set, brand_set):
+        existed_heads = [] 
+        for i, term in enumerate(self.content_seg):
+            if term in headword_set:
+                existed_heads.append((i, term))
+
+        for i,term in existed_heads:
+            if i==0:
+                continue
+
+            span = []
+            #at least one desciption word
+            prev = self.content_seg[i-1]
+            if prev in decription_set:
+                span=[(i,term), (i-1, prev)]
+
+            if span: #check continuously 
+                #search for desciption or brand
+                p= i-1 
+                while p>0:
+                    prev = self.content_seg[p-1]
+                    if prev in decription_set | brand_set:
+                        span.append((p-1, prev))
+                        p -= 1 
+                    else:
+                        break
+                span.reverse()
+
+            else:
+                prev_all = ''.join(self.content_seg[:i])
+                if '這' in prev_all:
+                    #find position of 這
+                    for pos in range(i-1,  -1, -1): #if headword at i=3, check position 2,1,0
+                        if '這' in self.content_seg[pos]:
+                            this_pos = pos
+                    this_clause = ''.join(self.content_seg[this_pos: i+1])  #取出這款唇膏之類的
+                    # import pdb; pdb.set_trace()
+                    #use parser and construct parse tree
+                    parse_result = parse_sentences(this_clause)[0]
+                    root = TreeNode(parse_result)
+
+                    #find NP clause
+                    all_np = root.getAllTargetNodes('NP')
+                    all_np_str = [''.join(node.getAllLeafData()) for node in all_np]
+
+                    if this_clause in all_np_str:
+                        span = [(pos, self.content_seg[pos]) for pos in range(this_pos,i+1)]
+                         
+            if span:
+                self.span_list.append(span) 
+
+        return self.span_list
         
     def get_features_with_product(self, product, brand):
         '''
@@ -151,30 +210,41 @@ class Sentence():
     
 
     def __str__(self):
-        s = 'article: {}\n{} - {}\n'.format(self.aid, self.line_no, self.content)
+        s = 'id: {}\n{} - {}\n'.format(self.sid, self.line_no, self.content)
         return s
     
     
 class Article():
-    def __init__(self, aid, title, content, url, author, post_date, category, tags, hits):
+    def __init__(self, aid, title, sentences, url, author, post_date, category, tags, hits):
         self.aid = aid
         self.title = title
-        self.content = content
+        # self.content = content
         self.url = url
         self.author = author
         self.post_date = post_date
         self.category = category
         self.tags = tags
         self.hits = hits
-    
+        
+        self.product_id_in_title = []
+        
         self.sentences = []
-        lines =  re.split(r'\\n| 。|，|!|！|,|\\?|． ' , content)
-        for i, line in enumerate(lines):
-            sent = Sentence(aid, i+1, line)
+        sentences_ss = []
+        for s in sentences:
+            ss = re.split(r'\\n| 。|。|，|!|！|,|\\?|． ' , s)
+            sentences_ss.extend(ss)
+        
+        line_no = 1
+        for line in sentences_ss:
+            # if re.search('\S', line) is None:
+            #     continue
+            sent = Sentence(aid, line_no, line)
             self.sentences.append(sent)
-    
+            line_no +=1
+            
     def __str__(self):
-        s = 'title: ' + self.title + '\n' + 'content: ' + self.content[:200] + '\n'
+        s = 'title: ' + self.title + '\n'
+        s += self.url + '\n'
         s += 'number of sentences {}'.format(len(self.sentences))  + '\n'
         s += str(self.sentences[0])
         return s
@@ -194,8 +264,8 @@ if __name__ == '__main__':
     soup = BeautifulSoup(data['content'], 'html.parser')
     for script in soup(["script", "style"]):
         script.decompose()    # rip it out
-    content_clean = soup.get_text()
-    a = Article(data['article_id'], data['title'], content_clean, data['url'], data['author'], data['post_date'], data['category'], data['tags'], data['hits'])
+    sent_clean =  [text for text in soup.stripped_strings]
+    a = Article(data['article_id'], data['title'], sent_clean, data['url'], data['author'], data['post_date'], data['category'], data['tags'], data['hits'])
     print(a)
 
     style_repo = ProductsRepo('resources//StyleMe.csv')
@@ -212,3 +282,19 @@ if __name__ == '__main__':
     print(brand_alias)
     print(sent.get_features_with_product(p_seg, brand_alias))
     
+    #parse
+    # print(parse_sentences(['天使惡魔羽透輕紗氣墊濾鏡遮瑕筆','臻雪丹御至善賦活精華','魅光星采粉', '挺濃翹U型防水睫毛膏']))
+    # print(parse_sentences(['天使惡魔羽透輕紗氣墊濾鏡遮瑕筆'])) # 只有一句的時候 遮瑕  筆 會被斷開！？
+     
+     #search spans
+    # sent = Sentence(-1, -1, '[底妝] 這次廠商送我的THREE輕透亮粉霜 開箱第一印象實測心得')
+    sent = Sentence(-1, -1, '[底妝] 這次廠商送我的THREE立體光采粉霜 開箱第一印象實測心得')
+
+    decription_set = style_repo.get_all_descriptive_termset()
+    brands_ori = style_repo.get_all_brands()
+    brand_set = set(brands_ori)
+    for b in brands_ori:
+        brand_set.update(style_repo.get_brand_alias(b))
+
+    span_list = sent.search_span(set(pheads), decription_set, brand_set)
+    print(span_list)
