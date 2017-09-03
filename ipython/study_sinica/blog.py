@@ -29,238 +29,37 @@ with open('resources/brands_in_chinese.txt', 'r', encoding='utf-8') as f:
     brands = [l.strip() for l in lines]
 for brand in brands:
     jieba.add_word(brand)
-    
-
-def longest_common_substring(s1, s2):
-    m = [[0] * (1 + len(s2)) for i in range(1 + len(s1))]
-    longest, x_longest = 0, 0
-    for x in range(1, 1 + len(s1)):
-        for y in range(1, 1 + len(s2)):
-            if s1[x - 1] == s2[y - 1]:
-                m[x][y] = m[x - 1][y - 1] + 1
-                if m[x][y] > longest:
-                    longest = m[x][y]
-                    x_longest = x
-            else:
-                m[x][y] = 0
-    return s1[x_longest - longest: x_longest]
-
+ 
 class Sentence():
     def __init__(self, aid, line_no, content):
         self.aid = aid
         self.line_no = line_no
         self.sid = (aid,line_no)
+
         content = content.lower()
         self.content = content
-        self.content_seg = jieba.lcut(content)
-        self.product_id = []
-        self.brand_id = []
-        self.span_list = []
-    
-    def search_span(self, headword_set, decription_set, brand_set):
-        decription_set = set([term.lower() for term in decription_set])
-        brand_set = set([term.lower() for term in brand_set])
-        headword_set = set([term.lower() for term in headword_set])
-        
-        existed_heads = [] 
-        for i, term in enumerate(self.content_seg):
-            if term in headword_set:
-                existed_heads.append((i, term))
+        self.content_seg = [s for s in jieba.lcut(content) if not s.isspace()]
+        self.label_content = ''
 
-        for i,term in existed_heads:
-            if i==0:
-                continue
+        self.span_ranges = []
+        self.span_methods = {}
+        self.product_ids = []
+        self.product_brands = []
+        # self.span_list = []
 
-            span = []
-            #at least one desciption word
-            prev = self.content_seg[i-1]
-            if prev in decription_set:
-                span=[(i,term), (i-1, prev)]
-
-            if span: #check continuously 
-                #search for desciption or brand
-                p= i-1 
-                while p>0:
-                    prev = self.content_seg[p-1]
-                    if prev in decription_set | brand_set:
-                        span.append((p-1, prev))
-                        p -= 1 
-                    else:
-                        break
-                span.reverse()
-
-            else:
-                prev_all = ''.join(self.content_seg[:i])
-                if '這' in prev_all:
-                    #find position of 這
-                    for pos in range(i-1,  -1, -1): #if headword at i=3, check position 2,1,0
-                        if '這' in self.content_seg[pos]:
-                            this_pos = pos
-                    this_clause = ''.join(self.content_seg[this_pos: i+1])  #取出這款唇膏之類的
-                    # import pdb; pdb.set_trace()
-                    #use parser and construct parse tree
-                    parse_result = parse_sentences(this_clause)[0]
-                    root = TreeNode(parse_result)
-
-                    #find NP clause
-                    all_np = root.getAllTargetNodes('NP')
-                    all_np_str = [''.join(node.getAllLeafData()) for node in all_np]
-
-                    if this_clause in all_np_str:
-                        span = [(pos, self.content_seg[pos]) for pos in range(this_pos,i+1)]
-                         
-            if span:
-                self.span_list.append(span) 
-
-        return self.span_list
-        
-    def get_features_with_product(self, product, brand, span_id = 0):
-        '''
-            product : list of terms
-            brand : list of brand alias
-        '''
-        #TODO: no span??
-
-        span = self.span_list[span_id] #contain [(position,term),...]
-        span_positions = set([tup[0] for tup in span])
-        span_terms = [tup[1] for tup in span]
-
-        span_termset = set(span_terms)
-        span_str = ''.join(span_terms)
-        
-        context_positions = [i for i in range(len(self.content_seg)) if i not in span_positions]
-        context_termset = set([self.content_seg[i] for i in context_positions])
-
-        brand = [b.lower() for b in brand]
-        brand_chi = []
-        brand_eng = []
-        for b in brand:
-            if  check_contain_chinese(b):
-                brand_chi.append(b)
-            else:
-                brand_eng.append(b)
-
-        product = [term.lower() for term in product]
-        product_str = ''.join(product)
-
-        # --------------- features from span ---------------
-
-        span_term_match_bin =  [1 if term in span_termset else 0 for term in product]
-
-        # term match count
-        p_term_count = len(product)
-        span_term_match_count = sum(span_term_match_bin)
-        span_term_match_prop = span_term_match_count / p_term_count
-
-        #bigram
-#         if p_term_count <2:
-#             bigram_match_prop = 0
-#         else:
-#             bigram_match_count = 0
-#             for i in range( (p_term_count-1) ):
-#                 # bi_match  = 1 if term_match_bin[i]==1 and term_match_bin[i+1]==1 else 0
-#                 bigram = product[i] + product[i+1]
-#                 bi_match  = 1 if bigram in sent_str else 0
-#                 bigram_match_count += bi_match
-
-#             bigram_match_prop = bigram_match_count / (p_term_count-1)
-
-#         #trigram
-#         if p_term_count <3:
-#             trigram_match_prop = 0
-#         else:
-#             trigram_match_count = 0
-#             for i in range( (p_term_count-2) ):
-#                 # tri_match  = 1 if term_match_bin[i]==1 and term_match_bin[i+1]==1 and term_match_bin[i+2]==1 else 0
-#                 trigram = product[i] + product[i+1]+ product[i+2]
-#                 tri_match  = 1 if trigram in sent_str else 0
-                
-#                 trigram_match_count += tri_match
-
-#             trigram_match_prop = trigram_match_count / (p_term_count-2)
-        
-        #length of longest common substring 
-        span_lcs_len = len(longest_common_substring(span_str, ''.join(product)))
-        
-        #head term
-        span_head_match = span_term_match_bin[0]
-
-        #last term
-        span_tail_match = span_term_match_bin[-1]
-
-        #last 2 terms
-        if p_term_count > 1:
-            span_last2_match = 1 if span_term_match_bin[-1] == 1 and span_term_match_bin[-2]==1 else 0
-        else:
-        #last2_match = tail_match
-            span_last2_match = 0
-
-        #character level
-        span_char_set = set(list(span_str))
-        span_char_match_count = sum([1 for c in product_str if c in span_char_set])
-        span_char_match_prop = span_char_match_count / len(product_str)
-
-        #brand score
-        brand_chi_match = sum([1 for chi in brand_chi if chi in span_termset])
-        brand_eng_match = 0
-        for eng in brand_eng:
-            mcount = sum([1 for word in eng.split(' ') if word in span_termset])
-            mprop = mcount / len(eng.split(' '))
-            if mprop > brand_eng_match:
-                brand_eng_match = mprop
-
-        span_brand_score = brand_chi_match + brand_eng_match
-
-        #--------------- features from span context ---------------
-        context_term_match_bin =  [1 if term in context_termset else 0 for term in product]
-
-        # term match count
-        context_term_match_count = sum(context_term_match_bin)
-        context_term_match_prop = context_term_match_count / p_term_count
-
-        #head term
-        context_head_match = context_term_match_bin[0]
-
-        #last term
-        context_tail_match = context_term_match_bin[-1]
-
-        #last 2 terms
-        if p_term_count > 1:
-            context_last2_match = 1 if context_term_match_bin[-1] == 1 and context_term_match_bin[-2]==1 else 0
-        else:
-            context_last2_match = 0
-
-        #brand score
-        brand_chi_match = sum([1 for chi in brand_chi if chi in context_termset])
-        brand_eng_match = 0
-        for eng in brand_eng:
-            mcount = sum([1 for word in eng.split(' ') if word in context_termset])
-            mprop = mcount / len(eng.split(' '))
-            if mprop > brand_eng_match:
-                brand_eng_match = mprop
-
-        context_brand_score = brand_chi_match + brand_eng_match
-
-        features = np.array([span_term_match_prop, 
-                                         #bigram_match_prop, 
-                                         #trigram_match_prop, 
-                                         span_lcs_len,
-                                         span_head_match, 
-                                         span_tail_match, 
-                                         span_last2_match, 
-                                         span_char_match_prop, 
-                                         span_brand_score, 
-                                         context_term_match_prop,
-                                         context_head_match,
-                                         context_tail_match,
-                                         context_last2_match,
-                                         context_brand_score,
-                                         p_term_count])
-        return features
-    
+    def markSpan(self):
+        # print('--marking span--')
+        spans = [self.content_seg[s[0]:s[1] + 1] for s in self.span_ranges]
+        for i, sp in enumerate(spans):
+            item = ''.join(t for t in sp)
+            method = self.span_methods[self.span_ranges[i]]
+            label = '<pid_{}= \'{}\', gid= \'\'>{}</pid_{}>'.format(method, self.product_ids[i], item, method)
+            pattern = '\s*'.join(t for t in sp)
+            # self.label_content = self.content.replace(item, label) #TODO: space problem
+            self.label_content = re.sub(pattern, label, self.content) 
 
     def __str__(self):
-        s = 'id: {}\n{} - {}\n'.format(self.sid, self.line_no, self.content)
+        s = '{}- \n{}\n'.format(self.sid, self.content)
         return s
     
     
@@ -276,12 +75,17 @@ class Article():
         self.tags = tags
         self.hits = hits
         
-        self.product_id_in_title = []
-        
+        self.matched_sentence_id = []
+        self.match_products = []
+        self.match_brands = []
+
         self.sentences = []
+        #title
+        self.sentences.append(Sentence(aid, 0, title))
+        
         sentences_ss = []
-        for s in sentences:
-            ss = re.split(r'\\n| 。|。|，|!|！|,|\\?|． ' , s)
+        for s in sentences: #sentences: from argument ;
+            ss = re.split(r'\n| 。|。|，|!|！|,|\?|． ' , s)
             sentences_ss.extend(ss)
         
         line_no = 1
@@ -300,55 +104,38 @@ class Article():
         return s
         
 
+def load_articles(article_dir, restricted_num=None):
+    import json
+    from bs4 import BeautifulSoup
+
+    articles = []
+
+    with open(article_dir, 'r', encoding='utf-8') as fin:
+        for i, line in enumerate(fin.readlines()):
+            if restricted_num and i > restricted_num:
+                break
+
+            data = json.loads(line)
+            try:
+                soup = BeautifulSoup(data['content'], 'html.parser')
+            except KeyError:
+                print('KeyError, line:', line, 'data:', data)
+                continue
+
+            for script in soup(["script", "style"]):
+                script.decompose()  # rip it out
+            s_clean = [s for s in soup.stripped_strings]
+            a = Article(data['article_id'], data['title'], s_clean, data['url'], data['author'], data['post_date'],
+                        data['category'], data['tags'], data['hits'])
+            # print(a)
+            articles.append(a)
+
+    return articles
+
 if __name__ == '__main__':
     from bs4 import BeautifulSoup
     import json
     
     article_dir = '../../data/styleMe/article_filtered/part-00000'
-    with open(article_dir, 'r', encoding='utf-8') as fin:
-        for line in fin:
-            data = json.loads(line)
-            # print(data)
-            break
-            
-    soup = BeautifulSoup(data['content'], 'html.parser')
-    for script in soup(["script", "style"]):
-        script.decompose()    # rip it out
-    sent_clean =  [text for text in soup.stripped_strings]
-    a = Article(data['article_id'], data['title'], sent_clean, data['url'], data['author'], data['post_date'], data['category'], data['tags'], data['hits'])
+    a = load_articles(article_dir, 1)[0]
     print(a)
-
-    style_repo = ProductsRepo('resources//StyleMe.csv')
-    decription_set = style_repo.get_all_descriptive_termset()
-    brands_ori = style_repo.get_all_brands()
-    brand_set = set(brands_ori)
-    for b in brands_ori:
-        brand_set.update(style_repo.get_brand_alias(b))
-
-    sent = Sentence(-1, -1, 'BOURJOIS 妙巴黎] 舒芙蕾糖霜粉霧唇彩 是蜜糖還是毒藥？ #04#05兩色分享')
-
-    p='舒芙蕾粉霧糖霜唇彩'
-    p_seg = jieba.lcut(p)
-
-    brand = style_repo.pname_to_brand[p]
-    brand_alias = ProductsRepo.get_brand_alias(brand)
-    
-    print(sent.content_seg)
-    print(p_seg)
-    print(brand_alias)
-
-    sent.search_span(set(pheads), decription_set, brand_set)
-    print(sent.span_list)
-    for i in range(len(sent.span_list)):
-        print(sent.get_features_with_product(p_seg, brand_alias, span_id = i ))
-    
-    #parse
-    # print(parse_sentences(['天使惡魔羽透輕紗氣墊濾鏡遮瑕筆','臻雪丹御至善賦活精華','魅光星采粉', '挺濃翹U型防水睫毛膏']))
-    # print(parse_sentences(['天使惡魔羽透輕紗氣墊濾鏡遮瑕筆'])) # 只有一句的時候 遮瑕  筆 會被斷開！？
-     
-     #search spans
-    # sent = Sentence(-1, -1, '[底妝] 這次廠商送我的THREE輕透亮白粉霜 開箱第一印象實測心得')
-    # sent = Sentence(-1, -1, '[底妝] 這次廠商送我的THREE立體光采粉霜 開箱第一印象實測心得') #我的.......
-    # sent = Sentence(-1, -1, '[底妝] 水凝透光蜜粉 極緻保濕精華 開箱第一印象實測心得') #我的.......
-    # span_list = sent.search_span(set(pheads), decription_set, brand_set)
-    # print(span_list)
