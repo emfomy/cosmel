@@ -61,11 +61,6 @@ class DecisionTreeMethod(object):
                     sentence.span_ranges.append((start_id, head_id))
                     sentence.product_brands.append(cur_node.name)
                     sentence.span_methods[(start_id, head_id)] = 'a'
-
-                    article.matched_sentence_id.append(sentence.sid)
-                    article.match_products.append(cur_node.product_id)
-                    article.match_brands.append(cur_node.name)
-
                     found = True
 
                 if not found and 'brand' in products_data.Tree.getAllChildrenType(cur_node):
@@ -87,21 +82,8 @@ class DecisionTreeMethod(object):
                             sentence.span_ranges.append((start_id, head_id))
                             sentence.product_brands.append(cur_node.children[brand[1]].name)
                             sentence.span_methods[(start_id, head_id)] = 'a'
-
-                            article.matched_sentence_id.append(sentence.sid)
-                            article.match_products.append(cur_node.children[brand[1]].product_id)
-                            article.match_brands.append(cur_node.children[brand[1]].name)
-
                             found = True
-                    # if not found_brand and len(cur_node.children)==1 and cur_node.children[0].type=='brand':
-                    #     nearest_brand = article.match_brands[-1][-1] if not len(article.match_brands) == 0 else ''
-                    #     if nearest_brand == '': return 0  # step(1), no product brand found in previous content
-                    #     sentence.product_ids.append(cur_node.children[0].product_id)
-                    #     sentence.span_ranges.append((start_id, head_id))
-                    #     sentence.product_brands.append(cur_node.children[0].name)
-                    #     sentence.span_methods[(start_id, head_id)] = 'a'
-                    #     found = True
-                    
+
                 if not found and cur_node.type == 'headword':
                     # continue
                     # decision tree (1)
@@ -117,8 +99,8 @@ class DecisionTreeMethod(object):
                     start_id = possible_start_id[-1]
                     logger.debug('start_id: {} end_id: {}'.format(start_id, head_id))
                     if head_id-start_id > 3: return 0 # not found '這.* headword'
-                    nearest_product_id = article.match_products[-1] if not len(article.match_products)==0 else -1
-                    nearest_brand = article.match_brands[-1] if not len(article.match_brands)==0 else ''
+                    nearest_product_id = article.match_products[-1][-1] if not len(article.match_products)==0 else -1
+                    nearest_brand = article.match_brands[-1][-1] if not len(article.match_brands)==0 else ''
                     if nearest_brand=='': return 0 # step(1), no product brand found in previous content
                     if nearest_product_id==-1: return 0 # step(2), no product id found in previous content
                     nearest_product_name = products_data.pind_to_pname[nearest_product_id]
@@ -128,23 +110,17 @@ class DecisionTreeMethod(object):
                         sentence.span_ranges.append((start_id, head_id))
                         sentence.product_brands.append(nearest_brand)
                         sentence.span_methods[(start_id, head_id)] = 'b'
-
-                        article.matched_sentence_id.append(sentence.sid)
-                        article.match_products.append(nearest_product_id)
-                        article.match_brands.append(nearest_brand)
-
                         found = True
 
                 if not found and cur_node.type == 'description':
                     # continue
                     # decision tree(2)
-                    nearest_product_id = article.match_products[-1] if not len(article.match_products) == 0 else -1
-                    nearest_brand = article.match_brands[-1] if not len(article.match_brands) == 0 else ''
+                    nearest_product_id = article.match_products[-1][-1] if not len(article.match_products) == 0 else -1
+                    nearest_brand = article.match_brands[-1][-1] if not len(article.match_brands) == 0 else ''
                     if nearest_brand=='': return 0 # step(1), no product brand found in previous content
                     if nearest_product_id==-1: return 0 # step(2), no product id found in previous content
                     nearest_product_name = products_data.pind_to_pname[nearest_product_id]
-                    if (products_data.pname_to_brand[nearest_product_name] == nearest_brand
-                            and n.name in nearest_product_name):
+                    if (products_data.pname_to_brand[nearest_product_name] == nearest_brand and n.name in nearest_product_name):
                         # step(2), nearest product id contains nearest brand and matched product head
                         logger.debug('step(2), nearest product id contains nearest brand and matched product head')
                         logger.debug('start_id: {} end_id: {}'.format(start_id, head_id))
@@ -152,17 +128,12 @@ class DecisionTreeMethod(object):
                         sentence.span_ranges.append((start_id, head_id))
                         sentence.product_brands.append(nearest_brand)
                         sentence.span_methods[(start_id, head_id)] = 'c'
-
-                        article.matched_sentence_id.append(sentence.sid)
-                        article.match_products.append(nearest_product_id)
-                        article.match_brands.append(nearest_brand)
-
                         found = True
                 
                     else:
                         # step(3)
                         #TODO: 好像怪怪的！？
-                        product_candidates = products_data.productHead2product[n.name]
+                        product_candidates = products_data.productHead2product[n.name] # n: headword node
                         if len(product_candidates)>1: return 0 # (found brand + current matched words) is not a unique combination in the db
                         logger.debug(type(product_candidates))
                         logger.debug(' '.join(map(str,product_candidates)))
@@ -180,11 +151,6 @@ class DecisionTreeMethod(object):
                             sentence.span_ranges.append((start_id, head_id))
                             sentence.product_brands.append(nearest_brand)
                             sentence.span_methods[(start_id, head_id)] = 'c'
-
-                            article.matched_sentence_id.append(sentence.sid)
-                            article.match_products.append(nearest_product_id)
-                            article.match_brands.append(nearest_brand)
-
                             found = True
                             
         return found
