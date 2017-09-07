@@ -179,6 +179,12 @@ class StyleMe_Tree(RenderTree):
             children.append(c.name)
         return children
 
+    def getAllChildrenType(self, node):
+        type_ = []
+        for c in node.children:
+            type_.append(c.type)
+        return type_
+
 class StyleMe_Node(Node):
     def __init__(self, type, string, parent=None, product_id=-1):
         '''

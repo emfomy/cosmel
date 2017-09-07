@@ -30,13 +30,13 @@ class DecisionTreeMethod(object):
         # self.tree = tree
         pass
 
-    def extract_product(self, sentence, article, products_tree):
+    def extract_product(self, sentence, article, products_data):
         found = False
 
         if len(sentence.content_seg) == 0: 
             return found
 
-        for n in products_tree.Tree.root.children:
+        for n in products_data.Tree.root.children:
             if n.name in sentence.content_seg:
                 head_id = sentence.content_seg.index(n.name)
                 start_id = head_id
@@ -44,8 +44,9 @@ class DecisionTreeMethod(object):
                 cur_node = n
                 #TODO: brand alias的比對？？
                 #TODO: 找惹兩次？！
-                while sentence.content_seg[start_id - 1] in products_tree.Tree.getAllChildrenName(cur_node):
-                    node_idx = products_tree.Tree.getAllChildrenName(cur_node).index(sentence.content_seg[start_id - 1])
+                # FIXED
+                while sentence.content_seg[start_id - 1] in products_data.Tree.getAllChildrenName(cur_node):
+                    node_idx = products_data.Tree.getAllChildrenName(cur_node).index(sentence.content_seg[start_id - 1])
                     # print('cur_word:', sentence.content_seg[start_id-1], cur_node, node_idx)
                     cur_node = cur_node.children[node_idx]
                     start_id -= 1
@@ -53,59 +54,96 @@ class DecisionTreeMethod(object):
                     if start_id < 0: break
 
                 if cur_node.is_leaf:
+                    # exact match of brand
                     logger.debug('cur_node.is_leaf ' + cur_node.type)
                     logger.debug('start_id: {} end_id: {}'.format(start_id, head_id))
                     sentence.product_ids.append(cur_node.product_id)
                     sentence.span_ranges.append((start_id, head_id))
                     sentence.product_brands.append(cur_node.name)
                     sentence.span_methods[(start_id, head_id)] = 'a'
+
+                    article.matched_sentence_id.append(sentence.sid)
+                    article.match_products.append(cur_node.product_id)
+                    article.match_brands.append(cur_node.name)
+
                     found = True
 
-                elif cur_node.children[0].type == 'brand':
+                if not found and 'brand' in products_data.Tree.getAllChildrenType(cur_node):
+                    # need brand alias match
+                    # some product has the same 中文品名 but with different brand
+                    # e.g. (3367, shu uemura 植村秀, 指甲油), (5593, CHANEL 香奈兒, 指甲油), (8692, Smith & Cult, 指甲油), (16816, Dior 迪奧, 指甲油)
                     logger.debug('get product id: {} {}'.format(cur_node.children[0].product_id, cur_node.children[0].name))
                     logger.debug('start_id: {} end_id: {}'.format(start_id, head_id))
-                    sentence.product_ids.append(cur_node.children[0].product_id)
-                    sentence.span_ranges.append((start_id, head_id))
-                    sentence.product_brands.append(cur_node.children[0].name)
-                    sentence.span_methods[(start_id, head_id)] = 'a'
-                    found = True
+                    brand_alias = [(products_data.get_brand_alias(cur_node.children[idx].name), idx) for idx, t in enumerate(products_data.Tree.getAllChildrenType(cur_node)) if t == 'brand']
+                    # brand_alias = products_data.get_brand_alias(cur_node.children[0].name)
+                    found_brand = False
+                    for brand in brand_alias:
+                        for b in brand[0]:
+                            if b in reversed([w.lower() for w in sentence.content_seg[:start_id]]):
+                                found_brand = True
+                                break
+                        if found_brand:
+                            sentence.product_ids.append(cur_node.children[brand[1]].product_id)
+                            sentence.span_ranges.append((start_id, head_id))
+                            sentence.product_brands.append(cur_node.children[brand[1]].name)
+                            sentence.span_methods[(start_id, head_id)] = 'a'
+
+                            article.matched_sentence_id.append(sentence.sid)
+                            article.match_products.append(cur_node.children[brand[1]].product_id)
+                            article.match_brands.append(cur_node.children[brand[1]].name)
+
+                            found = True
+                    # if not found_brand and len(cur_node.children)==1 and cur_node.children[0].type=='brand':
+                    #     nearest_brand = article.match_brands[-1][-1] if not len(article.match_brands) == 0 else ''
+                    #     if nearest_brand == '': return 0  # step(1), no product brand found in previous content
+                    #     sentence.product_ids.append(cur_node.children[0].product_id)
+                    #     sentence.span_ranges.append((start_id, head_id))
+                    #     sentence.product_brands.append(cur_node.children[0].name)
+                    #     sentence.span_methods[(start_id, head_id)] = 'a'
+                    #     found = True
                     
-                elif cur_node.type == 'headword':
+                if not found and cur_node.type == 'headword':
                     # continue
                     # decision tree (1)
                     # if sentence.line_no == 54:  print('DT(1) cur_node:', cur_node)
                     '''make this sentence to parser! 
                     pattern: 這.*headword must be a NP of this sentence
                     '''
-                    #TODO: 如果被斷成這款 這瓶..呢？？ 
-                    if not '這' in sentence.content_seg[:start_id]: return 0 # not found '這.* headword'
+                    #TODO: 如果被斷成這款 這瓶..呢？？
+                    # FIXED
+                    possible_start_id =  [idx for idx, ele in enumerate(sentence.content_seg[:start_id]) if '這' in ele]
+                    if len(possible_start_id)==0: return 0 # not found '這.* headword'
                     ''''''
-                    start_id = sentence.content_seg.index('這')
+                    start_id = possible_start_id[-1]
                     logger.debug('start_id: {} end_id: {}'.format(start_id, head_id))
                     if head_id-start_id > 3: return 0 # not found '這.* headword'
-                    nearest_product_id = article.match_products[-1][-1] if not len(article.match_products)==0 else -1
-                    nearest_brand = article.match_brands[-1][-1] if not len(article.match_brands)==0 else ''
+                    nearest_product_id = article.match_products[-1] if not len(article.match_products)==0 else -1
+                    nearest_brand = article.match_brands[-1] if not len(article.match_brands)==0 else ''
                     if nearest_brand=='': return 0 # step(1), no product brand found in previous content
                     if nearest_product_id==-1: return 0 # step(2), no product id found in previous content
-                    nearest_product_name = products_tree.pind_to_pname[nearest_product_id]
-                    if (products_tree.pname_to_brand[nearest_product_name] == nearest_brand 
-                            and cur_node.name in nearest_product_name):
+                    nearest_product_name = products_data.pind_to_pname[nearest_product_id]
+                    if (products_data.pname_to_brand[nearest_product_name] == nearest_brand and cur_node.name in nearest_product_name):
                         # step(2)
                         sentence.product_ids.append(nearest_product_id)
                         sentence.span_ranges.append((start_id, head_id))
                         sentence.product_brands.append(nearest_brand)
                         sentence.span_methods[(start_id, head_id)] = 'b'
+
+                        article.matched_sentence_id.append(sentence.sid)
+                        article.match_products.append(nearest_product_id)
+                        article.match_brands.append(nearest_brand)
+
                         found = True
 
-                elif cur_node.type == 'description':
+                if not found and cur_node.type == 'description':
                     # continue
                     # decision tree(2)
-                    nearest_product_id = article.match_products[-1][-1] if not len(article.match_products) == 0 else -1
-                    nearest_brand = article.match_brands[-1][-1] if not len(article.match_brands) == 0 else ''
+                    nearest_product_id = article.match_products[-1] if not len(article.match_products) == 0 else -1
+                    nearest_brand = article.match_brands[-1] if not len(article.match_brands) == 0 else ''
                     if nearest_brand=='': return 0 # step(1), no product brand found in previous content
                     if nearest_product_id==-1: return 0 # step(2), no product id found in previous content
-                    nearest_product_name = products_tree.pind_to_pname[nearest_product_id]
-                    if (products_tree.pname_to_brand[nearest_product_name] == nearest_brand 
+                    nearest_product_name = products_data.pind_to_pname[nearest_product_id]
+                    if (products_data.pname_to_brand[nearest_product_name] == nearest_brand
                             and n.name in nearest_product_name):
                         # step(2), nearest product id contains nearest brand and matched product head
                         logger.debug('step(2), nearest product id contains nearest brand and matched product head')
@@ -114,12 +152,17 @@ class DecisionTreeMethod(object):
                         sentence.span_ranges.append((start_id, head_id))
                         sentence.product_brands.append(nearest_brand)
                         sentence.span_methods[(start_id, head_id)] = 'c'
+
+                        article.matched_sentence_id.append(sentence.sid)
+                        article.match_products.append(nearest_product_id)
+                        article.match_brands.append(nearest_brand)
+
                         found = True
                 
                     else:
                         # step(3)
                         #TODO: 好像怪怪的！？
-                        product_candidates = products_tree.productHead2product[n.name]
+                        product_candidates = products_data.productHead2product[n.name]
                         if len(product_candidates)>1: return 0 # (found brand + current matched words) is not a unique combination in the db
                         logger.debug(type(product_candidates))
                         logger.debug(' '.join(map(str,product_candidates)))
@@ -130,13 +173,18 @@ class DecisionTreeMethod(object):
                         for p in product_candidates:
                             pname = p[0]
                             logger.debug(type(p), p, '\n', pname)
-                            if products_tree.pname_to_brand[pname] == nearest_brand and des in p[0]:
+                            if products_data.pname_to_brand[pname] == nearest_brand and des in p[0]:
                                 count += 1
                         if count == 1:
                             sentence.product_ids.append(nearest_product_id)
                             sentence.span_ranges.append((start_id, head_id))
                             sentence.product_brands.append(nearest_brand)
                             sentence.span_methods[(start_id, head_id)] = 'c'
+
+                            article.matched_sentence_id.append(sentence.sid)
+                            article.match_products.append(nearest_product_id)
+                            article.match_brands.append(nearest_brand)
+
                             found = True
                             
         return found
