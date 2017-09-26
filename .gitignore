@@ -2,6 +2,7 @@
 .git/
 src/php/
 src/python/*.pyc
+.DS_Store
 
 ipython/config.ini
 ipython/study_pixnet/config.ini
