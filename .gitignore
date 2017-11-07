@@ -11,4 +11,13 @@ ipython/.ipynb_checkpoints/
 ipython/study_pixnet/.ipynb_checkpoints/
 ipython/study_sinica/.ipynb_checkpoints/
 
+# console log
+*.out
+*.log
+*.sh
+# article data / label data
+ipython/study_sinica/resources/*
+!ipython/study_sinica/resources/StyleMe.csv
 
+ipython/study_sinica/CKIP*/
+ipython/study_sinica/WSed_pickles/
