@@ -1,4 +1,4 @@
-#! python3
+#!/usr/bin/env python3
 # -*- coding:utf-8 -*-
 
 import csv
@@ -22,8 +22,8 @@ def load_predifined_headword(path = './resources/myLexicon/cosmetic_headwords.tx
 
 ##word segmentation package
 # def load_dictionary():
-#     jieba.set_dictionary('dict.txt.big')    
-        
+#     jieba.set_dictionary('dict.txt.big')
+
 #     pheads = load_predifined_headword('./resources/cosmetic_headwords.txt')
 #     for hw in pheads:
 #         jieba.add_word(hw)
@@ -43,7 +43,7 @@ def check_contain_chinese(check_str):
         if u'\u4e00' <= ch <= u'\u9fff':
             return True
     return False
-    
+
 class ProductsRepo():
     def __init__(self, file_path):
         filename, file_extension = os.path.splitext(file_path)
@@ -51,7 +51,7 @@ class ProductsRepo():
             p_repo = self.load_from_csv(file_path)
         elif file_extension =='.json':
             p_repo = self.load_from_json(file_path)
-       
+
         self.allproducts = []
         self.allproducts_origin = []
         self.allpinds = []
@@ -61,7 +61,7 @@ class ProductsRepo():
         self.pind_to_pname = {}
         self.pname_to_pind = {}
         self.pname_to_brand = {}
-        
+
         self.bind_to_brand = {}
         self.brand_to_bind = {}
 
@@ -75,7 +75,7 @@ class ProductsRepo():
             name = self.remove_special_char_in_product(origin_name)
             name = name.strip()
             if len(name)==0 or len(brand)==0:
-                continue 
+                continue
             self.allproducts_origin.append(origin_name)
             self.allproducts.append(name)
             self.allpinds.append(ind)
@@ -86,7 +86,7 @@ class ProductsRepo():
 
             # if '指甲油' in origin_name and 'Dior' in brand:
             #     print('index:{}, brand:{}, product:{}'.format(ind, brand, origin_name))
-            
+
         self.pind_to_complete_product = self.get_complete_brand_n_product_as_dict()
         # print(self.pind_to_complete_product)
 
@@ -96,11 +96,11 @@ class ProductsRepo():
         # try:
         #     brands_set.remove('')
         # except ValueError:
-        #     pass  
+        #     pass
         for i, b in enumerate(brands_set):
             self.bind_to_brand[i] = b
             self.brand_to_bind[b]=i
-        
+
         self.allproducts_seg = []
         self.pind_to_pname_seg = {} # (k, v)=('pid', 'CKIP斷詞 w/ POS')
         self.pind_to_complete_product_seg = {} # (k, v)=('pid', 'CKIP斷詞 w/ POS'), complete_product
@@ -118,12 +118,12 @@ class ProductsRepo():
             all_product_seg_dict = self.load_product_ws(p_ori_file, p_ws_file)
             for k in self.pind_to_pname:
                 self.pind_to_pname_seg[k] = all_product_seg_dict[self.pind_to_pname[k]]
-            
+
             pickle.dump(self.pind_to_pname_seg, open(f_ws_all_product_pkl, 'wb'))
 
             print('loading WSed pickle files: {}'.format(f_ws_complete_product_pkl))
             self.pind_to_complete_product_seg = pickle.load(open(f_ws_complete_product_pkl, 'rb'))
-            
+
         elif os.path.exists(f_ws_all_product_pkl) and not os.path.exists(f_ws_complete_product_pkl):
             cp_ori_file = './resources/myLexicon/complete_brands_product.txt'
             cp_ws_file = './resources/myLexicon/complete_brands_product.txt.tag'
@@ -133,7 +133,7 @@ class ProductsRepo():
                 if c_product in all_complete_product_seg_dict:
                     self.pind_to_complete_product_seg[k] = all_complete_product_seg_dict[c_product]
             pickle.dump(self.pind_to_complete_product_seg, open(f_ws_complete_product_pkl, 'wb'))
-            
+
             print('loading WSed pickle files: {}'.format(f_ws_all_product_pkl))
             self.pind_to_pname_seg = pickle.load(open(f_ws_all_product_pkl, 'rb'))
         else:
@@ -144,7 +144,7 @@ class ProductsRepo():
             all_product_seg_dict = self.load_product_ws(p_ori_file, p_ws_file)
             for k in self.pind_to_pname:
                 self.pind_to_pname_seg[k] = all_product_seg_dict[self.pind_to_pname[k]]
-            
+
             pickle.dump(self.pind_to_pname_seg, open(f_ws_all_product_pkl, 'wb'))
 
             cp_ori_file = './resources/myLexicon/complete_brands_product.txt'
@@ -155,7 +155,7 @@ class ProductsRepo():
                 if c_product in all_complete_product_seg_dict:
                     self.pind_to_complete_product_seg[k] = all_complete_product_seg_dict[c_product]
             pickle.dump(self.pind_to_complete_product_seg, open(f_ws_complete_product_pkl), 'wb')
-            
+
             # print('(L)self.pind_to_pname_seg: ', self.pind_to_pname_seg)
         print('--finish WS product name--')
         # embed()
@@ -208,9 +208,9 @@ class ProductsRepo():
 
         product = [line.replace('\tN_product', '').strip() for line in open(ori_file, 'r', encoding='utf-8').readlines()]
         product_ws = [line.strip() for line in open(ws_file, 'r', encoding='utf-8').readlines()]
-        
+
         print(len(product), len(product_ws), len(product_ws_dict))
-        
+
 
         duplicated = []
         for idx in range(len(product)):
@@ -232,15 +232,15 @@ class ProductsRepo():
 
         complete_product_list = [line.replace('\tN_Cproduct', '').strip() for line in open(ori_file, 'r', encoding='utf-8').readlines()]
         complete_product_ws_list = [line.strip() for line in open(ws_file, 'r', encoding='utf-8').readlines()]
-        
+
         # self.complete_product_list_to_pind
         # self.pind_to_complete_product_list
 
         # print(len(complete_product_list), len(complete_product_ws_list), len(product_ws))
-        
+
         duplicated = []
         for idx in range(len(complete_product_list)):
-            
+
             if complete_product_list[idx] in product_ws:
                 duplicated.append(complete_product_list[idx])
                 # print('complete: {}, ws: {}'.format(complete_product_list[idx], complete_product_ws_list[idx]))
@@ -278,7 +278,7 @@ class ProductsRepo():
         if '的' in desc_set:
             desc_set.remove('的')
         return desc_set
-    
+
     def get_head_termset(self):
         hws = set()
         for p_seg in self.allproducts_seg:
@@ -302,7 +302,7 @@ class ProductsRepo():
         # product = re.split(r'\(|（', product)[0]
 
         return product
-    
+
     @staticmethod
     def get_brand_alias(brand):
         #TODO: 要斷開嗎?
@@ -328,12 +328,12 @@ class ProductsRepo():
         try:
             alias.remove('')
         except ValueError:
-            pass 
+            pass
         return alias
-    
+
     def get_all_brands(self):
         return self.allbrands
-        
+
     def get_all_brands_chinese(self):
         b_set = set()
         for b in self.get_all_brands():
@@ -364,7 +364,7 @@ class ProductsRepo():
             chi = chi.split('（')[0].strip() #資生堂（東京櫃）
             # print('brand: {}, eng:{}, chi:{}'.format(b, eng, chi))
             # exit()
-           
+
             if not len(chi)==0 and not len(eng)==0:
                 temp_b += eng+'\tN_brand\n'
                 temp_b += chi+'\tN_brand\n'
@@ -375,18 +375,18 @@ class ProductsRepo():
                 brands.append(chi)
                 brands.append(eng+chi)
                 brands.append(chi+eng)
-            
+
             if not len(chi)==0 and len(eng)==0:
                 temp_b += chi+'\tN_brand\n'
                 brands.append(chi)
-            
+
             if len(chi)==0 and not len(eng)==0:
                 temp_b += eng+'\tN_brand\n'
                 brands.append(eng)
-            
+
             # print(temp_b)
             b_string += temp_b
-        
+
         if build_lexicon:
             open('./resources/myLexicon/all_brands.txt', 'w').write(b_string)
         return set(brands)
@@ -480,7 +480,7 @@ class ProductsRepo():
             b_string += temp_b
             pind_to_complete_product[self.allpinds[i]] = [product, brand_list, complete_product_list]
         # b_set = set(self.get_all_brands())
-        
+
         # for b in alias:
         #     # aliases = self.get_brand_alias(b)
         #     for a in aliases:
@@ -515,7 +515,7 @@ if __name__ == '__main__':
     # style_repo.get_all_brand_as_dict()
     # style_repo.get_all_product_as_dict()
     # style_repo.get_complete_brand_n_product_as_dict()
-    
+
     with open('style_repo.pkl', 'wb') as handle:
         pickle.dump(style_repo, handle, protocol=pickle.HIGHEST_PROTOCOL)
-    
+

@@ -1,4 +1,4 @@
-# !python2
+#!/usr/bin/env python2
 #!/usr/bin/python
 #-*- encoding: UTF-8 -*-
 

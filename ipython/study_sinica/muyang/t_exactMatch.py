@@ -1,5 +1,8 @@
-#! python3
+#!/usr/bin/env python3
 # -*- coding:utf-8 -*-
+
+## @package t_exactMatch
+#  t exact match.
 
 import os
 import pickle
@@ -8,68 +11,116 @@ import re
 from IPython import embed
 from ProductsRepo import ProductsRepo
 
-
+## New article class.
 class new_Article(object):
-	"""docstring for new_Article"""
+
+	## Constructor.
 	def __init__(self, title, url, author, aid, sentences):
 		super(new_Article, self).__init__()
-		self.title = title
-		self.url = url
-		self.author = author
-		self.aid = aid
-		self.sentences = []
 
+		## title.
+		self.title = title
+
+		## url.
+		self.url = url
+
+		## author.
+		self.author = author
+
+		## article ID.
+		self.aid = aid
+
+		## list of sentences.
+		self.sentences = []
 		for i, c in enumerate(sentences):
 			self.sentences.append(new_Sentence(aid, i, c))
 
+		## list of products.
 		self.products = [] # pind
+
+		## status of product ID.
 		self.pid_status = ''
 
+		pass
+
+	## Cast to string
 	def __str__(self):
 		s = '{}_{}, sentence[0]{}'.format(self.author, self.aid, self.sentences[0])
 		return s
 
+## New sentence class.
 class new_Sentence(object):
-	"""docstring for new_Sentence"""
+
+	## Constructor.
 	def __init__(self, aid, line_id, content):
 		super(new_Sentence, self).__init__()
+
+		## Article ID.
 		self.aid = aid
+
+		## Line ID.
 		self.line_id = line_id
+
+		## Content.
 		self.content = content
+
+		## list of contect segments.
 		self.content_seg = [w.strip() for w in content.split('　')]
+
+		## label content.
+		#  @todo ???.
 		self.label_content = ''
+
+		## list of products.
 		self.products = [] # pind
 
+	## Update content segments.
 	def update_content_seg(self, new_content):
 		self.content_seg = [w.strip() for w in new_content.split('　')]
 
+	## Cast to string.
 	def __str__(self):
 		s = '({}, {})-{}'.format(self.aid, self.line_id, self.content)
 		return s
-		
+
+## New article processor class.
 class new_ArticleProcessor(object):
-	"""docstring for new_ArticleProcessor"""
+
+	## Constructor.
 	def __init__(self, articles, product_repo, complete_product_ws, last_word_set, product_ws):
 		super(new_ArticleProcessor, self).__init__()
+
+		## list of articles.
 		self.articles = articles
+
+		## product list database.
 		self.product_repo = product_repo
+
+		## word segmented product
+		#  @todo ???
 		self.product_ws = product_ws
+
+		## word segmented complete product
+		#  @todo ???
 		self.complete_product_ws = complete_product_ws
+
+		## set of last words
 		self.last_word_set = last_word_set
 
+	## Process all articles.
 	def process_all_articles(self):
 		for a in self.articles:
 			for sent in a.sentences:
 				self.exact_match(sent, a)
 				self.label_gid(sent, a)
 
-
 		# for a in self.articles:
 		# 	for sent in a.sentences:
 		# 		self.dt_one(sent, a)
 
-
+	## Decision tree no.1.
 	def dt_one(self, sentence, article):
+
 		if len(sentence.products)>0:
 			article.pid_status = sentence.products[-1]
 		for w in sentence.content_seg:
@@ -97,6 +148,8 @@ class new_ArticleProcessor(object):
 								sentence.label_content = sentence.content.replace(span, '<pid_c={}, gid="">{}</pid_c>'.format(article.pid_status, span))
 								sentence.products.append(article.pid_status)
 								article.products.append(article.pid_status)
+
+	## Add golden ID of label.
 	def label_gid(self, sentence, article):
 		# if not sentence.label_content=='': return
 		for w in sentence.content_seg:
@@ -119,11 +172,8 @@ class new_ArticleProcessor(object):
 								span = '　'.join(w for w in sentence.content_seg[i:idx+1])
 								sentence.label_content = sentence.content.replace(span, '<gid="">{}</gid>'.format(span))
 								break
-						
 
-						
-
-
+	## Find exact matches.
 	def exact_match(self, sentence, article):
 		complete_product_keys = self.complete_product_ws.keys()
 		for p in complete_product_keys:
@@ -139,7 +189,7 @@ class new_ArticleProcessor(object):
 				sentence.content = sentence.content.replace(p, self.product_ws[p])
 				sentence.update_content_seg(sentence.content)
 
-
+	## Write results to file.
 	def write_result(self, output_dir):
 		if not os.path.exists(output_dir):
 			os.makedirs(output_dir)
@@ -154,6 +204,7 @@ class new_ArticleProcessor(object):
 						fout.write(s.content)
 					fout.write('\n')
 
+## Load word segmented products from file.
 def load_product_ws(ori_file, ws_file):
 	product_ws_dict = {}
 	product = []
@@ -161,9 +212,9 @@ def load_product_ws(ori_file, ws_file):
 
 	product = [line.replace('\tN_product', '(N_product)').strip() for line in open(ori_file, 'r', encoding='utf-8').readlines()]
 	product_ws = [line.strip() for line in open(ws_file, 'r', encoding='utf-8').readlines()]
-	
+
 	print(len(product), len(product_ws), len(product_ws_dict))
-	
+
 
 	duplicated = []
 	for idx in range(len(product)):
@@ -177,7 +228,7 @@ def load_product_ws(ori_file, ws_file):
 
 	return product_ws_dict
 
-
+## Load word segmented complete brands and products from file.
 def load_complete_brand_n_product_ws(ori_file, ws_file, styleMe_data):
 	product_ws = {}
 	complete_product = []
@@ -185,20 +236,20 @@ def load_complete_brand_n_product_ws(ori_file, ws_file, styleMe_data):
 
 	complete_product = [line.replace('\tN_Cproduct', '(N_Cproduct)').strip() for line in open(ori_file, 'r', encoding='utf-8').readlines()]
 	complete_product_ws = [line.strip() for line in open(ws_file, 'r', encoding='utf-8').readlines()]
-	
+
 	# styleMe_data.complete_product_to_pind
 	# styleMe_data.pind_to_complete_product
 
 	# print(len(complete_product), len(complete_product_ws), len(product_ws))
-	
+
 	duplicated = []
 	for idx in range(len(complete_product)):
-		
+
 		if complete_product[idx] in product_ws:
 			duplicated.append(complete_product[idx])
 			# print('complete: {}, ws: {}'.format(complete_product[idx], complete_product_ws[idx]))
 		product_ws[complete_product[idx]] = complete_product_ws[idx]
-	
+
 	## duplicated: 14896-14827=69
 	## remove duplicated -> complete_product # 14758
 	# print(len(product_ws))
@@ -221,7 +272,7 @@ def load_complete_brand_n_product_ws(ori_file, ws_file, styleMe_data):
 
 	return product_ws, set(last_word)
 
-
+## Load all articles from file.
 def load_all_articles(inpath):
 	new_article = []
 
@@ -252,15 +303,15 @@ def load_all_articles(inpath):
 		break
 ################################################################################################################################
 
+	return new_article
 
-	return new_article	
-
+## Test function.
 def test():
 	ori_file = './resources/myLexicon/all_product.txt'
 	ws_file = './resources/myLexicon/all_product.txt.tag'
 	product_ws = load_product_ws(ori_file, ws_file)
 
-
+## Main function.
 def main():
 
 	styleMe_data = ProductsRepo('./resources//StyleMe.csv')
@@ -286,13 +337,8 @@ def main():
 		#processor.write_result('./resources/20171116_label_xml_data/part-00{:03d}'.format(idx))
 		processor.write_result('./output/label_xml_data/part-00{:03d}'.format(idx))
 ################################################################################################################################
-	
-	
 
+## Start.
 if __name__=='__main__':
 	main()
 	# test()
-
-
-
-		
