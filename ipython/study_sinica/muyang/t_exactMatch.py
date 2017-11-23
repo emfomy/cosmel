@@ -67,7 +67,7 @@ class new_Sentence(object):
 		## list of contect segments.
 		self.content_seg = [w.strip() for w in content.split('　')]
 
-		## label content.
+		## labeled content.
 		#  @todo ???.
 		self.label_content = ''
 
@@ -77,6 +77,12 @@ class new_Sentence(object):
 	## Update content segments.
 	def update_content_seg(self, new_content):
 		self.content_seg = [w.strip() for w in new_content.split('　')]
+
+	## Replace labeled content.
+	def replace_label_content(self, *args):
+		if self.label_content == "":
+			self.label_content = self.content
+		self.label_content = self.label_content.replace(*args)
 
 	## Cast to string.
 	def __str__(self):
@@ -113,41 +119,37 @@ class new_ArticleProcessor(object):
 			for sent in a.sentences:
 				self.exact_match(sent, a)
 				self.label_gid(sent, a)
-
-		# for a in self.articles:
-		# 	for sent in a.sentences:
-		# 		self.dt_one(sent, a)
+				# self.dt_one(sent, a)
 
 	## Decision tree no.1.
 	def dt_one(self, sentence, article):
-
-		if len(sentence.products)>0:
-			article.pid_status = sentence.products[-1]
-		for w in sentence.content_seg:
-			if w in self.last_word_set:
-				if article.pid_status=='': continue
-				word = self.product_repo.pind_to_complete_product[article.pid_status][3]
-				if w==word:
-					print(sentence.content_seg, word)
-					idx = sentence.content_seg.index(w)
-					for i in range(10):
-						if idx>=i:
-							if '(N_brand)' in sentence.content_seg[idx-i]:
-								brand = sentence.content_seg[idx-i]
-								# print('find brand:{}, brand:{}'.format(brand, self.product_repo.pind_to_complete_product[article.pid_status][1]))
-								if brand.replace('(N_brand)', '') in self.product_repo.pind_to_complete_product[article.pid_status][1][0]:
-									# print('brand:{}, content:{}'.format(brand, sentence.content_seg[idx-i:idx+1]))
-									span = '　'.join(w for w in sentence.content_seg[idx-i:idx+1])
-									sentence.label_content = sentence.content.replace(span, '<pid_b={}, gid="">{}</pid_b>'.format(article.pid_status, span))
-									sentence.products.append(article.pid_status)
-									article.products.append(article.pid_status)
-									# print('sent:{}, label_sent:{}'.format(sentence.content, sentence.label_content))
-									# exit()
-							elif '這(Nep)' in sentence.content_seg[idx-i]:
-								span = '　'.join(w for w in sentence.content_seg[idx-i:idx+1])
-								sentence.label_content = sentence.content.replace(span, '<pid_c={}, gid="">{}</pid_c>'.format(article.pid_status, span))
-								sentence.products.append(article.pid_status)
-								article.products.append(article.pid_status)
+		# if len(sentence.products)>0:
+		# 	article.pid_status = sentence.products[-1]
+		# for w in sentence.content_seg:
+		# 	if w in self.last_word_set:
+		# 		if article.pid_status=='': continue
+		# 		word = self.product_repo.pind_to_complete_product[article.pid_status][3]
+		# 		if w==word:
+		# 			print(sentence.content_seg, word)
+		# 			idx = sentence.content_seg.index(w)
+		# 			for i in range(10):
+		# 				if idx>=i:
+		# 					if '(N_brand)' in sentence.content_seg[idx-i]:
+		# 						brand = sentence.content_seg[idx-i]
+		# 						# print('find brand:{}, brand:{}'.format(brand, self.product_repo.pind_to_complete_product[article.pid_status][1]))
+		# 						if brand.replace('(N_brand)', '') in self.product_repo.pind_to_complete_product[article.pid_status][1][0]:
+		# 							# print('brand:{}, content:{}'.format(brand, sentence.content_seg[idx-i:idx+1]))
+		# 							span = '　'.join(w for w in sentence.content_seg[idx-i:idx+1])
+		# 							sentence.label_content = sentence.content.replace(span, '<pid_b={}, gid="">{}</pid_b>'.format(article.pid_status, span))
+		# 							sentence.products.append(article.pid_status)
+		# 							article.products.append(article.pid_status)
+		# 							# print('sent:{}, label_sent:{}'.format(sentence.content, sentence.label_content))
+		# 							# exit()
+		# 					elif '這(Nep)' in sentence.content_seg[idx-i]:
+		# 						span = '　'.join(w for w in sentence.content_seg[idx-i:idx+1])
+		# 						sentence.label_content = sentence.content.replace(span, '<pid_c={}, gid="">{}</pid_c>'.format(article.pid_status, span))
+		# 						sentence.products.append(article.pid_status)
+		# 						article.products.append(article.pid_status)
 
 	## Add golden ID of label.
 	def label_gid(self, sentence, article):
@@ -163,14 +165,14 @@ class new_ArticleProcessor(object):
 					current_word = sentence.content_seg[i].replace('('+sentence.content_seg[i].split('(')[-1],'')
 					if current_word in self.product_repo.all_brand_set:
 						span = '　'.join(w for w in sentence.content_seg[i:idx+1])
-						sentence.label_content = sentence.content.replace(span, '<gid="">{}</gid>'.format(span))
+						sentence.replace_label_content(span, '<gid="">{}</gid>'.format(span))
 						break
 						# print('sent:{}, label_sent:{}'.format(sentence.content, sentence.label_content))
 					else:
 						for b in self.product_repo.all_brand_set:
 							if current_word == re.sub(r'\W', '', b, re.IGNORECASE):
 								span = '　'.join(w for w in sentence.content_seg[i:idx+1])
-								sentence.label_content = sentence.content.replace(span, '<gid="">{}</gid>'.format(span))
+								sentence.replace_label_content(span, '<gid="">{}</gid>'.format(span))
 								break
 
 	## Find exact matches.
@@ -179,7 +181,7 @@ class new_ArticleProcessor(object):
 		for p in complete_product_keys:
 			if p in sentence.content:
 				pid = self.product_repo.complete_product_to_pind[p.replace('(N_Cproduct)', '')]
-				sentence.label_content = sentence.content.replace(p, '<pid_a={}, gid="">{}</pid_a>'.format(pid, self.complete_product_ws[p]))
+				sentence.replace_label_content(p, '<pid_a={}, gid="">{}</pid_a>'.format(pid, self.complete_product_ws[p]))
 				sentence.products.append(pid)
 				article.products.append(pid)
 				# print('product:{}, sent:{}, label_sent:{}'.format(p, sentence.content, sentence.label_content))
@@ -187,6 +189,7 @@ class new_ArticleProcessor(object):
 		for p in self.product_ws:
 			if p in sentence.content:
 				sentence.content = sentence.content.replace(p, self.product_ws[p])
+				sentence.label_content = sentence.label_content.replace(p, self.product_ws[p])
 				sentence.update_content_seg(sentence.content)
 
 	## Write results to file.
@@ -213,8 +216,7 @@ def load_product_ws(ori_file, ws_file):
 	product = [line.replace('\tN_product', '(N_product)').strip() for line in open(ori_file, 'r', encoding='utf-8').readlines()]
 	product_ws = [line.strip() for line in open(ws_file, 'r', encoding='utf-8').readlines()]
 
-	print(len(product), len(product_ws), len(product_ws_dict))
-
+	# print(len(product), len(product_ws), len(product_ws_dict))
 
 	duplicated = []
 	for idx in range(len(product)):
@@ -224,7 +226,7 @@ def load_product_ws(ori_file, ws_file):
 		product_ws_dict[product[idx]] = product_ws[idx]
 
 
-	print(len(product_ws_dict))
+	# print(len(product_ws_dict))
 
 	return product_ws_dict
 
@@ -295,7 +297,13 @@ def load_all_articles(inpath):
 				contents = fin.readlines()
 
 				a = new_Article(title, url, f.split('_')[0], f.split('_')[1].replace('.txt.tag', ''), contents)
-				article_part.append(a)
+				# article_part.append(a)
+
+################################################################################################################################
+				if a.aid == "330089109":
+					article_part.append(a)
+					break
+################################################################################################################################
 
 		new_article.append(article_part)
 
