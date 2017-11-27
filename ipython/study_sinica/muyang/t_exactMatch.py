@@ -207,8 +207,8 @@ class new_ArticleProcessor(object):
 			pid  = ret[0]
 			kind = ret[1]
 			if pid != None:
-				content_seg[brand_idx]      = '<pid_D="{}", rule="{}", gid="">{}'.format(pid, kind, word)
-				content_seg[head_idx] = '{}</pid_D>'.format(content_seg[head_idx])
+				content_seg[brand_idx] = '<pid_D="{}", rule="{}", gid="">{}'.format(pid, kind, word)
+				content_seg[head_idx]  = '{}</pid_D>'.format(content_seg[head_idx])
 				return True, head_idx
 		return False, brand_idx
 
@@ -227,7 +227,7 @@ class new_ArticleProcessor(object):
 	#  Check if mention has leading "這(Nep)"
 	def check_rule2(self, content_seg, brand_idx, head_idx, previous_products):
 		for pid in previous_products[::-1]:
-			if '這(Nep)' in content_seg[max(brand_idx-5, 0):max(brand_idx-1, 0)]:
+			if '這(Nep)' in content_seg[max(brand_idx-5, 0):max(brand_idx, 0)]:
 				if self.check_word_match_brand_by_pid(content_seg[brand_idx], pid):
 					product = self.product_repo.pind_to_complete_product_seg[pid]
 					product = [w.strip() for w in product.split('　')]
