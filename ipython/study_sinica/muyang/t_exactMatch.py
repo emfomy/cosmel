@@ -116,6 +116,7 @@ class new_ArticleProcessor(object):
 	## Process all articles.
 	def process_all_articles(self):
 		for a in self.articles:
+			print('   {}'.format(a.aid))
 			previous_products = []
 			for s in a.sentences:
 				self.replace_product(s)
@@ -189,8 +190,12 @@ class new_ArticleProcessor(object):
 	## Check if word match brand of pid
 	def check_word_match_brand_by_pid(self, word, pid):
 		w = word.replace('(N_brand)', '')
-		b_en = self.product_repo.pind_to_complete_product[pid][1][0][1]
-		b_ch = self.product_repo.pind_to_complete_product[pid][1][0][2]
+		brands = self.product_repo.pind_to_complete_product[pid][1][0]
+		b_en = brands[1]
+		if len(brands) > 2:
+			b_ch = brands[2]
+		else:
+			b_ch = ''
 		return w == b_en or w == b_ch or w == b_ch+b_en or w == b_en+b_ch
 
 	## Check a rule.
@@ -358,13 +363,7 @@ def load_all_articles(inpath):
 				contents = fin.readlines()
 
 				a = new_Article(title, url, f.split('_')[0], f.split('_')[1].replace('.txt.tag', ''), contents)
-				# article_part.append(a)
-
-################################################################################################################################
-				if a.aid == "0":
-					article_part.append(a)
-					break
-################################################################################################################################
+				article_part.append(a)
 
 		new_article.append(article_part)
 
@@ -393,10 +392,7 @@ def main():
 	ws_file = './resources/myLexicon/all_product.txt.tag'
 	product_ws = load_product_ws(ori_file, ws_file)
 
-################################################################################################################################
-	# fileDir = './resources/ws_articles_no_space/'
-	fileDir = './test_txt'
-	################################################################################################################################
+	fileDir = './resources/ws_articles_no_space'
 	fileParts = os.listdir(fileDir)
 
 	new_article_parts = load_all_articles(fileDir)
@@ -409,6 +405,7 @@ def main():
 		#processor.write_result('./resources/20171116_label_xml_data/part-00{:03d}'.format(idx))
 		processor.write_result('./output/label_xml_data/part-00{:03d}'.format(idx))
 ################################################################################################################################
+
 
 ## Start.
 if __name__=='__main__':
