@@ -38,8 +38,8 @@ class new_Article(object):
 		## list of products.
 		self.products = [] # pind
 
-		## status of product ID.
-		self.pid_status = ''
+		## product ID status.
+		self.pid_status = []
 
 		pass
 
@@ -116,81 +116,141 @@ class new_ArticleProcessor(object):
 	## Process all articles.
 	def process_all_articles(self):
 		for a in self.articles:
-			for sent in a.sentences:
-				self.exact_match(sent, a)
-				self.label_gid(sent, a)
-				# self.dt_one(sent, a)
+			previous_products = []
+			for s in a.sentences:
+				self.replace_product(s)
+				self.replace_brand(s)
+				self.decision_tree(s, a, previous_products)
+				pass
 
-	## Decision tree no.1.
-	def dt_one(self, sentence, article):
-		# if len(sentence.products)>0:
-		# 	article.pid_status = sentence.products[-1]
-		# for w in sentence.content_seg:
-		# 	if w in self.last_word_set:
-		# 		if article.pid_status=='': continue
-		# 		word = self.product_repo.pind_to_complete_product[article.pid_status][3]
-		# 		if w==word:
-		# 			print(sentence.content_seg, word)
-		# 			idx = sentence.content_seg.index(w)
-		# 			for i in range(10):
-		# 				if idx>=i:
-		# 					if '(N_brand)' in sentence.content_seg[idx-i]:
-		# 						brand = sentence.content_seg[idx-i]
-		# 						# print('find brand:{}, brand:{}'.format(brand, self.product_repo.pind_to_complete_product[article.pid_status][1]))
-		# 						if brand.replace('(N_brand)', '') in self.product_repo.pind_to_complete_product[article.pid_status][1][0]:
-		# 							# print('brand:{}, content:{}'.format(brand, sentence.content_seg[idx-i:idx+1]))
-		# 							span = '　'.join(w for w in sentence.content_seg[idx-i:idx+1])
-		# 							sentence.label_content = sentence.content.replace(span, '<pid_b={}, gid="">{}</pid_b>'.format(article.pid_status, span))
-		# 							sentence.products.append(article.pid_status)
-		# 							article.products.append(article.pid_status)
-		# 							# print('sent:{}, label_sent:{}'.format(sentence.content, sentence.label_content))
-		# 							# exit()
-		# 					elif '這(Nep)' in sentence.content_seg[idx-i]:
-		# 						span = '　'.join(w for w in sentence.content_seg[idx-i:idx+1])
-		# 						sentence.label_content = sentence.content.replace(span, '<pid_c={}, gid="">{}</pid_c>'.format(article.pid_status, span))
-		# 						sentence.products.append(article.pid_status)
-		# 						article.products.append(article.pid_status)
+	## Replace product.
+	#  Replace all word with (N_product) to segemented words.
+	def replace_product(self, sentence):
+		for p in self.product_ws:
+			sentence.content = sentence.content.replace(p, self.product_ws[p])
+		sentence.update_content_seg(sentence.content)
 
-	## Add golden ID of label.
-	def label_gid(self, sentence, article):
-		# if not sentence.label_content=='': return
-		for w in sentence.content_seg:
-			if w in self.last_word_set:
-				# if article.pid_status=='': continue
-				# word = self.product_repo.pind_to_complete_product[article.pid_status][3]
-				# if w==word:
-				# 	print(sentence.content_seg, word)
-				idx = sentence.content_seg.index(w)
-				for i in range(idx-1, -1, -1):
-					current_word = sentence.content_seg[i].replace('('+sentence.content_seg[i].split('(')[-1],'')
-					if current_word in self.product_repo.all_brand_set:
-						span = '　'.join(w for w in sentence.content_seg[i:idx+1])
-						sentence.replace_label_content(span, '<gid="">{}</gid>'.format(span))
-						break
-						# print('sent:{}, label_sent:{}'.format(sentence.content, sentence.label_content))
-					else:
-						for b in self.product_repo.all_brand_set:
-							if current_word == re.sub(r'\W', '', b, re.IGNORECASE):
-								span = '　'.join(w for w in sentence.content_seg[i:idx+1])
-								sentence.replace_label_content(span, '<gid="">{}</gid>'.format(span))
-								break
+	## Replace brand.
+	#  Replace brand alias and its pos-tagging to (N_brand).
+	def replace_brand(self, sentence):
+		for b in self.product_repo.all_brand_set:
+			b_ = re.sub(r'\W', '', b, re.IGNORECASE)
+			for word in sentence.content_seg:
+				if b_ in word and '(N_Cproduct)' not in word:
+					sentence.content = sentence.content.replace(word, b+'(N_brand)')
+		sentence.update_content_seg(sentence.content)
 
-	## Find exact matches.
-	def exact_match(self, sentence, article):
-		complete_product_keys = self.complete_product_ws.keys()
-		for p in complete_product_keys:
-			if p in sentence.content:
-				pid = self.product_repo.complete_product_to_pind[p.replace('(N_Cproduct)', '')]
-				sentence.replace_label_content(p, '<pid_a={}, gid="">{}</pid_a>'.format(pid, self.complete_product_ws[p]))
+	## Tag using decision tree
+	def decision_tree(self, sentence, article, previous_products):
+		max_product_length = 12
+		idx = 0;
+		while idx < len(sentence.content_seg):
+			word = sentence.content_seg[idx]
+			if '(N_Cproduct)' in word:
+				pid = self.product_repo.complete_product_to_pind[word.replace('(N_Cproduct)', '')]
+				sentence.content_seg[idx] = '<pid_E="{}", gid="">{}</pid_E>'.format(pid, self.complete_product_ws[word])
 				sentence.products.append(pid)
 				article.products.append(pid)
-				# print('product:{}, sent:{}, label_sent:{}'.format(p, sentence.content, sentence.label_content))
+				if pid in previous_products:
+					previous_products.remove(pid)
+				previous_products.append(pid)
+			elif '(N_brand)' in word:
+				# list of heads
+				head_idxs = []
+				for i in range(idx+1, min(idx+max_product_length-1, len(sentence.content_seg))):
+					current_word = sentence.content_seg[i]
+					if '(N_Cproduct)' in current_word or '(N_brand)' in current_word:
+						break
+					if current_word in self.last_word_set:
+						head_idxs.append(i)
 
-		for p in self.product_ws:
-			if p in sentence.content:
-				sentence.content = sentence.content.replace(p, self.product_ws[p])
-				sentence.label_content = sentence.label_content.replace(p, self.product_ws[p])
-				sentence.update_content_seg(sentence.content)
+				# Rule 1
+				passed, idx = self.check_rule(self.check_rule1, sentence.content_seg, word, idx, head_idxs, previous_products)
+				if passed:
+					break
+
+				# Rule 2
+				passed, idx = self.check_rule(self.check_rule2, sentence.content_seg, word, idx, head_idxs, previous_products)
+				if passed:
+					break
+
+				# Rule 3
+				passed, idx = self.check_rule(self.check_rule3, sentence.content_seg, word, idx, head_idxs, previous_products)
+				if passed:
+					break
+
+				# Else
+				passed, idx = self.check_rule(self.check_rule_else, sentence.content_seg, word, idx, head_idxs, previous_products)
+				if passed:
+					break
+
+			idx = idx+1;
+
+	## Check if word match brand of pid
+	def check_word_match_brand_by_pid(self, word, pid):
+		w = word.replace('(N_brand)', '')
+		b_en = self.product_repo.pind_to_complete_product[pid][1][0][1]
+		b_ch = self.product_repo.pind_to_complete_product[pid][1][0][2]
+		return w == b_en or w == b_ch or w == b_ch+b_en or w == b_en+b_ch
+
+	## Check a rule.
+	#  @return the modified brand_idx.
+	#  @return @t True/False if the rule is passed/failed.
+	def check_rule(self, rule, content_seg, word, brand_idx, head_idxs, previous_products):
+		for head_idx in head_idxs:
+			ret = rule(content_seg, brand_idx, head_idx, previous_products)
+			pid  = ret[0]
+			kind = ret[1]
+			if pid != None:
+				content_seg[brand_idx]      = '<pid_D="{}", rule="{}", gid="">{}'.format(pid, kind, word)
+				content_seg[head_idx] = '{}</pid_D>'.format(content_seg[head_idx])
+				return True, head_idx
+		return False, brand_idx
+
+	## Check rule 1.
+	#  Check if mention is subset of previous product.
+	def check_rule1(self, content_seg, brand_idx, head_idx, previous_products):
+		for pid in previous_products[::-1]:
+			if self.check_word_match_brand_by_pid(content_seg[brand_idx], pid):
+				product = self.product_repo.pind_to_complete_product_seg[pid]
+				product = [w.strip() for w in product.split('　')]
+				if content_seg[head_idx] == product[-1] and head_idx > brand_idx+1 and set(content_seg[brand_idx+1:head_idx]) <= set(product):
+					return [str(pid), '1a']
+		return [None, '']
+
+	## Check rule 2.
+	#  Check if mention has leading "這(Nep)"
+	def check_rule2(self, content_seg, brand_idx, head_idx, previous_products):
+		for pid in previous_products[::-1]:
+			if '這(Nep)' in content_seg[max(brand_idx-5, 0):max(brand_idx-1, 0)]:
+				if self.check_word_match_brand_by_pid(content_seg[brand_idx], pid):
+					product = self.product_repo.pind_to_complete_product_seg[pid]
+					product = [w.strip() for w in product.split('　')]
+					if content_seg[head_idx] == product[-1]:
+						return [str(pid), '2a']
+				else:
+					return ['OSP', '2b']
+		return [None, '']
+
+	## Check rule 3.
+	#  Check if mention has leading "一Nf"
+	def check_rule3(self, content_seg, brand_idx, head_idx, previous_products):
+		for pid in previous_products[::-1]:
+			if '一' in content_seg[max(brand_idx-2, 0)] and '(Nf)' in content_seg[max(brand_idx-1, 0)]:
+				if '另' in content_seg[max(brand_idx-3, 0)] or '另外' in content_seg[max(brand_idx-3, 0)]:
+					return ['OSP', '3a']
+				elif self.check_word_match_brand_by_pid(content_seg[brand_idx], pid):
+					product = self.product_repo.pind_to_complete_product_seg[pid]
+					product = [w.strip() for w in product.split('　')]
+					if content_seg[head_idx] == product[-1]:
+						return [str(pid), '3b']
+				else:
+					return ['OSP', '3c']
+		return [None, '']
+
+	## Check rule (otherwise).
+	def check_rule_else(self, content_seg, brand_idx, head_idx, previous_products):
+		return ['GP', 'else']
 
 	## Write results to file.
 	def write_result(self, output_dir):
@@ -201,10 +261,11 @@ class new_ArticleProcessor(object):
 			output_path = os.path.join(output_dir, '{}_{}.txt'.format(a.author, a.aid))
 			with open(output_path,'w',encoding='utf-8') as fout:
 				for s in a.sentences:
-					if s.label_content:
-						fout.write(s.label_content)
-					else:
-						fout.write(s.content)
+					# if s.label_content:
+					# 	fout.write(s.label_content)
+					# else:
+					# 	fout.write(s.content)
+					fout.write('　'.join(s.content_seg))
 					fout.write('\n')
 
 ## Load word segmented products from file.
@@ -300,7 +361,7 @@ def load_all_articles(inpath):
 				# article_part.append(a)
 
 ################################################################################################################################
-				if a.aid == "330089109":
+				if a.aid == "0":
 					article_part.append(a)
 					break
 ################################################################################################################################
@@ -332,7 +393,10 @@ def main():
 	ws_file = './resources/myLexicon/all_product.txt.tag'
 	product_ws = load_product_ws(ori_file, ws_file)
 
-	fileDir = './resources/ws_articles_no_space/'
+################################################################################################################################
+	# fileDir = './resources/ws_articles_no_space/'
+	fileDir = './test_txt'
+	################################################################################################################################
 	fileParts = os.listdir(fileDir)
 
 	new_article_parts = load_all_articles(fileDir)
