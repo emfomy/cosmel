@@ -7,6 +7,10 @@
 import os
 import pickle
 import re
+import time
+
+from multiprocessing import Pool
+from functools import partial
 
 from IPython import embed
 from ProductsRepo import ProductsRepo
@@ -78,12 +82,6 @@ class new_Sentence(object):
 	def update_content_seg(self, new_content):
 		self.content_seg = [w.strip() for w in new_content.split('　')]
 
-	## Replace labeled content.
-	def replace_label_content(self, *args):
-		if self.label_content == "":
-			self.label_content = self.content
-		self.label_content = self.label_content.replace(*args)
-
 	## Cast to string.
 	def __str__(self):
 		s = '({}, {})-{}'.format(self.aid, self.line_id, self.content)
@@ -116,29 +114,44 @@ class new_ArticleProcessor(object):
 	## Process all articles.
 	def process_all_articles(self):
 		for a in self.articles:
-			print('   {}'.format(a.aid))
+			print('   {:16s}\r'.format(a.aid), end='')
 			previous_products = []
 			for s in a.sentences:
 				self.replace_product(s)
 				self.replace_brand(s)
+				self.remove_symbol(s)
 				self.decision_tree(s, a, previous_products)
-				pass
 
 	## Replace product.
 	#  Replace all word with (N_product) to segemented words.
 	def replace_product(self, sentence):
-		for p in self.product_ws:
-			sentence.content = sentence.content.replace(p, self.product_ws[p])
-		sentence.update_content_seg(sentence.content)
+		if '(N_product)' in sentence.content:
+			for p in self.product_ws:
+				sentence.content = sentence.content.replace(p, self.product_ws[p])
+			sentence.update_content_seg(sentence.content)
 
 	## Replace brand.
 	#  Replace brand alias and its pos-tagging to (N_brand).
 	def replace_brand(self, sentence):
 		for b in self.product_repo.all_brand_set:
-			b_ = re.sub(r'\W', '', b, re.IGNORECASE)
+			b_ = re.sub(r'[\W_]+', '', b, re.IGNORECASE)
 			for word in sentence.content_seg:
 				if b_ in word and '(N_Cproduct)' not in word:
 					sentence.content = sentence.content.replace(word, b+'(N_brand)')
+		sentence.update_content_seg(sentence.content)
+
+	## Remove symbols.
+	#  Remove symbols and foreign characters.
+	def remove_symbol(self, sentence):
+		for i, word in enumerate(sentence.content_seg):
+			if 'CATEGORY)' in word:
+				sentence.content_seg[i] = ''
+			elif '(FW)' in word:
+				word = re.sub(r'[^0-9a-zA-Z]+', '', word[0:-4], re.IGNORECASE)
+				if word != '':
+					word = word+'(FW)'
+				sentence.content_seg[i] = word
+		sentence.content = '　'.join(str(w) for w in filter(None, sentence.content_seg))
 		sentence.update_content_seg(sentence.content)
 
 	## Tag using decision tree
@@ -148,8 +161,11 @@ class new_ArticleProcessor(object):
 		while idx < len(sentence.content_seg):
 			word = sentence.content_seg[idx]
 			if '(N_Cproduct)' in word:
-				pid = self.product_repo.complete_product_to_pind[word.replace('(N_Cproduct)', '')]
-				sentence.content_seg[idx] = '<pid_E="{}", gid="">{}</pid_E>'.format(pid, self.complete_product_ws[word])
+				p = word.replace('(N_Cproduct)', '')
+				if p not in self.product_repo.complete_product_to_pind:
+					break
+				pid = self.product_repo.complete_product_to_pind[p]
+				sentence.content_seg[idx] = '<product gid="" pid="{}" rule="exact">{}</product>'.format(pid, self.complete_product_ws[word])
 				sentence.products.append(pid)
 				article.products.append(pid)
 				if pid in previous_products:
@@ -207,8 +223,8 @@ class new_ArticleProcessor(object):
 			pid  = ret[0]
 			kind = ret[1]
 			if pid != None:
-				content_seg[brand_idx] = '<pid_D="{}", rule="{}", gid="">{}'.format(pid, kind, word)
-				content_seg[head_idx]  = '{}</pid_D>'.format(content_seg[head_idx])
+				content_seg[brand_idx] = '<product gid="" pid="{}" rule="{}">{}'.format(pid, kind, word)
+				content_seg[head_idx]  = '{}</product>'.format(content_seg[head_idx])
 				return True, head_idx
 		return False, brand_idx
 
@@ -263,13 +279,9 @@ class new_ArticleProcessor(object):
 			os.makedirs(output_dir)
 
 		for a in self.articles:
-			output_path = os.path.join(output_dir, '{}_{}.txt'.format(a.author, a.aid))
+			output_path = os.path.join(output_dir, '{}_{}.txt.xml'.format(a.author, a.aid))
 			with open(output_path,'w',encoding='utf-8') as fout:
 				for s in a.sentences:
-					# if s.label_content:
-					# 	fout.write(s.label_content)
-					# else:
-					# 	fout.write(s.content)
 					fout.write('　'.join(s.content_seg))
 					fout.write('\n')
 
@@ -338,6 +350,11 @@ def load_complete_brand_n_product_ws(ori_file, ws_file, styleMe_data):
 			last_word.append(c_ws.split('　')[-1])
 			# print(styleMe_data.pind_to_complete_product[pid])
 
+	for i, lw in enumerate(last_word):
+		if '(FW)' in lw or '(Neu)' in lw or 'CATEGORY)' in lw:
+			if 'powder' not in lw:
+				last_word[i] = ''
+
 	return product_ws, set(last_word)
 
 ## Load all articles from file.
@@ -367,10 +384,6 @@ def load_all_articles(inpath):
 
 		new_article.append(article_part)
 
-################################################################################################################################
-		break
-################################################################################################################################
-
 	return new_article
 
 ## Test function.
@@ -379,8 +392,19 @@ def test():
 	ws_file = './resources/myLexicon/all_product.txt.tag'
 	product_ws = load_product_ws(ori_file, ws_file)
 
+## Main threaded function
+def main_thread(styleMe_data, complete_product_ws, last_word, product_ws, output_dir, enum):
+	[idx, new_article] = enum
+	print('\rcurrent_part: part-00{:03d}'.format(idx))
+	processor = new_ArticleProcessor(new_article, styleMe_data, complete_product_ws, last_word, product_ws)
+	processor.process_all_articles()
+	processor.write_result('{}/part-00{:03d}'.format(output_dir, idx))
+
 ## Main function.
 def main():
+
+	date = time.strftime("%Y%m%d.%H%M%S")
+	output_dir = '/home/corpus/emfomy/output/'+date+'/label_xml_data/'
 
 	styleMe_data = ProductsRepo('./resources//StyleMe.csv')
 
@@ -397,14 +421,19 @@ def main():
 
 	new_article_parts = load_all_articles(fileDir)
 
-	for idx, new_article in enumerate(new_article_parts):
-		print('current_part: part-00{:03d}'.format(idx))
-		processor = new_ArticleProcessor(new_article, styleMe_data, complete_product_ws, last_word, product_ws)
-		processor.process_all_articles()
-################################################################################################################################
-		#processor.write_result('./resources/20171116_label_xml_data/part-00{:03d}'.format(idx))
-		processor.write_result('./output/label_xml_data/part-00{:03d}'.format(idx))
-################################################################################################################################
+	func = partial(main_thread, styleMe_data, complete_product_ws, last_word, product_ws, output_dir)
+	print('\n')
+	with Pool(8) as p:
+		p.map(func, enumerate(new_article_parts))
+
+# 	for idx, new_article in enumerate(new_article_parts):
+# 		print('current_part: part-00{:03d}'.format(idx))
+# 		processor = new_ArticleProcessor(new_article, styleMe_data, complete_product_ws, last_word, product_ws)
+# 		processor.process_all_articles()
+# ################################################################################################################################
+# 		#processor.write_result('./resources/20171116_label_xml_data/part-00{:03d}'.format(idx))
+# 		processor.write_result('/home/corpus/emfomy/output/date/label_xml_data/part-00{:03d}'.format(idx))
+# ################################################################################################################################
 
 
 ## Start.

@@ -72,10 +72,13 @@ class ProductsRepo():
             ind = item['ID']
             brand = item['brand']
 
-            name = self.remove_special_char_in_product(origin_name)
+            # name = self.remove_special_char_in_product(origin_name)
+            name = origin_name
             name = name.strip()
+
             if len(name)==0 or len(brand)==0:
                 continue
+
             self.allproducts_origin.append(origin_name)
             self.allproducts.append(name)
             self.allpinds.append(ind)
@@ -474,6 +477,7 @@ class ProductsRepo():
             for Cpro in complete_product_list:
                 for c in Cpro:
                     duplicate_complete_product_str += self.add_to_complete_product_to_pind(c, self.allpinds[i])
+
         # with open('./resources/myLexicon/all_product.txt', 'w') as fout:
         #     fout.write(p_string)
             # print(temp_b)
