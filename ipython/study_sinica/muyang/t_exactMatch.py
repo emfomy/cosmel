@@ -275,7 +275,7 @@ class new_ArticleProcessor(object):
 			if '另' in content_seg[max(brand_idx-3, 0)] or '另外' in content_seg[max(brand_idx-3, 0)]:
 				return ['OSP', '3c']
 			for pid in previous_products[::-1]:
-				self.check_word_match_brand_by_pid(content_seg[brand_idx], pid):
+				if self.check_word_match_brand_by_pid(content_seg[brand_idx], pid):
 					product = self.product_repo.pind_to_complete_product_seg[pid]
 					product = [w.strip() for w in product.split('　')]
 					if content_seg[head_idx] == product[-1]:
