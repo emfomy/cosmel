@@ -239,44 +239,48 @@ class new_ArticleProcessor(object):
 		return False, brand_idx
 
 	## Check rule 1.
-	#  Check if mention is subset of previous product.
+	#  Check if mention is subset of [previous product & 的].
 	def check_rule1(self, content_seg, brand_idx, head_idx, previous_products):
 		for pid in previous_products[::-1]:
 			if self.check_word_match_brand_by_pid(content_seg[brand_idx], pid):
 				product = self.product_repo.pind_to_complete_product_seg[pid]
 				product = [w.strip() for w in product.split('　')]
-				if content_seg[head_idx] == product[-1] and head_idx > brand_idx+1 and set(content_seg[brand_idx+1:head_idx]) <= set(product):
-					return [str(pid), '1a']
+				if content_seg[head_idx] == product[-1]:
+					product_set = set(product)
+					content_set = set(content_seg[brand_idx+1:head_idx])
+					if len(content_set) > 0 and content_set <= product_set:
+						return [str(pid), '1a']
+					content_set.discard('的(DE)')
+					if len(content_set) > 0 and content_set <= product_set:
+						return [str(pid), '1b']
 		return [None, '']
 
 	## Check rule 2.
 	#  Check if mention has leading "這(Nep)"
 	def check_rule2(self, content_seg, brand_idx, head_idx, previous_products):
-		for pid in previous_products[::-1]:
-			if '這(Nep)' in content_seg[max(brand_idx-5, 0):max(brand_idx, 0)]:
+		if '這(Nep)' in content_seg[max(brand_idx-5, 0):max(brand_idx, 0)]:
+			for pid in previous_products[::-1]:
 				if self.check_word_match_brand_by_pid(content_seg[brand_idx], pid):
 					product = self.product_repo.pind_to_complete_product_seg[pid]
 					product = [w.strip() for w in product.split('　')]
 					if content_seg[head_idx] == product[-1]:
 						return [str(pid), '2a']
-				else:
-					return ['OSP', '2b']
+			return ['OSP', '2b']
 		return [None, '']
 
 	## Check rule 3.
 	#  Check if mention has leading "一Nf"
 	def check_rule3(self, content_seg, brand_idx, head_idx, previous_products):
-		for pid in previous_products[::-1]:
-			if '一' in content_seg[max(brand_idx-2, 0)] and '(Nf)' in content_seg[max(brand_idx-1, 0)]:
-				if '另' in content_seg[max(brand_idx-3, 0)] or '另外' in content_seg[max(brand_idx-3, 0)]:
-					return ['OSP', '3a']
-				elif self.check_word_match_brand_by_pid(content_seg[brand_idx], pid):
+		if '一' in content_seg[max(brand_idx-2, 0)] and '(Nf)' in content_seg[max(brand_idx-1, 0)]:
+			if '另' in content_seg[max(brand_idx-3, 0)] or '另外' in content_seg[max(brand_idx-3, 0)]:
+				return ['OSP', '3c']
+			for pid in previous_products[::-1]:
+				self.check_word_match_brand_by_pid(content_seg[brand_idx], pid):
 					product = self.product_repo.pind_to_complete_product_seg[pid]
 					product = [w.strip() for w in product.split('　')]
 					if content_seg[head_idx] == product[-1]:
-						return [str(pid), '3b']
-				else:
-					return ['OSP', '3c']
+						return [str(pid), '3a']
+			return ['OSP', '3b']
 		return [None, '']
 
 	## Check rule 91.
