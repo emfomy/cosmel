@@ -432,7 +432,7 @@ def main_thread(styleMe_data, complete_product_ws, last_word, product_ws, output
 def main():
 
 	date = time.strftime("%Y%m%d.%H%M%S")
-	output_dir = '/home/corpus/emfomy/output/'+date+'/label_xml_data/'
+	output_dir = '/home/corpus/emfomy/pixnet/output/'+date+'/label_xml_data/'
 
 	styleMe_data = ProductsRepo('./resources//StyleMe.csv')
 
