@@ -101,10 +101,6 @@ html_theme = 'alabaster'
 # documentation.
 #
 html_theme_options = {
-    'extra_nav_links': {
-        'Index': 'genindex.html',
-        'Module Index': 'py-modindex.html',
-    },
     'show_related': 'true',
     'fixed_sidebar': 'true',
 }
@@ -122,7 +118,7 @@ html_static_path = ['_static']
 html_sidebars = {
     '**': [
         'about.html',
-        'navigation.html',
+        'globaltoc.html',
         'relations.html',  # needs 'show_related': True theme option to display
         'searchbox.html',
     ]

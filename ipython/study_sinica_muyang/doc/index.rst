@@ -12,3 +12,5 @@ Entity Linking Documentation
    :glob:
 
    _api/*
+   genindex
+   py-modindex
