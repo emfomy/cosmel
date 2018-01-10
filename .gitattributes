@@ -1,0 +1,2 @@
+ipython/study_sinica_muyang/data/article/original_article.tar.gz filter=lfs diff=lfs merge=lfs -text
+ipython/study_sinica_muyang/data/article/prune_article.tar.gz filter=lfs diff=lfs merge=lfs -text
