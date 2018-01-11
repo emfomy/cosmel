@@ -73,6 +73,9 @@ class RawBrandDict(collections.abc.Mapping):
 		for v in set([v.b_name for v in raw_data]):
 			self.update(v)
 
+	def __contains__(self, item):
+		return item in self.__data
+
 	def __getitem__(self, key):
 		return self.__data[self.__keytransform__(key)]
 
@@ -148,6 +151,9 @@ class RawProductDict(collections.abc.Mapping):
 		self.__ids = set()
 		for v in raw_data:
 			self.update(v)
+
+	def __contains__(self, item):
+		return item in self.__data
 
 	def __getitem__(self, key):
 		return self.__data[self.__keytransform__(key)]

@@ -6,9 +6,35 @@
 	 Mu Yang <emfomy@gmail.com>
 """
 
+import collections.abc
+import os
 import re
+import subprocess
 
 from styleme.util.core import *
+
+
+class BaseSet(collections.abc.Collection):
+	"""The base read-only collection class."""
+
+	def __init__(self, data = []):
+		super().__init__()
+		self.__data = list(data)
+
+	def __contains__(self, item):
+		return item in self.__data
+
+	def __iter__(self):
+		return iter(self.__data)
+
+	def __len__(self):
+		return len(self.__data)
+
+	def __str__(self):
+		return str(self.__data)
+
+	def __repr__(self):
+		return str(self)
 
 
 def prune_string(chars):
@@ -52,12 +78,12 @@ def check_contain_chinese(chars):
 def grep_files(root):
 	"""Grep all files in the directory."""
 
-	return [os.path.join(path, file) for path, _, files in os.walk(root) for file in files]
+	return sorted([os.path.join(path, file) for path, _, files in os.walk(root) for file in files])
 
 
 def printr(chars):
 	"""Print with '\\\\r'"""
-	print(chars.ljust(80)+'\r', end='')
+	print(str(chars).ljust(80)+'\r', end='')
 
 
 def subprocess_call(command, *args, **kwargs):

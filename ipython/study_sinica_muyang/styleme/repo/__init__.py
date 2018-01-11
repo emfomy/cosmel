@@ -7,3 +7,5 @@
 """
 
 from styleme.repo.repo import *
+from styleme.repo.brand import *
+from styleme.repo.product import *

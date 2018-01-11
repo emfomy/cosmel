@@ -26,6 +26,9 @@ class Word:
 	def __str__(self):
 		return '{}({})'.format(self.text, self.post)
 
+	def __repr__(self):
+		return str(self)
+
 	@property
 	def text(self):
 		"""str -- the text."""
@@ -63,6 +66,9 @@ class Sentence(collections.abc.Sequence):
 
 	def __str__(self):
 		return '　'.join(['{}({})'.format(w, p) for w, p in zip(self.__texts, self.__posts)])
+
+	def __repr__(self):
+		return str(self)
 
 	@property
 	def texts(self):
