@@ -14,8 +14,8 @@ import subprocess
 from styleme.util.core import *
 
 
-class BaseSet(collections.abc.Collection):
-	"""The base read-only collection class."""
+class ReadOnlyList(collections.abc.Sequence):
+	"""The base read-only list class."""
 
 	def __init__(self, data = []):
 		super().__init__()
@@ -23,6 +23,9 @@ class BaseSet(collections.abc.Collection):
 
 	def __contains__(self, item):
 		return item in self.__data
+
+	def __getitem__(self, key):
+		return self.__data[key]
 
 	def __iter__(self):
 		return iter(self.__data)

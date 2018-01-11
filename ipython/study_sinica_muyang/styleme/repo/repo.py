@@ -49,10 +49,10 @@ class Repo:
 
 	@property
 	def brandname2product(self):
-		""":class:`.Id2Product` --- the dictionary maps brand and name to product."""
+		""":class:`.BrandName2Product` --- the dictionary maps brand and name to product."""
 		return self.__brandname2product
 
 	@property
 	def brandhead2products(self):
-		""":class:`.Id2Product` --- the dictionary maps brand and head to product list."""
+		""":class:`.BrandHead2Products` --- the dictionary maps brand and head to product list."""
 		return self.__brandhead2products

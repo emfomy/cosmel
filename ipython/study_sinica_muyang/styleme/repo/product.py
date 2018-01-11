@@ -15,7 +15,7 @@ from styleme.repo.brand import *
 
 
 class Product:
-	"""The product details.
+	"""The product class.
 
 	Args:
 		p_id (str):              the ID.
@@ -30,8 +30,8 @@ class Product:
 		self.__brand    = brand
 		self.__name     = name
 		self.__head     = head
-		self.__name_seg = Sentence(name_ws)
-		self.__head_idx = self.name_seg.texts.index(head)
+		self.__name_ws  = WsWords(name_ws)
+		self.__head_idx = self.name_ws.texts.index(head)
 
 	def __str__(self):
 		return '{} {} {}'.format(self.__p_id, self.__brand[-1], self.__name)
@@ -60,19 +60,19 @@ class Product:
 		return self.__head
 
 	@property
-	def name_seg(self):
-		""":class:`.Sentence` --- the name_seg."""
-		return self.__name_seg
+	def name_ws(self):
+		""":class:`.WsWords` --- the word-segmented name."""
+		return self.__name_ws
 
 	@property
-	def descri(self):
-		""":class:`.Sentence` --- the descritions."""
-		return self.__name_seg[:self.__head_idx]
+	def descri_ws(self):
+		""":class:`.WsWords` --- the word-segmented descritions."""
+		return self.__name_ws[:self.__head_idx]
 
 	@property
-	def suffix(self):
-		""":class:`.Sentence` --- the suffixes."""
-		return self.__name_seg[self.__head_idx+1:]
+	def suffix_ws(self):
+		""":class:`.WsWords` --- the word-segmented suffixes."""
+		return self.__name_ws[self.__head_idx+1:]
 
 
 class ProductSet(collections.abc.Collection):
@@ -119,6 +119,9 @@ class ProductSet(collections.abc.Collection):
 
 	def __len__(self):
 		return len(self.__data)
+
+	def __str__(self):
+		return '\n'.join(map(str, self.__data))
 
 
 class Id2Product(collections.abc.Mapping):
@@ -196,9 +199,9 @@ class BrandHead2Products(collections.abc.Mapping):
 				product_dict[pair] += [product]
 
 		for pair, products in product_dict.items():
-			self.__data[pair] = BaseSet(products)
+			self.__data[pair] = ReadOnlyList(products)
 
-		self.__empty_collection = BaseSet()
+		self.__empty_collection = ReadOnlyList()
 
 	def __contains__(self, item):
 		return item in self.__data

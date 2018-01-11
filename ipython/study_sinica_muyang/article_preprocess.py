@@ -28,7 +28,7 @@ if __name__ == '__main__':
 
 	pruned       = True
 	copied_files = True
-	segmented    = False
+	segmented    = True
 
 	etc_path  = 'etc'
 	article_path = 'data/article'

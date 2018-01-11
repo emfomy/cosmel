@@ -12,7 +12,7 @@ from styleme.util import *
 
 
 class Brand(collections.abc.Sequence):
-	"""The set brand alias.
+	"""The brand class (contains list of brand aliases).
 
 	Args:
 		aliases (list): the brand aliases.
@@ -65,6 +65,9 @@ class BrandSet(collections.abc.Collection):
 
 	def __len__(self):
 		return len(self.__data)
+
+	def __str__(self):
+		return '\n'.join(map(str, self.__data))
 
 
 class Name2Brand(collections.abc.Mapping):
