@@ -7,10 +7,10 @@ Entity Linking Documentation
 ==========================================
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :caption: Contents:
    :glob:
 
-   _api/*
+   _api/styleme
    genindex
    py-modindex

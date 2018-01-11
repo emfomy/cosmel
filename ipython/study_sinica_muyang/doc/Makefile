@@ -12,7 +12,7 @@ PROJ = EntityLinking
 
 DOCDIR    = .
 BUILDDIR  = _build
-SOURCEDIR = ../src
+SOURCEDIR = ../styleme
 APIDIR    = _api
 
 # Put it first so that "make" without argument is like "make help".

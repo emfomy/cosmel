@@ -19,7 +19,7 @@
 #
 import os
 import sys
-sys.path.insert(0, os.path.abspath('../src'))
+sys.path.insert(0, os.path.abspath('..'))
 
 
 # -- General configuration ------------------------------------------------
@@ -58,7 +58,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = 'Entity Linking'
-copyright = '2017, Mu Yang <emfomy@gmail.com>'
+copyright = '2017–2018, Mu Yang <emfomy@gmail.com>'
 author = 'Mu Yang <emfomy@gmail.com>'
 
 # The version info for the project you're documenting, acts as replacement for
@@ -186,3 +186,8 @@ texinfo_documents = [
 
 # Example configuration for intersphinx: refer to the Python standard library.
 intersphinx_mapping = {'https://docs.python.org/': None}
+
+
+# -- Settings of autodoc --------------------------------------------------
+
+autodoc_member_order = 'bysource'
