@@ -15,6 +15,8 @@ from styleme.util import *
 class Article(collections.abc.Sequence):
 	"""The article class (contains list of sentences).
 
+	* Item: word-segmented sentence (:class:`.WsWords`)
+
 	Args:
 		file_path (str): the path to the article.
 	"""
@@ -49,7 +51,7 @@ class Article(collections.abc.Sequence):
 
 	@property
 	def a_id(self):
-		"""str --- the article ID."""
+		"""str --- the article ID (with leading author name and underscore)."""
 		return self.__a_id
 
 	@property
@@ -60,6 +62,8 @@ class Article(collections.abc.Sequence):
 
 class ArticleSet(collections.abc.Collection):
 	"""The set of articles.
+
+	* Item: article (:class:`.Article`)
 
 	Args:
 		article_path (str): the path to the folder containing data files.
@@ -75,6 +79,36 @@ class ArticleSet(collections.abc.Collection):
 
 	def __contains__(self, item):
 		return item in self.__data
+
+	def __iter__(self):
+		return iter(self.__data)
+
+	def __len__(self):
+		return len(self.__data)
+
+
+class Id2Article(collections.abc.Mapping):
+	"""The dictionary maps name to article.
+
+	* Key:  article ID (with leading author name and underscore) (str).
+	* Item: article (:class:`.Article`).
+
+	Args:
+		articles (:class:`.ArticleSet`): the article set.
+	"""
+
+	def __init__(self, articles):
+		super().__init__()
+		self.__data = dict()
+		for article in articles:
+			assert article.a_id not in self.__data
+			self.__data[article.a_id] = article
+
+	def __contains__(self, item):
+		return item in self.__data
+
+	def __getitem__(self, key):
+		return self.__data[key]
 
 	def __iter__(self):
 		return iter(self.__data)

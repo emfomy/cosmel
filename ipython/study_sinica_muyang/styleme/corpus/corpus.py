@@ -20,9 +20,15 @@ class Corpus:
 	"""
 
 	def __init__(self, article_ws_path, repo):
-		self.__articles = ArticleSet(article_ws_path)
+		self.__articles   = ArticleSet(article_ws_path)
+		self.__id2article = Id2Article(self.__articles)
 
 	@property
 	def articles(self):
 		""":class:`.ArticleSet` --- the article set."""
 		return self.__articles
+
+	@property
+	def id2article(self):
+		""":class:`.Id2Article` --- the dictionary maps ID to article."""
+		return self.__id2article

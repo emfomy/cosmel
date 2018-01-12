@@ -58,8 +58,8 @@ master_doc = 'index'
 
 # General information about the project.
 project = 'Entity Linking'
-copyright = '2017–2018, Mu Yang <emfomy@gmail.com>'
-author = 'Mu Yang <emfomy@gmail.com>'
+copyright = '2017–2018, Mu Yang &ltemfomy@gmail.com&gt'
+author = 'Mu Yang &ltemfomy@gmail.com&gt'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the

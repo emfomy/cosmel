@@ -26,9 +26,10 @@ class ReplaceVariant():
 
 if __name__ == '__main__':
 
-	pruned       = True
-	copied_files = True
-	segmented    = True
+	pruned           = True
+	copied_files     = True
+	segmented        = True
+	replaced_product = False
 
 	etc_path  = 'etc'
 	article_path = 'data/article'
@@ -65,6 +66,7 @@ if __name__ == '__main__':
 
 	prune_tmp_path = tmp_path+'/prune_article'
 	ws_tmp_path    = tmp_path+'/prune_article_ws'
+	ws_re_tmp_path = tmp_path+'/prune_article_ws_re'
 
 	# Copy Temp Files
 	if not copied_files:
@@ -74,6 +76,8 @@ if __name__ == '__main__':
 			shutil.rmtree(prune_tmp_path)
 		if os.path.exists(ws_tmp_path):
 			shutil.rmtree(ws_tmp_path)
+		if os.path.exists(ws_re_tmp_path):
+			shutil.rmtree(ws_re_tmp_path)
 
 		# Copy Files
 		for prune_file in grep_files(prune_path):
@@ -97,10 +101,36 @@ if __name__ == '__main__':
 		ws(prune_tmp_path, ws_tmp_path)
 		subprocess_call('unzip -q {0}.zip -d {1}'.format(ws_tmp_path, tmp_path), shell=True)
 		for ws_tmp_file in grep_files(ws_tmp_path):
-			ws_file = ws_tmp_file.replace(ws_tmp_path, ws_path)
+			ws_re_tmp_file = ws_tmp_file.replace(ws_tmp_path, ws_re_tmp_path)
+			os.makedirs(os.path.dirname(ws_re_tmp_file), exist_ok=True)
+			print(ws_re_tmp_file)
+			ws.replace(ws_tmp_file, ws_re_tmp_file)
+		print('')
+
+	if not replaced_product:
+
+		tag_dict = {}
+		with open(repo_path+'/products.lex') as fin_lex, open(repo_path+'/products.tag') as fin_tag:
+			for line_lex, line_tag in zip(fin_lex, fin_tag):
+				line_lex = line_lex.strip()
+				line_tag = line_tag.strip()
+				assert not line_lex == ''
+				assert not line_tag == ''
+				tag_dict[line_lex.split('\t')[0]] = line_tag
+
+		regexes = []
+		for lex, tag in tag_dict.items():
+			regexes.append((re.compile(r'(\A|(?<=\n|　)){}\(N_Product\)'.format(lex)), tag, lex))
+
+		for ws_re_tmp_file in grep_files(ws_re_tmp_path):
+			ws_file = ws_re_tmp_file.replace(ws_re_tmp_path, ws_path)
 			os.makedirs(os.path.dirname(ws_file), exist_ok=True)
 			print(ws_file)
-			ws.replace(ws_tmp_file, ws_file)
-		print('')
+			with open(ws_re_tmp_file) as fin, open(ws_file, 'w') as fout:
+				lines = fin.read()
+				for regex in regexes:
+					printr(regex[2])
+					lines = regex[0].sub(regex[1], lines)
+				fout.write(lines)
 
 	pass

@@ -78,6 +78,8 @@ class Product:
 class ProductSet(collections.abc.Collection):
 	"""The set of products.
 
+	* Item: product class (:class:`.Product`).
+
 	Args:
 		repo_path (str): the path to the folder containing data files.
 		name2brand (:class:`.Name2Brand`): the dictionary maps name to brand.
@@ -127,6 +129,9 @@ class ProductSet(collections.abc.Collection):
 class Id2Product(collections.abc.Mapping):
 	"""The dictionary maps ID to product.
 
+	* Key:  product ID.   (str).
+	* Item: product class (:class:`.Product`).
+
 	Args:
 		products (:class:`.ProductSet`): the product set.
 	"""
@@ -153,6 +158,9 @@ class Id2Product(collections.abc.Mapping):
 
 class BrandName2Product(collections.abc.Mapping):
 	"""The dictionary maps brand and name to product.
+
+	* Key:  tuple of brand class (:class:`.Brand`) and product name (str).
+	* Item: product class (:class:`.Product`).
 
 	Args:
 		products (:class:`.ProductSet`): the product set.
@@ -181,6 +189,9 @@ class BrandName2Product(collections.abc.Mapping):
 
 class BrandHead2Products(collections.abc.Mapping):
 	"""The dictionary maps brand and head to product list.
+
+	* Key:  tuple of brand class (:class:`.Brand`) and product head (str).
+	* Item: :class:`.ReadOnlyList` of product class (:class:`.Product`).
 
 	Args:
 		products (:class:`.ProductSet`): the product set.

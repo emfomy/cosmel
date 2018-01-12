@@ -15,7 +15,7 @@ from styleme.util.core import *
 
 
 class ReadOnlyList(collections.abc.Sequence):
-	"""The base read-only list class."""
+	"""The read-only list class."""
 
 	def __init__(self, data = []):
 		super().__init__()

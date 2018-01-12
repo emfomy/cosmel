@@ -39,9 +39,8 @@ class WordSegment():
 			if line.strip() == '':
 				continue
 			seg = line.strip().split('\t')
-			self.__regexes.append((\
-					re.compile(r'((\A|\n|　){})\([A-Za-z0-9]*\)'.format(re.escape(seg[0]))), \
-					r'\1({})'.format(re.escape(seg[1])), seg[0]))
+			self.__regexes.append(( \
+					re.compile(r'(\A|(?<=\n|　)){}\([A-Za-z0-9]*\)'.format(re.escape(seg[0]))), '{}({})'.format(seg[0], seg[1]), seg[0]))
 		self.__regexes.append((re.compile(r'　□\(SP\)'), '', '□'))
 
 		print('Initialize CKIPWS with INI "{}" using lexicon "{}"'.format(ini_file, lex_file))

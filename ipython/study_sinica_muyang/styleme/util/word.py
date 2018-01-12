@@ -19,15 +19,9 @@ class WsWords(collections.abc.Sequence):
 	"""
 
 	def __init__(self, chars):
-		texts = []
-		posts = []
-		for w in chars.strip().strip('□').split('　'):
-			w = w.split('(')
-			texts.append('('.join(w[0:-1]))
-			posts.append(w[-1].split(')')[0])
-
-		self.__texts = ReadOnlyList(texts)
-		self.__posts = ReadOnlyList(posts)
+		chars_seg = chars.strip().strip('□').split('　')
+		self.__texts = ReadOnlyList(w.split('(', 1)[0] for w in chars_seg)
+		self.__posts = ReadOnlyList(w.split('(', 1)[1] for w in chars_seg)
 
 	def __getitem__(self, idxs):
 		retval = WsWords('')
