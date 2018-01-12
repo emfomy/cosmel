@@ -6,6 +6,5 @@
 	 Mu Yang <emfomy@gmail.com>
 """
 
-from styleme.repo.repo import *
-from styleme.repo.brand import *
-from styleme.repo.product import *
+from styleme.corpus.corpus import *
+from styleme.corpus.article import *

@@ -8,3 +8,4 @@
 
 from styleme.util import *
 from styleme.repo import *
+from styleme.corpus import *

@@ -73,6 +73,9 @@ class RawBrandDict(collections.abc.Mapping):
 		for v in set([v.b_name for v in raw_data]):
 			self.update(v)
 
+	def __contains__(self, item):
+		return item in self.__data
+
 	def __getitem__(self, key):
 		return self.__data[self.__keytransform__(key)]
 
@@ -148,6 +151,9 @@ class RawProductDict(collections.abc.Mapping):
 		self.__ids = set()
 		for v in raw_data:
 			self.update(v)
+
+	def __contains__(self, item):
+		return item in self.__data
 
 	def __getitem__(self, key):
 		return self.__data[self.__keytransform__(key)]
@@ -354,7 +360,7 @@ if __name__ == '__main__':
 		# Grep Head
 		with open(repo_path+'/products.tag') as fin, open(repo_path+'/products.head', 'w') as fout:
 			for line in fin:
-				sentence = Sentence(line.strip().split('\t')[0])
+				sentence = WsWords(line.strip().split('\t')[0])
 				if '□' in sentence.texts:
 					raise Exception('□(SP): "{}"'.format(sentence))
 				heads = []
@@ -380,7 +386,7 @@ if __name__ == '__main__':
 	with open(repo_path+'/products.txt') as fin_txt, open(repo_path+'/products.tag') as fin_tag:
 		for text, line in zip(fin_txt, fin_tag):
 			p_id = text.strip().split('\t')[0]
-			sentence = Sentence(line.strip().split('\t')[0])
+			sentence = WsWords(line.strip().split('\t')[0])
 			if '□' in sentence.texts:
 				raise Exception('□(SP): "{}"'.format(sentence))
 
