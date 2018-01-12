@@ -6,8 +6,9 @@
 	 Mu Yang <emfomy@gmail.com>
 """
 
-import os
 import collections.abc
+import multiprocessing
+import os
 
 from styleme.util import *
 
@@ -23,10 +24,9 @@ class Article(collections.abc.Sequence):
 
 	def __init__(self, file_path):
 		super().__init__()
-		self.__data = list()
+		printr('Reading {}'.format(file_path))
 		with open(file_path) as fin:
-			for line in fin:
-				self.__data.append(WsWords(line))
+			self.__data = [WsWords(line) for line in fin]
 
 		self.__a_id = os.path.basename(file_path).split('.')[0]
 		self.__path = os.path.abspath(file_path)
@@ -69,12 +69,10 @@ class ArticleSet(collections.abc.Collection):
 		article_path (str): the path to the folder containing data files.
 	"""
 
-	def __init__(self, article_path):
+	def __init__(self, article_path, num_pool=8):
 		super().__init__()
-		self.__data = list()
-		for file in grep_files(article_path):
-			printr('Reading {}'.format(file))
-			self.__data.append(Article(file))
+		with multiprocessing.Pool(num_pool) as p:
+			self.__data = p.map(Article, grep_files(article_path))
 		print()
 
 	def __contains__(self, item):

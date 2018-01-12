@@ -81,7 +81,10 @@ def check_contain_chinese(chars):
 def grep_files(root):
 	"""Grep all files in the directory."""
 
-	return sorted([os.path.join(path, file) for path, _, files in os.walk(root) for file in files])
+	if os.path.isdir(root):
+		return sorted([os.path.join(path, file) for path, _, files in os.walk(root) for file in files])
+	else:
+		return [root]
 
 
 def printr(chars):
