@@ -6,6 +6,8 @@
 	 Mu Yang <emfomy@gmail.com>
 """
 
+import functools
+import multiprocessing
 import os
 import re
 import shutil
@@ -26,10 +28,12 @@ class ReplaceVariant():
 
 if __name__ == '__main__':
 
+	num_pool = 8
+
 	pruned           = True
 	copied_files     = True
 	segmented        = True
-	replaced_product = False
+	replaced_product = True
 
 	etc_path  = 'etc'
 	article_path = 'data/article'
@@ -40,6 +44,10 @@ if __name__ == '__main__':
 	prune_path = article_path+'/prune_article'
 	ws_path    = article_path+'/prune_article_ws'
 
+	prune_tmp_path = tmp_path+'/prune_article'
+	ws_tmp_path    = tmp_path+'/prune_article_ws'
+	ws_re_tmp_path = tmp_path+'/prune_article_ws_re'
+
 	# Prune Articles
 	if not pruned:
 
@@ -48,11 +56,10 @@ if __name__ == '__main__':
 		re_script  = re.compile(r'<script(?:.|\s)*</script>')
 		re_variant = ReplaceVariant()
 
-		# Prune Articles
-		for orig_file in grep_files(orig_path):
+		def func(re_url, re_script, re_variant, orig_path, prune_path, orig_file):
 			prune_file = orig_file.replace(orig_path, prune_path)
 			os.makedirs(os.path.dirname(prune_file), exist_ok=True)
-			printr(prune_file)
+			print(prune_file)
 			with open(orig_file) as fin, open(prune_file, 'w') as fout:
 				fin.readline()
 				lines = fin.read()
@@ -61,12 +68,10 @@ if __name__ == '__main__':
 				lines = re_variant.sub(lines)
 				lines = prune_string(lines+'\n')
 				fout.write(lines.strip()+'\n')
+
+		with multiprocessing.Pool(num_pool) as p:
+			p.map(functools.partial(func, re_url, re_script, re_variant, orig_path, prune_path), grep_files(orig_path))
 		print('')
-
-
-	prune_tmp_path = tmp_path+'/prune_article'
-	ws_tmp_path    = tmp_path+'/prune_article_ws'
-	ws_re_tmp_path = tmp_path+'/prune_article_ws_re'
 
 	# Copy Temp Files
 	if not copied_files:
@@ -80,13 +85,17 @@ if __name__ == '__main__':
 			shutil.rmtree(ws_re_tmp_path)
 
 		# Copy Files
-		for prune_file in grep_files(prune_path):
+		def func(prune_path, prune_tmp_path, prune_file):
 			prune_tmp_file = prune_file.replace(prune_path, prune_tmp_path)
 			os.makedirs(os.path.dirname(prune_tmp_file), exist_ok=True)
-			printr(prune_tmp_file)
+			print(prune_tmp_file)
 			with open(prune_file) as fin, open(prune_tmp_file, 'w', encoding='big5') as fout:
 				fout.write(fin.read())
+
+		with multiprocessing.Pool(num_pool) as p:
+			p.map(functools.partial(func, prune_path, prune_tmp_path, prune_file), grep_files(prune_path))
 		print('')
+
 		subprocess_call('cd {1} && rm {0}.zip && zip -q -r {0}.zip {0}/*'.format( \
 				os.path.relpath(prune_tmp_path, tmp_path), tmp_path), shell=True)
 
@@ -100,11 +109,16 @@ if __name__ == '__main__':
 
 		ws(prune_tmp_path, ws_tmp_path)
 		subprocess_call('unzip -q {0}.zip -d {1}'.format(ws_tmp_path, tmp_path), shell=True)
-		for ws_tmp_file in grep_files(ws_tmp_path):
+
+		# Replace post-tags
+		def func(ws, ws_tmp_path, ws_re_tmp_path, ws_tmp_file):
 			ws_re_tmp_file = ws_tmp_file.replace(ws_tmp_path, ws_re_tmp_path)
 			os.makedirs(os.path.dirname(ws_re_tmp_file), exist_ok=True)
 			print(ws_re_tmp_file)
 			ws.replace(ws_tmp_file, ws_re_tmp_file)
+
+		with multiprocessing.Pool(num_pool) as p:
+			p.map(functools.partial(func, ws, ws_tmp_path, ws_re_tmp_path), grep_files(ws_tmp_path))
 		print('')
 
 	if not replaced_product:
@@ -122,15 +136,20 @@ if __name__ == '__main__':
 		for lex, tag in tag_dict.items():
 			regexes.append((re.compile(r'(\A|(?<=\n|　)){}\(N_Product\)'.format(lex)), tag, lex))
 
-		for ws_re_tmp_file in grep_files(ws_re_tmp_path):
+		# Replace N_Product
+		def func(regexes, ws_path, ws_re_tmp_path, ws_file):
 			ws_file = ws_re_tmp_file.replace(ws_re_tmp_path, ws_path)
 			os.makedirs(os.path.dirname(ws_file), exist_ok=True)
 			print(ws_file)
 			with open(ws_re_tmp_file) as fin, open(ws_file, 'w') as fout:
 				lines = fin.read()
 				for regex in regexes:
-					printr(regex[2])
+					print(regex[2])
 					lines = regex[0].sub(regex[1], lines)
 				fout.write(lines)
+
+		with multiprocessing.Pool(num_pool) as p:
+			p.map(functools.partial(func, regexes, ws_path, ws_re_tmp_path), grep_files(ws_re_tmp_path))
+		print('')
 
 	pass

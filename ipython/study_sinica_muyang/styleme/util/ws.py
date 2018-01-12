@@ -55,7 +55,7 @@ class WordSegment():
 		print('Processing Word Segment on {} to {}'.format(input_file, output_file))
 		input("Press Enter to continue...")
 
-	def replace(self, input_file, output_file, input_encoding='utf-16-le', output_encoding=None):
+	def replace(self, input_file, output_file, input_encoding='utf-16', output_encoding=None):
 		with open(input_file, encoding=input_encoding) as fin, open(output_file, 'w', encoding=output_encoding) as fout:
 			lines = fin.read()
 			for regex in self.__regexes:
