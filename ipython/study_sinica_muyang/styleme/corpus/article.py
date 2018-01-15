@@ -16,7 +16,7 @@ from styleme.util import *
 class Article(collections.abc.Sequence):
 	"""The article class (contains list of sentences).
 
-	* Item: word-segmented sentence (:class:`.WsWords`)
+	* Item: the word-segmented sentence (:class:`.WsWords`)
 
 	Args:
 		file_path (str): the path to the article.
@@ -63,16 +63,18 @@ class Article(collections.abc.Sequence):
 class ArticleSet(collections.abc.Collection):
 	"""The set of articles.
 
-	* Item: article (:class:`.Article`)
+	* Item: the article (:class:`.Article`)
 
 	Args:
 		article_path (str): the path to the folder containing data files.
 	"""
 
-	def __init__(self, article_path, num_pool=8):
+	def __init__(self, article_path):
 		super().__init__()
-		with multiprocessing.Pool(num_pool) as p:
-			self.__data = p.map(Article, grep_files(article_path))
+		self.__data = list()
+		with multiprocessing.Pool() as pool:
+			results = [pool.apply_async(Article, args=(file,)) for file in grep_files(article_path)]
+			self.__data = [result.get() for result in results]
 		print()
 
 	def __contains__(self, item):
@@ -88,8 +90,8 @@ class ArticleSet(collections.abc.Collection):
 class Id2Article(collections.abc.Mapping):
 	"""The dictionary maps name to article.
 
-	* Key:  article ID (with leading author name and underscore) (str).
-	* Item: article (:class:`.Article`).
+	* Key:  the article ID (with leading author name and underscore) (str).
+	* Item: the article (:class:`.Article`).
 
 	Args:
 		articles (:class:`.ArticleSet`): the article set.
@@ -98,9 +100,14 @@ class Id2Article(collections.abc.Mapping):
 	def __init__(self, articles):
 		super().__init__()
 		self.__data = dict()
+		idiot_count = 0
 		for article in articles:
-			assert article.a_id not in self.__data
+			# assert article.a_id not in self.__data
+			if article.a_id in self.__data:
+				print('{}\n{}\n'.format(article.path, self.__data[article.a_id].path))
+				idiot_count += 1
 			self.__data[article.a_id] = article
+		print(idiot_count)
 
 	def __contains__(self, item):
 		return item in self.__data

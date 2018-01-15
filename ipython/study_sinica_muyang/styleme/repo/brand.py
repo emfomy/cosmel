@@ -14,6 +14,8 @@ from styleme.util import *
 class Brand(collections.abc.Sequence):
 	"""The brand class (contains list of brand aliases).
 
+	* Item: the brand alias (str).
+
 	Args:
 		aliases (list): the brand aliases.
 	"""
@@ -44,7 +46,7 @@ class Brand(collections.abc.Sequence):
 class BrandSet(collections.abc.Collection):
 	"""The set of brands.
 
-	* Item: brand class (:class:`.Brand`).
+	* Item: the brand class (:class:`.Brand`).
 
 	Args:
 		repo_path (str): the path to the folder containing data files.
@@ -75,8 +77,8 @@ class BrandSet(collections.abc.Collection):
 class Name2Brand(collections.abc.Mapping):
 	"""The dictionary maps name to brand.
 
-	* Key:  brand name  (str).
-	* Item: brand class (:class:`.Brand`).
+	* Key:  the brand name  (str).
+	* Item: the brand class (:class:`.Brand`).
 
 	Args:
 		brands (:class:`.BrandSet`): the brand set.

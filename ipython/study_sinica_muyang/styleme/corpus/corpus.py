@@ -20,10 +20,10 @@ class Corpus:
 		repo (:class:`.Repo`): the product repository class.
 	"""
 
-	def __init__(self, article_ws_path, repo, num_pool=8):
-		self.__articles   = ArticleSet(article_ws_path, num_pool)
+	def __init__(self, article_ws_path, repo):
+		self.__articles   = ArticleSet(article_ws_path)
 		self.__id2article = Id2Article(self.__articles)
-		self.__mentions   = MentionSet(self.__articles, repo, num_pool)
+		self.__mentions   = MentionSet(self.__articles, repo)
 
 	@property
 	def articles(self):
