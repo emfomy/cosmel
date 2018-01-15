@@ -21,7 +21,7 @@ class Product:
 		p_id (str):              the ID.
 		brand (:class:`.Brand`): the brand.
 		name (str):              the name.
-		head (str):              the head.
+		head (str):              the head word.
 		name_ws (str):           the segmented name.
 	"""
 
@@ -31,7 +31,7 @@ class Product:
 		self.__name     = name
 		self.__head     = head
 		self.__name_ws  = WsWords(name_ws)
-		self.__head_idx = self.name_ws.texts.index(head)
+		self.__head_idx = self.name_ws.txts.index(head)
 
 	def __str__(self):
 		return '{} {} {}'.format(self.__p_id, self.__brand[-1], self.__name)
@@ -56,7 +56,7 @@ class Product:
 
 	@property
 	def head(self):
-		"""str --- the head."""
+		"""str --- the head word."""
 		return self.__head
 
 	@property

@@ -46,8 +46,8 @@ class Article(collections.abc.Sequence):
 	def __str__(self):
 		return '\n'.join(map(str, self.__data))
 
-	def __textstr__(self):
-		return '\n'.join(map(textstr, self.__data))
+	def __txtstr__(self):
+		return '\n'.join(map(txtstr, self.__data))
 
 	@property
 	def a_id(self):
