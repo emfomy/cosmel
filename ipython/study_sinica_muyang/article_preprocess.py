@@ -28,12 +28,10 @@ class ReplaceVariant():
 
 if __name__ == '__main__':
 
-	num_pool = 8
-
 	pruned           = True
 	copied_files     = True
 	segmented        = True
-	replaced_product = False
+	replaced_product = True
 
 	etc_path  = 'etc'
 	article_path = 'data/article'
@@ -69,9 +67,10 @@ if __name__ == '__main__':
 				lines = prune_string(lines+'\n')
 				fout.write(lines.strip()+'\n')
 
-		with multiprocessing.Pool(num_pool) as p:
-			p.map(functools.partial(__func, re_url, re_script, re_variant, orig_path, prune_path), grep_files(orig_path))
-		print('')
+		with multiprocessing.Pool() as pool:
+			for orig_file in grep_files(orig_path):
+				pool.apply_async(__func, args=(re_url, re_script, re_variant, orig_path, prune_path, orig_file,))
+		print()
 
 	# Copy Temp Files
 	if not copied_files:
@@ -92,9 +91,10 @@ if __name__ == '__main__':
 			with open(prune_file) as fin, open(prune_tmp_file, 'w', encoding='big5') as fout:
 				fout.write(fin.read())
 
-		with multiprocessing.Pool(num_pool) as p:
-			p.map(functools.partial(__func, prune_path, prune_tmp_path, prune_file), grep_files(prune_path))
-		print('')
+		with multiprocessing.Pool() as pool:
+			for prune_file in grep_files(prune_path)
+				pool.apply_async(__func, args=(prune_path, prune_tmp_path, prune_file,))
+		print()
 
 		subprocess_call('cd {1} && rm {0}.zip && zip -q -r {0}.zip {0}/*'.format( \
 				os.path.relpath(prune_tmp_path, tmp_path), tmp_path), shell=True)
@@ -117,9 +117,10 @@ if __name__ == '__main__':
 			print(ws_re_tmp_file)
 			ws.replace(ws_tmp_file, ws_re_tmp_file)
 
-		with multiprocessing.Pool(num_pool) as p:
-			p.map(functools.partial(__func, ws, ws_tmp_path, ws_re_tmp_path), grep_files(ws_tmp_path))
-		print('')
+		with multiprocessing.Pool() as pool:
+			for ws_tmp_file in grep_files(ws_tmp_path):
+				pool.apply_async(__func, args=(ws, ws_tmp_path, ws_re_tmp_path, ws_tmp_file,))
+		print()
 
 	if not replaced_product:
 
@@ -148,8 +149,9 @@ if __name__ == '__main__':
 					lines = regex[0].sub(regex[1], lines)
 				fout.write(lines)
 
-		with multiprocessing.Pool(num_pool) as p:
-			p.map(functools.partial(__func, regexes, ws_path, ws_re_tmp_path), grep_files(ws_re_tmp_path))
-		print('')
+		with multiprocessing.Pool() as pool:
+			for ws_re_tmp_file in grep_files(ws_re_tmp_path)
+				pool.apply_async(__func, args=(regexes, ws_path, ws_re_tmp_path, ws_re_tmp_file,))
+		print()
 
 	pass
