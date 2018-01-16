@@ -21,19 +21,20 @@ class Mention:
 	Args:
 		article.   (:class:`.Article`):    the article containing this mention.
 		s_id       (int):                  the line index in the aritcle.
-		begin_idx  (int):                  the beginning index in the sentence.
-		end_idx    (int):                  the ending index in the sentence.
+		brand_idx  (int):                  the brand index in the sentence.
+		head_idx   (int):                  the head index in the sentence.
 		name2brand (:class:`.Name2Brand`): the dictionary maps name to brand.
 		p_id       (str):                  the product ID.
+		g_id       (str):                  the golden product ID.
 	"""
 
-	def __init__(self, name2brand, article, s_id, begin_idx, end_idx, p_id='', g_id=''):
+	def __init__(self, name2brand, article, s_id, brand_idx, head_idx, p_id='', g_id=''):
 		super().__init__()
 
 		self.__article   = article
 		self.__s_id      = int(s_id)
-		self.__begin_idx = int(begin_idx)
-		self.__end_idx   = int(end_idx)
+		self.__brand_idx = int(brand_idx)
+		self.__head_idx  = int(head_idx)
 		self.__p_id      = p_id
 		self.__g_id      = g_id
 		self.__brand     = name2brand[self.b_name]
@@ -60,7 +61,7 @@ class Mention:
 	@property
 	def mention(self):
 		""":class:`.WsWords` --- this mention."""
-		return self.sentence[self.__begin_idx:self.__end_idx]
+		return self.sentence[self.slice]
 
 	@property
 	def a_id(self):
@@ -73,14 +74,29 @@ class Mention:
 		return self.__s_id
 
 	@property
-	def begin_idx(self):
-		"""int --- the beginning index in the sentence."""
-		return self.__begin_idx
+	def brand_idx(self):
+		"""int --- the brand index in the sentence."""
+		return self.__brand_idx
 
 	@property
-	def end_idx(self):
+	def head_idx(self):
+		"""int --- the head index in the sentence."""
+		return self.__head_idx
+
+	@property
+	def beginning_idx(self):
+		"""int --- the beginning index in the sentence."""
+		return self.__brand_idx
+
+	@property
+	def ending_idx(self):
 		"""int --- the ending index in the sentence."""
-		return self.__end_idx
+		return self.__head_idx+1
+
+	@property
+	def slice(self):
+		"""int --- the ending index in the sentence."""
+		return slice(self.beginning_idx, self.ending_idx)
 
 	@property
 	def p_id(self):
@@ -100,12 +116,12 @@ class Mention:
 	@property
 	def b_name(self):
 		"""str --- the brand name."""
-		return self.sentence.txts[self.__begin_idx]
+		return self.sentence.txts[self.__brand_idx]
 
 	@property
 	def head(self):
 		"""str --- the head word."""
-		return self.sentence.txts[self.__end_idx-1]
+		return self.sentence.txts[self.__head_idx]
 
 
 class MentionSet(collections.abc.Collection):
