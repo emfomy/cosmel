@@ -49,7 +49,7 @@ if __name__ == '__main__':
 	tmp_path      = 'data/tmp'
 
 	repo         = Repo(repo_path)
-	articles     = ArticleSet(article_path)
+	articles     = ArticleSet(article_path, ignore_duplicated=True)
 	path2article = Path2Article(articles)
 
 	max_len_mention = 10

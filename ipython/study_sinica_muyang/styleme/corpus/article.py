@@ -69,13 +69,22 @@ class ArticleSet(collections.abc.Collection):
 		article_path (str): the path to the folder containing data files.
 	"""
 
-	def __init__(self, article_path):
+	def __init__(self, article_path, ignore_duplicated=True):
 		super().__init__()
-		self.__data = list()
 		with multiprocessing.Pool() as pool:
 			results = [pool.apply_async(Article, args=(file,)) for file in grep_files(article_path)]
 			self.__data = [result.get() for result in results]
 		print()
+
+		# self.__data = list()
+		# id_dict = dict()
+		# for article in orig_data:
+		# 	a_id = article.a_id
+		# 	if a_id in id_dict:
+		# 		print('Skip article {:64} (same ID as {})'.format(article.path, id_dict[a_id].path))
+		# 	else:
+		# 		self.__data.append(article)
+		# 		id_dict[a_id] = article
 
 	def __contains__(self, item):
 		return item in self.__data

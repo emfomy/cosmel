@@ -7,6 +7,7 @@
 """
 
 import collections.abc
+import itertools
 import multiprocessing
 import os
 
@@ -26,7 +27,7 @@ class Mention:
 		p_id       (str):                  the product ID.
 	"""
 
-	def __init__(self, article, s_id, begin_idx, end_idx, name2brand, p_id=None):
+	def __init__(self, name2brand, article, s_id, begin_idx, end_idx, p_id='', g_id=''):
 		super().__init__()
 
 		self.__article   = article
@@ -34,6 +35,7 @@ class Mention:
 		self.__begin_idx = int(begin_idx)
 		self.__end_idx   = int(end_idx)
 		self.__p_id      = p_id
+		self.__g_id      = g_id
 		self.__brand     = name2brand[self.b_name]
 
 	def __str__(self):
@@ -86,6 +88,11 @@ class Mention:
 		return self.__p_id
 
 	@property
+	def g_id(self):
+		"""int --- the golden product ID."""
+		return self.__g_id
+
+	@property
 	def brand(self):
 		""":class:`.Brand` --- the brand."""
 		return self.__brand
@@ -107,41 +114,27 @@ class MentionSet(collections.abc.Collection):
 	* Item: mention (:class:`.Mention`)
 
 	Args:
+		article_path (str):              the path to the folder containing word segmented article files.
+		mention_path (str):              the path to the folder containing mention files.
 		articles (:class:`.ArticleSet`): the set of articles.
 		repo     (:class:`.Repo`):       the product repository class.
 	"""
 
-	__max_len_mention = 10
-
-	def __init__(self, articles, repo):
+	def __init__(self, article_path, mention_path, articles, repo):
 		super().__init__()
-
-		self.__data = list()
-		for article in articles:
-			self.__data += self.__grep_mention(repo.name2brand, article)
-
-		# with multiprocessing.Pool() as p:
-		# 	self.__data = p.map(self.__grep_mention, articles)
-		# print()
+		with multiprocessing.Pool() as pool:
+			results = [pool.apply_async(self._grep_mention, args=(article, article_path, mention_path, repo.name2brand,)) \
+					for article in articles]
+			self.__data = list(itertools.chain.from_iterable(result.get() for result in results))
+		print()
 
 	@classmethod
-	def __grep_mention(self, name2brand, article):
-		mentions = list()
-		for s_id, line in enumerate(article):
-			idx = 0
-			while idx < len(line):
-				if line.tags[idx] == 'N_Brand':
-					begin_idx = idx
-					if 'N_Head' in line.tags[idx:idx+self.__max_len_mention]:
-						idx = min(idx+self.__max_len_mention, len(line)-1)
-						while idx > begin_idx:
-							if line.tags[idx] == 'N_Head':
-								mentions.append(Mention(article, s_id, begin_idx, idx+1, name2brand))
-								break
-							idx -= 1
-				idx += 1
+	def _grep_mention(self, article, article_path, mention_path, name2brand):
+		mention_file = article.path.replace(article_path, mention_path)+'.mention'
+		printr('Reading {}'.format(mention_file))
+		with open(mention_file) as fin:
+			mentions = [Mention(name2brand, article, *tuple(line.strip().split('\t'))) for line in fin]
 		return mentions
-
 
 	def __contains__(self, item):
 		return item in self.__data
