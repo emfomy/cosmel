@@ -21,9 +21,10 @@ class Corpus:
 	"""
 
 	def __init__(self, article_ws_path, repo):
-		self.__articles   = ArticleSet(article_ws_path)
-		self.__id2article = Id2Article(self.__articles)
-		self.__mentions   = MentionSet(self.__articles, repo)
+		self.__articles     = ArticleSet(article_ws_path)
+		# self.__id2article = Id2Article(self.__articles)
+		self.__path2article = Path2Article(self.__articles)
+		self.__mentions     = MentionSet(self.__articles, repo)
 
 	@property
 	def articles(self):

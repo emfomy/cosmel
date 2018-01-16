@@ -29,7 +29,7 @@ class Article(collections.abc.Sequence):
 			self.__data = [WsWords(line) for line in fin]
 
 		self.__a_id = os.path.basename(file_path).split('.')[0]
-		self.__path = os.path.abspath(file_path)
+		self.__path = file_path
 
 	def __contains__(self, item):
 		return item in self.__data
@@ -56,7 +56,7 @@ class Article(collections.abc.Sequence):
 
 	@property
 	def path(self):
-		"""str --- the file path."""
+		"""str --- the absolute file path."""
 		return self.__path
 
 
@@ -100,14 +100,39 @@ class Id2Article(collections.abc.Mapping):
 	def __init__(self, articles):
 		super().__init__()
 		self.__data = dict()
-		idiot_count = 0
 		for article in articles:
-			# assert article.a_id not in self.__data
-			if article.a_id in self.__data:
-				print('{}\n{}\n'.format(article.path, self.__data[article.a_id].path))
-				idiot_count += 1
+			assert article.a_id not in self.__data
 			self.__data[article.a_id] = article
-		print(idiot_count)
+
+	def __contains__(self, item):
+		return item in self.__data
+
+	def __getitem__(self, key):
+		return self.__data[key]
+
+	def __iter__(self):
+		return iter(self.__data)
+
+	def __len__(self):
+		return len(self.__data)
+
+
+class Path2Article(collections.abc.Mapping):
+	"""The dictionary maps name to article.
+
+	* Key:  the absolute file path of the article (str).
+	* Item: the article (:class:`.Article`).
+
+	Args:
+		articles (:class:`.ArticleSet`): the article set.
+	"""
+
+	def __init__(self, articles):
+		super().__init__()
+		self.__data = dict()
+		for article in articles:
+			assert article.path not in self.__data
+			self.__data[article.path] = article
 
 	def __contains__(self, item):
 		return item in self.__data

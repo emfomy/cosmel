@@ -88,8 +88,13 @@ def grep_files(root):
 
 
 def printr(chars):
-	"""Print with '\\\\r'"""
-	print(str(chars).ljust(80)+'\r', end='')
+	"""Print with '\\\\r'."""
+	print('\033[K'+str(chars)+'\r', end='')
+
+
+def pause():
+	"""Pause until pressing Enter."""
+	input("Press Enter to continue...")
 
 
 def subprocess_call(command, *args, **kwargs):

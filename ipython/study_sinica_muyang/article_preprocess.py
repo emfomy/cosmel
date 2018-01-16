@@ -68,8 +68,10 @@ if __name__ == '__main__':
 				fout.write(lines.strip()+'\n')
 
 		with multiprocessing.Pool() as pool:
-			for orig_file in grep_files(orig_path):
-				pool.apply_async(__func, args=(re_url, re_script, re_variant, orig_path, prune_path, orig_file,))
+			results = [pool.apply_async(__func, args=(re_url, re_script, re_variant, orig_path, prune_path, orig_file,)) \
+					for orig_file in grep_files(orig_path)]
+			[result.get() for result in results]
+			del results
 		print()
 
 	# Copy Temp Files
@@ -92,8 +94,10 @@ if __name__ == '__main__':
 				fout.write(fin.read())
 
 		with multiprocessing.Pool() as pool:
-			for prune_file in grep_files(prune_path)
-				pool.apply_async(__func, args=(prune_path, prune_tmp_path, prune_file,))
+			results = [pool.apply_async(__func, args=(prune_path, prune_tmp_path, prune_file,)) \
+					for prune_file in grep_files(prune_path)]
+			[result.get() for result in results]
+			del results
 		print()
 
 		subprocess_call('cd {1} && rm {0}.zip && zip -q -r {0}.zip {0}/*'.format( \
@@ -118,8 +122,10 @@ if __name__ == '__main__':
 			ws.replace(ws_tmp_file, ws_re_tmp_file)
 
 		with multiprocessing.Pool() as pool:
-			for ws_tmp_file in grep_files(ws_tmp_path):
-				pool.apply_async(__func, args=(ws, ws_tmp_path, ws_re_tmp_path, ws_tmp_file,))
+			results = [pool.apply_async(__func, args=(ws, ws_tmp_path, ws_re_tmp_path, ws_tmp_file,)) \
+					for ws_tmp_file in grep_files(ws_tmp_path)]
+			[result.get() for result in results]
+			del results
 		print()
 
 	if not replaced_product:
@@ -150,8 +156,10 @@ if __name__ == '__main__':
 				fout.write(lines)
 
 		with multiprocessing.Pool() as pool:
-			for ws_re_tmp_file in grep_files(ws_re_tmp_path)
-				pool.apply_async(__func, args=(regexes, ws_path, ws_re_tmp_path, ws_re_tmp_file,))
+			results = [pool.apply_async(__func, args=(regexes, ws_path, ws_re_tmp_path, ws_re_tmp_file,)) \
+					for ws_re_tmp_file in grep_files(ws_re_tmp_path)]
+			[result.get() for result in results]
+			del results
 		print()
 
 	pass

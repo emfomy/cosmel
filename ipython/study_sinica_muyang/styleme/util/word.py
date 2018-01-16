@@ -19,12 +19,12 @@ class WsWords(collections.abc.Sequence):
 	"""
 
 	def __init__(self, chars):
-		chars_seg = chars.strip().strip('□').split('　')
+		chars_seg = [seg for seg in chars.strip().split('　') if not seg == '']
 		self.__txts = ReadOnlyList(w.split('(', 1)[0] for w in chars_seg)
 		self.__tags = ReadOnlyList(w.split('(', 1)[1][:-1] for w in chars_seg)
 
 	def __getitem__(self, idxs):
-		retval = WsWords('()')
+		retval = WsWords('')
 		retval.__txts = self.__txts[idxs]
 		retval.__tags = self.__tags[idxs]
 		return retval
