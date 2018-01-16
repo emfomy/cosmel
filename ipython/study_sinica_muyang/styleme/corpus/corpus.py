@@ -23,7 +23,6 @@ class Corpus:
 
 	def __init__(self, article_path, mention_path, repo):
 		self.__articles     = ArticleSet(article_path)
-		# self.__id2article   = Id2Article(self.__articles)
 		self.__path2article = Path2Article(self.__articles)
 		self.__mentions     = MentionSet(article_path, mention_path, self.__articles, repo)
 
@@ -31,11 +30,6 @@ class Corpus:
 	def articles(self):
 		""":class:`.ArticleSet` --- the article set."""
 		return self.__articles
-
-	@property
-	def id2article(self):
-		""":class:`.Id2Article` --- the dictionary maps ID to article."""
-		return self.__id2article
 
 	@property
 	def mentions(self):
