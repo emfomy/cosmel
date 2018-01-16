@@ -81,12 +81,20 @@ def check_contain_chinese(chars):
 def grep_files(root):
 	"""Grep all files in the directory."""
 
-	return sorted([os.path.join(path, file) for path, _, files in os.walk(root) for file in files])
+	if os.path.isdir(root):
+		return sorted([os.path.join(path, file) for path, _, files in os.walk(root) for file in files])
+	else:
+		return [root]
 
 
 def printr(chars):
-	"""Print with '\\\\r'"""
-	print(str(chars).ljust(80)+'\r', end='')
+	"""Print with '\\\\r'."""
+	print('\033[K'+str(chars)+'\r', end='')
+
+
+def pause():
+	"""Pause until pressing Enter."""
+	input("Press Enter to continue...")
 
 
 def subprocess_call(command, *args, **kwargs):

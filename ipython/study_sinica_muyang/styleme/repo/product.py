@@ -21,7 +21,7 @@ class Product:
 		p_id (str):              the ID.
 		brand (:class:`.Brand`): the brand.
 		name (str):              the name.
-		head (str):              the head.
+		head (str):              the head word.
 		name_ws (str):           the segmented name.
 	"""
 
@@ -31,7 +31,7 @@ class Product:
 		self.__name     = name
 		self.__head     = head
 		self.__name_ws  = WsWords(name_ws)
-		self.__head_idx = self.name_ws.texts.index(head)
+		self.__head_idx = self.name_ws.txts.index(head)
 
 	def __str__(self):
 		return '{} {} {}'.format(self.__p_id, self.__brand[-1], self.__name)
@@ -56,7 +56,7 @@ class Product:
 
 	@property
 	def head(self):
-		"""str --- the head."""
+		"""str --- the head word."""
 		return self.__head
 
 	@property
@@ -78,7 +78,7 @@ class Product:
 class ProductSet(collections.abc.Collection):
 	"""The set of products.
 
-	* Item: product class (:class:`.Product`).
+	* Item: the product class (:class:`.Product`).
 
 	Args:
 		repo_path (str): the path to the folder containing data files.
@@ -129,8 +129,8 @@ class ProductSet(collections.abc.Collection):
 class Id2Product(collections.abc.Mapping):
 	"""The dictionary maps ID to product.
 
-	* Key:  product ID.   (str).
-	* Item: product class (:class:`.Product`).
+	* Key:  the product ID.   (str).
+	* Item: the product class (:class:`.Product`).
 
 	Args:
 		products (:class:`.ProductSet`): the product set.
@@ -159,8 +159,8 @@ class Id2Product(collections.abc.Mapping):
 class BrandName2Product(collections.abc.Mapping):
 	"""The dictionary maps brand and name to product.
 
-	* Key:  tuple of brand class (:class:`.Brand`) and product name (str).
-	* Item: product class (:class:`.Product`).
+	* Key:  the tuple of brand class (:class:`.Brand`) and product name (str).
+	* Item: the product class (:class:`.Product`).
 
 	Args:
 		products (:class:`.ProductSet`): the product set.

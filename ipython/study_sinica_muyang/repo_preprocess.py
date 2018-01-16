@@ -361,13 +361,13 @@ if __name__ == '__main__':
 		with open(repo_path+'/products.tag') as fin, open(repo_path+'/products.head', 'w') as fout:
 			for line in fin:
 				sentence = WsWords(line.strip().split('\t')[0])
-				if '□' in sentence.texts:
+				if '□' in sentence.txts:
 					raise Exception('□(SP): "{}"'.format(sentence))
 				heads = []
-				if 'N_Head' in sentence.posts:
-					for i, post in enumerate(sentence.posts):
+				if 'N_Head' in sentence.tags:
+					for i, post in enumerate(sentence.tags):
 						if post == 'N_Head':
-							heads.append(str(sentence.texts[i]))
+							heads.append(str(sentence.txts[i]))
 				if len(heads) == 0:
 					print('No Head: "{}"'.format(sentence))
 				fout.write('\t'.join(heads) + '\n')
@@ -387,12 +387,12 @@ if __name__ == '__main__':
 		for text, line in zip(fin_txt, fin_tag):
 			p_id = text.strip().split('\t')[0]
 			sentence = WsWords(line.strip().split('\t')[0])
-			if '□' in sentence.texts:
+			if '□' in sentence.txts:
 				raise Exception('□(SP): "{}"'.format(sentence))
 
 			if p_id not in heads:
 				print('No Head (None): {} "{}"'.format(p_id, sentence))
-			elif heads[p_id] not in sentence.texts:
+			elif heads[p_id] not in sentence.txts:
 				print('No Head ({}): {} "{}"'.format(heads[p_id], p_id, sentence))
 
 	pass

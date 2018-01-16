@@ -8,3 +8,4 @@
 
 from styleme.corpus.corpus import *
 from styleme.corpus.article import *
+from styleme.corpus.mention import *
