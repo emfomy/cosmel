@@ -29,30 +29,30 @@ class Repo:
 
 	@property
 	def brands(self):
-		""":class:`.BrandSet` --- the brand set."""
+		""":class:`.BrandSet`: the brand set."""
 		return self.__brands
 
 	@property
 	def name2brand(self):
-		""":class:`.Name2Brand` --- the dictionary maps name to brand."""
+		""":class:`.Name2Brand`: the dictionary maps name to brand."""
 		return self.__name2brand
 
 	@property
 	def products(self):
-		""":class:`.ProductSet` --- the product set."""
+		""":class:`.ProductSet`: the product set."""
 		return self.__products
 
 	@property
 	def id2product(self):
-		""":class:`.Id2Product` --- the dictionary maps ID to product."""
+		""":class:`.Id2Product`: the dictionary maps ID to product."""
 		return self.__id2product
 
 	@property
 	def brandname2product(self):
-		""":class:`.BrandName2Product` --- the dictionary maps brand and name to product."""
+		""":class:`.BrandName2Product`: the dictionary maps brand and name to product."""
 		return self.__brandname2product
 
 	@property
 	def brandhead2products(self):
-		""":class:`.BrandHead2Products` --- the dictionary maps brand and head to product list."""
+		""":class:`.BrandHead2Products`: the dictionary maps brand and head to product list."""
 		return self.__brandhead2products

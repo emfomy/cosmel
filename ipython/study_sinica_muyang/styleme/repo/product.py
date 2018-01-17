@@ -41,37 +41,37 @@ class Product:
 
 	@property
 	def brand(self):
-		""":class:`.Brand` --- the brand."""
+		""":class:`.Brand`: the brand."""
 		return self.__brand
 
 	@property
 	def p_id(self):
-		"""str --- the ID."""
+		"""str: the ID."""
 		return self.__p_id
 
 	@property
 	def name(self):
-		"""str --- the name."""
+		"""str: the name."""
 		return self.__name
 
 	@property
 	def head(self):
-		"""str --- the head word."""
+		"""str: the head word."""
 		return self.__head
 
 	@property
 	def name_ws(self):
-		""":class:`.WsWords` --- the word-segmented name."""
+		""":class:`.WsWords`: the word-segmented name."""
 		return self.__name_ws
 
 	@property
 	def descri_ws(self):
-		""":class:`.WsWords` --- the word-segmented descritions."""
+		""":class:`.WsWords`: the word-segmented descritions."""
 		return self.__name_ws[:self.__head_idx]
 
 	@property
 	def suffix_ws(self):
-		""":class:`.WsWords` --- the word-segmented suffixes."""
+		""":class:`.WsWords`: the word-segmented suffixes."""
 		return self.__name_ws[self.__head_idx+1:]
 
 

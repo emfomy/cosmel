@@ -10,8 +10,6 @@ import multiprocessing
 import os
 import shutil
 
-import time
-
 from styleme import *
 
 

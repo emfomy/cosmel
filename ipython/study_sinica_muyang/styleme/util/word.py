@@ -12,7 +12,7 @@ from styleme.util.core import *
 
 
 class WsWords(collections.abc.Sequence):
-	"""The sequence of words.
+	"""The sequence of word-segmented words.
 
 		Args:
 			chars (str): the text with tag. (the format should be several 'text(post-tag)'s seperated by <U+3000>s.)
@@ -43,7 +43,7 @@ class WsWords(collections.abc.Sequence):
 
 	@property
 	def txts(self):
-		"""list -- the txts."""
+		"""list -- the texts."""
 		return self.__txts
 
 	@property
@@ -52,4 +52,5 @@ class WsWords(collections.abc.Sequence):
 		return self.__tags
 
 def txtstr(obj):
+	"""str -- return the string of texts (obj.txts)"""
 	return obj.__txtstr__()

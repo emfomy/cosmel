@@ -17,7 +17,7 @@ if __name__ == '__main__':
 	repo = Repo(repo_path)
 	corpus = Corpus(article_path, mention_path, repo)
 
-	for mention in corpus.mentions:
-		print(mention.a_id, mention.s_id, mention)
+	for key, mention_list in corpus.brandhead2mentions.items():
+		print(key, [m.sentence for m in mention_list])
 
 	pass

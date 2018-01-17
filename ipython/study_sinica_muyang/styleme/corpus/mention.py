@@ -50,77 +50,77 @@ class Mention:
 
 	@property
 	def article(self):
-		""":class:`.Article` --- the article containing this mention."""
+		""":class:`.Article`: the article containing this mention."""
 		return self.__article
 
 	@property
 	def sentence(self):
-		""":class:`.WsWords` --- the sentence containing this mention."""
+		""":class:`.WsWords`: the sentence containing this mention."""
 		return self.__article[self.__s_id]
 
 	@property
 	def mention(self):
-		""":class:`.WsWords` --- this mention."""
+		""":class:`.WsWords`: this mention."""
 		return self.sentence[self.slice]
 
 	@property
 	def a_id(self):
-		"""str --- the article ID."""
+		"""str: the article ID."""
 		return self.__article.a_id
 
 	@property
 	def s_id(self):
-		"""int --- the sentence ID (the line index in the article)."""
+		"""int: the sentence ID (the line index in the article)."""
 		return self.__s_id
 
 	@property
 	def brand_idx(self):
-		"""int --- the brand index in the sentence."""
+		"""int: the brand index in the sentence."""
 		return self.__brand_idx
 
 	@property
 	def head_idx(self):
-		"""int --- the head index in the sentence."""
+		"""int: the head index in the sentence."""
 		return self.__head_idx
 
 	@property
 	def beginning_idx(self):
-		"""int --- the beginning index in the sentence."""
+		"""int: the beginning index in the sentence (= :attr:`brand_idx`)."""
 		return self.__brand_idx
 
 	@property
 	def ending_idx(self):
-		"""int --- the ending index in the sentence."""
+		"""int: the ending index in the sentence (= :attr:`head_idx` +1)."""
 		return self.__head_idx+1
 
 	@property
 	def slice(self):
-		"""int --- the ending index in the sentence."""
+		"""slice: the mention slice index in the sention (= :attr:`beginning_idx` : :attr:`ending_idx`)."""
 		return slice(self.beginning_idx, self.ending_idx)
 
 	@property
 	def p_id(self):
-		"""int --- the product ID."""
+		"""int: the product ID."""
 		return self.__p_id
 
 	@property
 	def g_id(self):
-		"""int --- the golden product ID."""
+		"""int: the golden product ID."""
 		return self.__g_id
 
 	@property
 	def brand(self):
-		""":class:`.Brand` --- the brand."""
+		""":class:`.Brand`: the brand."""
 		return self.__brand
 
 	@property
 	def b_name(self):
-		"""str --- the brand name."""
+		"""str: the brand name."""
 		return self.sentence.txts[self.__brand_idx]
 
 	@property
 	def head(self):
-		"""str --- the head word."""
+		"""str: the head word."""
 		return self.sentence.txts[self.__head_idx]
 
 
@@ -160,3 +160,44 @@ class MentionSet(collections.abc.Collection):
 
 	def __len__(self):
 		return len(self.__data)
+
+
+class BrandHead2Mentions(collections.abc.Mapping):
+	"""The dictionary maps brand and head to mention list.
+
+	* Key:  tuple of brand class (:class:`.Brand`) and mention head (str).
+	* Item: :class:`.ReadOnlyList` of mention class (:class:`.Mention`).
+
+	Args:
+		mentions (:class:`.MentionSet`): the mention set.
+	"""
+
+	def __init__(self, mentions):
+		super().__init__()
+		self.__data = dict()
+
+		mention_dict = dict()
+		for mention in mentions:
+			pair = (mention.brand, mention.head)
+			if pair not in mention_dict:
+				mention_dict[pair] = [mention]
+			else:
+				mention_dict[pair] += [mention]
+
+		for pair, mentions in mention_dict.items():
+			self.__data[pair] = ReadOnlyList(mentions)
+
+		self.__empty_collection = ReadOnlyList()
+
+	def __contains__(self, item):
+		return item in self.__data
+
+	def __getitem__(self, key):
+		return self.__data.get(key, self.__empty_collection)
+
+	def __iter__(self):
+		return iter(self.__data)
+
+	def __len__(self):
+		return len(self.__data)
+
