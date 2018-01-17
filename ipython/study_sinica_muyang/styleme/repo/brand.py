@@ -37,10 +37,10 @@ class Brand(collections.abc.Sequence):
 		return len(self.__data)
 
 	def __str__(self):
-		return str(self.__data)
+		return self.__data[-1]
 
 	def __repr__(self):
-		return str(self)
+		return str(self.__data)
 
 
 class BrandSet(collections.abc.Collection):
@@ -72,6 +72,9 @@ class BrandSet(collections.abc.Collection):
 
 	def __str__(self):
 		return '\n'.join(map(str, self.__data))
+
+	def __repr__(self):
+		return '\n'.join(map(repr, self.__data))
 
 
 class Name2Brand(collections.abc.Mapping):

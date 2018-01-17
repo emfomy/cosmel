@@ -34,10 +34,10 @@ class Product:
 		self.__head_idx = self.name_ws.txts.index(head)
 
 	def __str__(self):
-		return '{} {} {}'.format(self.__p_id, self.__brand[-1], self.__name)
+		return '{} {} {}'.format(self.__p_id, str(self.__brand), self.__name)
 
 	def __repr__(self):
-		return str(self)
+		return '{} {} {}'.format(self.__p_id, repr(self.__brand), self.__name)
 
 	@property
 	def brand(self):
@@ -124,6 +124,9 @@ class ProductSet(collections.abc.Collection):
 
 	def __str__(self):
 		return '\n'.join(map(str, self.__data))
+
+	def __repr__(self):
+		return '\n'.join(map(repr, self.__data))
 
 
 class Id2Product(collections.abc.Mapping):

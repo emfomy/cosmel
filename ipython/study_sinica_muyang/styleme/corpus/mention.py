@@ -43,7 +43,7 @@ class Mention:
 		return str(self.mention)
 
 	def __repr__(self):
-		return str(self)
+		return repr(self.mention)
 
 	def __txtstr__(self):
 		return txtstr(self.mention)
@@ -138,14 +138,18 @@ class MentionSet(collections.abc.Collection):
 
 	def __init__(self, article_path, mention_path, articles, repo):
 		super().__init__()
-		with multiprocessing.Pool() as pool:
-			results = [pool.apply_async(self._grep_mention, args=(article, article_path, mention_path, repo.name2brand,)) \
-					for article in articles]
-			self.__data = list(itertools.chain.from_iterable(result.get() for result in results))
+		# with multiprocessing.Pool() as pool:
+		# 	results = [pool.apply_async(self._grep_mention, args=(article, article_path, mention_path, repo.name2brand,)) \
+		# 			for article in articles]
+		# 	self.__data = list(itertools.chain.from_iterable(result.get() for result in results))
+		# 	del results
+		results = [self._grep_mention(article, article_path, mention_path, repo.name2brand) \
+				for article in articles]
+		self.__data = list(itertools.chain.from_iterable(result for result in results))
 		print()
 
-	@classmethod
-	def _grep_mention(self, article, article_path, mention_path, name2brand):
+	@staticmethod
+	def _grep_mention(article, article_path, mention_path, name2brand):
 		mention_file = article.path.replace(article_path, mention_path)+'.mention'
 		printr('Reading {}'.format(mention_file))
 		with open(mention_file) as fin:
@@ -154,6 +158,44 @@ class MentionSet(collections.abc.Collection):
 
 	def __contains__(self, item):
 		return item in self.__data
+
+	def __iter__(self):
+		return iter(self.__data)
+
+	def __len__(self):
+		return len(self.__data)
+
+
+class Path2Mentions(collections.abc.Mapping):
+	"""The dictionary maps file path to mention list.
+
+	* Key:  the related file path of the article (str).
+	* Item: :class:`.ReadOnlyList` of mention class (:class:`.Mention`).
+
+	Args:
+		mentions (:class:`.MentionSet`): the mention set.
+	"""
+
+	def __init__(self, mentions):
+		super().__init__()
+		self.__data = dict()
+
+		mention_dict = dict()
+		for mention in mentions:
+			path = mention.article.path
+			if path not in mention_dict:
+				mention_dict[path] = [mention]
+			else:
+				mention_dict[path] += [mention]
+
+		for path, mentions in mention_dict.items():
+			self.__data[path] = ReadOnlyList(mentions)
+
+	def __contains__(self, item):
+		return item in self.__data
+
+	def __getitem__(self, key):
+		return self.__data.get(key)
 
 	def __iter__(self):
 		return iter(self.__data)

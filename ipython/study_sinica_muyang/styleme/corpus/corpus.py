@@ -25,6 +25,7 @@ class Corpus:
 		self.__articles           = ArticleSet(article_path)
 		self.__path2article       = Path2Article(self.__articles)
 		self.__mentions           = MentionSet(article_path, mention_path, self.__articles, repo)
+		self.__path2mentions      = Path2Mentions(self.__mentions)
 		self.__brandhead2mentions = BrandHead2Mentions(self.__mentions)
 
 	@property
@@ -41,6 +42,11 @@ class Corpus:
 	def mentions(self):
 		""":class:`.MentionSet`: the mention set."""
 		return self.__mentions
+
+	@property
+	def path2mentions(self):
+		""":class:`.Path2Mentions`: the dictionary maps article file path to brand."""
+		return self.__path2mentions
 
 	@property
 	def brandhead2mentions(self):

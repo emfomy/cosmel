@@ -43,12 +43,12 @@ class WsWords(collections.abc.Sequence):
 
 	@property
 	def txts(self):
-		"""list -- the texts."""
+		""":class:`ReadOnlyList` -- the texts."""
 		return self.__txts
 
 	@property
 	def tags(self):
-		"""list -- the post-tags."""
+		""":class:`ReadOnlyList` -- the post-tags."""
 		return self.__tags
 
 def txtstr(obj):

@@ -46,6 +46,9 @@ class Article(collections.abc.Sequence):
 	def __str__(self):
 		return '\n'.join(map(str, self.__data))
 
+	def __repr__(self):
+		return '\n'.join(map(repr, self.__data))
+
 	def __txtstr__(self):
 		return '\n'.join(map(txtstr, self.__data))
 
@@ -71,9 +74,10 @@ class ArticleSet(collections.abc.Collection):
 
 	def __init__(self, article_path):
 		super().__init__()
-		with multiprocessing.Pool() as pool:
-			results = [pool.apply_async(Article, args=(file,)) for file in grep_files(article_path)]
-			self.__data = [result.get() for result in results]
+		# with multiprocessing.Pool() as pool:
+		# 	results = [pool.apply_async(Article, args=(file,)) for file in grep_files(article_path)]
+		# 	self.__data = [result.get() for result in results]
+		self.__data = [Article(file) for file in grep_files(article_path)]
 		print()
 
 	def __contains__(self, item):

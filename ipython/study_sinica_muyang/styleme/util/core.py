@@ -34,10 +34,10 @@ class ReadOnlyList(collections.abc.Sequence):
 		return len(self.__data)
 
 	def __str__(self):
-		return str(self.__data)
+		return str(list(str(item) for item in self.__data))
 
 	def __repr__(self):
-		return str(self)
+		return str(self.__data)
 
 
 def prune_string(chars):
