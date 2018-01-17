@@ -196,13 +196,13 @@ class new_ArticleProcessor(object):
 				if passed:
 					break
 
-				# Rule 91
-				passed, idx = self.check_rule(self.check_rule91, sentence.content_seg, word, idx, head_idxs, previous_products)
+				# Rule 101
+				passed, idx = self.check_rule(self.check_rule101, sentence.content_seg, word, idx, head_idxs, previous_products)
 				if passed:
 					break
 
-				# Rule 92
-				passed, idx = self.check_rule(self.check_rule92, sentence.content_seg, word, idx, head_idxs, previous_products)
+				# Rule 102
+				passed, idx = self.check_rule(self.check_rule102, sentence.content_seg, word, idx, head_idxs, previous_products)
 				if passed:
 					break
 
@@ -283,18 +283,18 @@ class new_ArticleProcessor(object):
 			return ['OSP', '3b']
 		return [None, '']
 
-	## Check rule 91.
+	## Check rule 101.
 	#  Check if mention has no description
-	def check_rule91(self, content_seg, brand_idx, head_idx, previous_products):
+	def check_rule101(self, content_seg, brand_idx, head_idx, previous_products):
 		if brand_idx+1 == head_idx:
-			return ['GP', '91a']
+			return ['GP', '101a']
 		return [None, '']
 
-	## Check rule 92.
+	## Check rule 102.
 	#  Check if mention contians "的"
-	def check_rule92(self, content_seg, brand_idx, head_idx, previous_products):
+	def check_rule102(self, content_seg, brand_idx, head_idx, previous_products):
 		if '的(DE)' in content_seg[brand_idx+1:head_idx]:
-			return ['GP', '92a']
+			return ['GP', '102a']
 		return [None, '']
 
 	## Check rule (otherwise).

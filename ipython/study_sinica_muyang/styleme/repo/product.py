@@ -34,44 +34,44 @@ class Product:
 		self.__head_idx = self.name_ws.txts.index(head)
 
 	def __str__(self):
-		return '{} {} {}'.format(self.__p_id, self.__brand[-1], self.__name)
+		return '{} {} {}'.format(self.__p_id, str(self.__brand), self.__name)
 
 	def __repr__(self):
-		return str(self)
+		return '{} {} {}'.format(self.__p_id, repr(self.__brand), self.__name_ws)
 
 	@property
 	def brand(self):
-		""":class:`.Brand` --- the brand."""
+		""":class:`.Brand`: the brand."""
 		return self.__brand
 
 	@property
 	def p_id(self):
-		"""str --- the ID."""
+		"""str: the ID."""
 		return self.__p_id
 
 	@property
 	def name(self):
-		"""str --- the name."""
+		"""str: the name (excluding brand)."""
 		return self.__name
 
 	@property
 	def head(self):
-		"""str --- the head word."""
+		"""str: the head word."""
 		return self.__head
 
 	@property
 	def name_ws(self):
-		""":class:`.WsWords` --- the word-segmented name."""
+		""":class:`.WsWords`: the word-segmented name."""
 		return self.__name_ws
 
 	@property
 	def descri_ws(self):
-		""":class:`.WsWords` --- the word-segmented descritions."""
+		""":class:`.WsWords`: the word-segmented descritions."""
 		return self.__name_ws[:self.__head_idx]
 
 	@property
 	def suffix_ws(self):
-		""":class:`.WsWords` --- the word-segmented suffixes."""
+		""":class:`.WsWords`: the word-segmented suffixes."""
 		return self.__name_ws[self.__head_idx+1:]
 
 
@@ -124,6 +124,9 @@ class ProductSet(collections.abc.Collection):
 
 	def __str__(self):
 		return '\n'.join(map(str, self.__data))
+
+	def __repr__(self):
+		return '\n'.join(map(repr, self.__data))
 
 
 class Id2Product(collections.abc.Mapping):

@@ -16,27 +16,39 @@ class Corpus:
 	"""The corpus class.
 
 	Args:
-		article_ws_path (str): the path to the folder containing word segmented article files.
+		article_path (str): the path to the folder containing word segmented article files.
+		mention_path (str): the path to the folder containing mention files.
 		repo (:class:`.Repo`): the product repository class.
 	"""
 
-	def __init__(self, article_ws_path, repo):
-		self.__articles     = ArticleSet(article_ws_path)
-		# self.__id2article = Id2Article(self.__articles)
-		self.__path2article = Path2Article(self.__articles)
-		self.__mentions     = MentionSet(self.__articles, repo)
+	def __init__(self, article_path, mention_path, repo):
+		self.__articles           = ArticleSet(article_path)
+		self.__path2article       = Path2Article(self.__articles)
+		self.__mentions           = MentionSet(article_path, mention_path, self.__articles, repo)
+		self.__article2mentions   = Article2Mentions(self.__mentions)
+		self.__brandhead2mentions = BrandHead2Mentions(self.__mentions)
 
 	@property
 	def articles(self):
-		""":class:`.ArticleSet` --- the article set."""
+		""":class:`.ArticleSet`: the article set."""
 		return self.__articles
 
 	@property
-	def id2article(self):
-		""":class:`.Id2Article` --- the dictionary maps ID to article."""
-		return self.__id2article
+	def path2article(self):
+		""":class:`.Path2Article`: the dictionary maps file path to brand."""
+		return self.__path2article
 
 	@property
 	def mentions(self):
-		""":class:`.MentionSet` --- the mention set."""
+		""":class:`.MentionSet`: the mention set."""
 		return self.__mentions
+
+	@property
+	def article2mentions(self):
+		""":class:`.Article2Mentions`: the dictionary maps article to mention list."""
+		return self.__article2mentions
+
+	@property
+	def brandhead2mentions(self):
+		""":class:`.BrandHead2Mentions`: the dictionary maps brand and head to mention list."""
+		return self.__brandhead2mentions

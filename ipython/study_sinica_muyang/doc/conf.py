@@ -22,7 +22,7 @@ import sys
 sys.path.insert(0, os.path.abspath('..'))
 
 
-# -- General configuration ------------------------------------------------
+# -- General configuration:---------------------------------------------
 
 # If your documentation needs a minimal Sphinx version, state it here.
 #
@@ -89,7 +89,7 @@ pygments_style = 'sphinx'
 todo_include_todos = True
 
 
-# -- Options for HTML output ----------------------------------------------
+# -- Options for HTML output:-------------------------------------------
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
@@ -125,13 +125,13 @@ html_sidebars = {
 }
 
 
-# -- Options for HTMLHelp output ------------------------------------------
+# -- Options for HTMLHelp output:---------------------------------------
 
 # Output file base name for HTML help builder.
 htmlhelp_basename = 'EntityLinkingdoc'
 
 
-# -- Options for LaTeX output ---------------------------------------------
+# -- Options for LaTeX output:------------------------------------------
 
 latex_elements = {
     # The paper size ('letterpaper' or 'a4paper').
@@ -160,7 +160,7 @@ latex_documents = [
 ]
 
 
-# -- Options for manual page output ---------------------------------------
+# -- Options for manual page output:------------------------------------
 
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
@@ -170,7 +170,7 @@ man_pages = [
 ]
 
 
-# -- Options for Texinfo output -------------------------------------------
+# -- Options for Texinfo output:----------------------------------------
 
 # Grouping the document tree into Texinfo files. List of tuples
 # (source start file, target name, title, author,
@@ -188,6 +188,6 @@ texinfo_documents = [
 intersphinx_mapping = {'https://docs.python.org/': None}
 
 
-# -- Settings of autodoc --------------------------------------------------
+# -- Settings of autodoc:-----------------------------------------------
 
 autodoc_member_order = 'bysource'

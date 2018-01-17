@@ -10,21 +10,19 @@ import multiprocessing
 import os
 import shutil
 
-import time
-
 from styleme import *
 
 
 class RawMention:
 
-	def __init__(self, article, s_id, begin_idx, end_idxs):
+	def __init__(self, article, s_id, brand_idx, head_idxs):
 		self.article   = article
 		self.s_id      = s_id
-		self.begin_idx = begin_idx
-		self.end_idxs  = end_idxs
+		self.brand_idx = brand_idx
+		self.head_idxs = head_idxs
 
 	def __str__(self):
-		return '\t'.join(map(str, [self.s_id, self.begin_idx, ','.join(map(str, self.end_idxs))]))
+		return '\t'.join(map(str, [self.s_id, self.brand_idx, ','.join(map(str, self.head_idxs))]))
 
 	@property
 	def sentence(self):
@@ -49,7 +47,7 @@ if __name__ == '__main__':
 	tmp_path      = 'data/tmp'
 
 	repo         = Repo(repo_path)
-	articles     = ArticleSet(article_path)
+	articles     = ArticleSet(article_path, ignore_duplicated=True)
 	path2article = Path2Article(articles)
 
 	max_len_mention = 10
@@ -74,10 +72,10 @@ if __name__ == '__main__':
 						idx = line.tags.index('N_Brand', idx+1)
 					except ValueError:
 						break
-					end_idxs = indices(line.tags, 'N_Head', idx+1, idx+max_len_mention)
-					if len(end_idxs):
-						mention_list.append(RawMention(article, s_id, idx, end_idxs))
-						idx = end_idxs[-1]
+					head_idxs = indices(line.tags, 'N_Head', idx+1, idx+max_len_mention)
+					if len(head_idxs):
+						mention_list.append(RawMention(article, s_id, idx, head_idxs))
+						idx = head_idxs[-1]
 
 			# Write mentions to file
 			tmp_mention_file = article.path.replace(article_path, tmp_mention_path)+'.mention'
@@ -104,8 +102,8 @@ if __name__ == '__main__':
 			with open(tmp_mention_file) as fin:
 				mention_list = []
 				for line in fin:
-					s_id, begin_idx, end_idxs_str = line.strip().split('\t')
-					mention_list.append(RawMention(article, int(s_id), int(begin_idx), list(map(int, end_idxs_str.split(',')))))
+					s_id, brand_idx, head_idxs_str = line.strip().split('\t')
+					mention_list.append(RawMention(article, int(s_id), int(brand_idx), list(map(int, head_idxs_str.split(',')))))
 			return (article, mention_list)
 
 		with multiprocessing.Pool() as pool:
@@ -127,7 +125,7 @@ if __name__ == '__main__':
 			printr('Writing {}'.format(os.path.relpath(sentence_file)))
 			with open(sentence_file, 'w') as fout:
 				for mention in mention_list:
-					if len(mention.end_idxs) > 1:
+					if len(mention.head_idxs) > 1:
 						fout.write(str(mention.sentence)+'\n')
 					else:
 						fout.write('\n')
@@ -151,14 +149,16 @@ if __name__ == '__main__':
 			printr('Writing {}'.format(os.path.relpath(mention_file)))
 			with open(mention_file, 'w') as fout:
 				for mention in mention_list:
-					mention.end_idxs = [mention.end_idxs[-1]]
+					mention.head_idxs = [mention.head_idxs[-1]]
 					fout.write(str(mention)+'\n')
 
-		with multiprocessing.Pool() as pool:
-			results = [pool.apply_async(__func, args=(article, mention_list, article_path, mention_path,)) \
-					for article, mention_list in mentions.items()]
-			[result.get() for result in results]
-			del results
+		# with multiprocessing.Pool() as pool:
+			# results = [pool.apply_async(__func, args=(article, mention_list, article_path, mention_path,)) \
+			# 		for article, mention_list in mentions.items()]
+			# [result.get() for result in results]
+			# del results
+		for article, mention_list in mentions.items():
+			__func(article, mention_list, article_path, mention_path)
 		print()
 
 	pass

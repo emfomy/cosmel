@@ -46,17 +46,20 @@ class Article(collections.abc.Sequence):
 	def __str__(self):
 		return '\n'.join(map(str, self.__data))
 
+	def __repr__(self):
+		return '\n'.join(map(repr, self.__data))
+
 	def __txtstr__(self):
 		return '\n'.join(map(txtstr, self.__data))
 
 	@property
 	def a_id(self):
-		"""str --- the article ID (with leading author name and underscore)."""
+		"""str: the article ID (with leading author name and underscore)."""
 		return self.__a_id
 
 	@property
 	def path(self):
-		"""str --- the absolute file path."""
+		"""str: the related file path."""
 		return self.__path
 
 
@@ -71,10 +74,10 @@ class ArticleSet(collections.abc.Collection):
 
 	def __init__(self, article_path):
 		super().__init__()
-		self.__data = list()
-		with multiprocessing.Pool() as pool:
-			results = [pool.apply_async(Article, args=(file,)) for file in grep_files(article_path)]
-			self.__data = [result.get() for result in results]
+		# with multiprocessing.Pool() as pool:
+		# 	results = [pool.apply_async(Article, args=(file,)) for file in grep_files(article_path)]
+		# 	self.__data = [result.get() for result in results]
+		self.__data = [Article(file) for file in grep_files(article_path)]
 		print()
 
 	def __contains__(self, item):
@@ -87,40 +90,40 @@ class ArticleSet(collections.abc.Collection):
 		return len(self.__data)
 
 
-class Id2Article(collections.abc.Mapping):
-	"""The dictionary maps name to article.
+# class Id2Article(collections.abc.Mapping):
+# 	"""The dictionary maps name to article.
 
-	* Key:  the article ID (with leading author name and underscore) (str).
-	* Item: the article (:class:`.Article`).
+# 	* Key:  the article ID (with leading author name and underscore) (str).
+# 	* Item: the article (:class:`.Article`).
 
-	Args:
-		articles (:class:`.ArticleSet`): the article set.
-	"""
+# 	Args:
+# 		articles (:class:`.ArticleSet`): the article set.
+# 	"""
 
-	def __init__(self, articles):
-		super().__init__()
-		self.__data = dict()
-		for article in articles:
-			assert article.a_id not in self.__data
-			self.__data[article.a_id] = article
+# 	def __init__(self, articles):
+# 		super().__init__()
+# 		self.__data = dict()
+# 		for article in articles:
+# 			assert article.a_id not in self.__data
+# 			self.__data[article.a_id] = article
 
-	def __contains__(self, item):
-		return item in self.__data
+# 	def __contains__(self, item):
+# 		return item in self.__data
 
-	def __getitem__(self, key):
-		return self.__data[key]
+# 	def __getitem__(self, key):
+# 		return self.__data[key]
 
-	def __iter__(self):
-		return iter(self.__data)
+# 	def __iter__(self):
+# 		return iter(self.__data)
 
-	def __len__(self):
-		return len(self.__data)
+# 	def __len__(self):
+# 		return len(self.__data)
 
 
 class Path2Article(collections.abc.Mapping):
-	"""The dictionary maps name to article.
+	"""The dictionary maps file path to article.
 
-	* Key:  the absolute file path of the article (str).
+	* Key:  the related file path of the article (str).
 	* Item: the article (:class:`.Article`).
 
 	Args:
