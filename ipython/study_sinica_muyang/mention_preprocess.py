@@ -152,11 +152,13 @@ if __name__ == '__main__':
 					mention.head_idxs = [mention.head_idxs[-1]]
 					fout.write(str(mention)+'\n')
 
-		with multiprocessing.Pool() as pool:
-			results = [pool.apply_async(__func, args=(article, mention_list, article_path, mention_path,)) \
-					for article, mention_list in mentions.items()]
-			[result.get() for result in results]
-			del results
+		# with multiprocessing.Pool() as pool:
+			# results = [pool.apply_async(__func, args=(article, mention_list, article_path, mention_path,)) \
+			# 		for article, mention_list in mentions.items()]
+			# [result.get() for result in results]
+			# del results
+		for article, mention_list in mentions.items():
+			__func(article, mention_list, article_path, mention_path)
 		print()
 
 	pass

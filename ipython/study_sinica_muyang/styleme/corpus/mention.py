@@ -28,7 +28,7 @@ class Mention:
 		g_id       (str):                  the golden product ID.
 	"""
 
-	def __init__(self, name2brand, article, s_id, brand_idx, head_idx, p_id='', g_id=''):
+	def __init__(self, name2brand, article, s_id, brand_idx, head_idx, p_id='', g_id='', rule=''):
 		super().__init__()
 
 		self.__article   = article
@@ -37,6 +37,7 @@ class Mention:
 		self.__head_idx  = int(head_idx)
 		self.__p_id      = p_id
 		self.__g_id      = g_id
+		self.__rule      = rule
 		self.__brand     = name2brand[self.b_name]
 
 	def __str__(self):
@@ -100,13 +101,18 @@ class Mention:
 
 	@property
 	def p_id(self):
-		"""int: the product ID."""
+		"""str: the product ID."""
 		return self.__p_id
 
 	@property
 	def g_id(self):
-		"""int: the golden product ID."""
+		"""str: the golden product ID."""
 		return self.__g_id
+
+	@property
+	def rule(self):
+		"""str: the rule for the product ID."""
+		return self.__rule
 
 	@property
 	def brand(self):
@@ -119,9 +125,41 @@ class Mention:
 		return self.sentence.txts[self.__brand_idx]
 
 	@property
+	def name(self):
+		"""str: the name (excluding brand)."""
+		return txtstr(self.name_ws)
+
+	@property
 	def head(self):
 		"""str: the head word."""
 		return self.sentence.txts[self.__head_idx]
+
+	@property
+	def name_ws(self):
+		""":class:`.WsWords`: the word-segmented name (excluding brand)."""
+		return self.sentence[self.beginning_idx+1:self.ending_idx]
+
+	@property
+	def descri_ws(self):
+		""":class:`.WsWords`: the word-segmented descritions (excluding brand and head)."""
+		return self.sentence[self.beginning_idx+1:self.head_idx]
+
+	@property
+	def filestr(self):
+		"""Change to string for file."""
+		return '\t'.join([str(self.__s_id), str(self.__brand_idx), str(self.__head_idx), self.__p_id, self.__g_id, self.__rule])
+
+	def set_p_id(self, p_id):
+		"""Sets the product ID."""
+		self.__p_id = p_id
+
+	def set_g_id(self, g_id):
+		"""Sets the golden product ID."""
+		self.__g_id = g_id
+
+	def set_rule(self, rule):
+		"""Sets the rule for the product ID."""
+		self.__rule = rule
 
 
 class MentionSet(collections.abc.Collection):
@@ -166,10 +204,10 @@ class MentionSet(collections.abc.Collection):
 		return len(self.__data)
 
 
-class Path2Mentions(collections.abc.Mapping):
-	"""The dictionary maps file path to mention list.
+class Article2Mentions(collections.abc.Mapping):
+	"""The dictionary maps article to mention list.
 
-	* Key:  the related file path of the article (str).
+	* Key:  the article (:class:`.Article`).
 	* Item: :class:`.ReadOnlyList` of mention class (:class:`.Mention`).
 
 	Args:
@@ -182,20 +220,22 @@ class Path2Mentions(collections.abc.Mapping):
 
 		mention_dict = dict()
 		for mention in mentions:
-			path = mention.article.path
-			if path not in mention_dict:
-				mention_dict[path] = [mention]
+			article = mention.article
+			if article not in mention_dict:
+				mention_dict[article] = [mention]
 			else:
-				mention_dict[path] += [mention]
+				mention_dict[article] += [mention]
 
-		for path, mentions in mention_dict.items():
-			self.__data[path] = ReadOnlyList(mentions)
+		for article, mentions in mention_dict.items():
+			self.__data[article] = ReadOnlyList(mentions)
+
+		self.__empty_collection = ReadOnlyList()
 
 	def __contains__(self, item):
 		return item in self.__data
 
 	def __getitem__(self, key):
-		return self.__data.get(key)
+		return self.__data.get(key, self.__empty_collection)
 
 	def __iter__(self):
 		return iter(self.__data)

@@ -37,7 +37,7 @@ class Product:
 		return '{} {} {}'.format(self.__p_id, str(self.__brand), self.__name)
 
 	def __repr__(self):
-		return '{} {} {}'.format(self.__p_id, repr(self.__brand), self.__name)
+		return '{} {} {}'.format(self.__p_id, repr(self.__brand), self.__name_ws)
 
 	@property
 	def brand(self):
@@ -51,7 +51,7 @@ class Product:
 
 	@property
 	def name(self):
-		"""str: the name."""
+		"""str: the name (excluding brand)."""
 		return self.__name
 
 	@property
