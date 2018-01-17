@@ -7,6 +7,7 @@
 """
 
 import os
+import time
 
 from styleme import *
 
@@ -97,22 +98,22 @@ def decision_tree(mention, repo, previous_products):
 	# Nil --- no candidate
 	if len(candidates) == 0:
 		mention.set_rule('nil')
-		mention.set_p_id('GP')
+		mention.set_p_id('NAP')
 		return
 
 	# Else
 	mention.set_rule('else')
-	mention.set_p_id('GP')
+	mention.set_p_id('NAP')
 	return
 
 
 if __name__ == '__main__':
 
-	root          = '/prune_article_ws'
+	date          = time.strftime("%Y%m%d.%H%M%S")
 	repo_path     = 'data/repo'
-	article_path  = 'data/article/prune_article_ws'+target
-	mention_path  = 'data/mention/prune_article_ws'+target
-	output_path   = 'data/mention/prune_article_ws_pid'+target
+	article_path  = 'data/article/prune_article_ws'
+	mention_path  = 'data/mention/prune_article_ws'
+	output_path   = 'data/mention/prune_article_ws_pid_'+date
 
 	repo   = Repo(repo_path)
 	corpus = Corpus(article_path, mention_path, repo)
