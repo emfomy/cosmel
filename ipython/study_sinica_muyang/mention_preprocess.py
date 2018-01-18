@@ -6,7 +6,6 @@
 	 Mu Yang <emfomy@gmail.com>
 """
 
-import multiprocessing
 import os
 import shutil
 
@@ -55,6 +54,7 @@ if __name__ == '__main__':
 	tmp_mention_path  = tmp_path+'/mention'+target
 	tmp_sentence_path = tmp_path+'/sentence'+target
 
+	mentions = dict()
 	if not greped_mention:
 
 		# Remove Temp Files
@@ -62,7 +62,7 @@ if __name__ == '__main__':
 			shutil.rmtree(tmp_mention_path)
 
 		# Grep mentions
-		def __func(article, article_path, tmp_mention_path):
+		for article in articles:
 			mention_list = []
 
 			for s_id, line in enumerate(article):
@@ -76,6 +76,7 @@ if __name__ == '__main__':
 					if len(head_idxs):
 						mention_list.append(RawMention(article, s_id, idx, head_idxs))
 						idx = head_idxs[-1]
+			mentions[article] = mention_list
 
 			# Write mentions to file
 			tmp_mention_file = article.path.replace(article_path, tmp_mention_path)+'.mention'
@@ -84,18 +85,11 @@ if __name__ == '__main__':
 			with open(tmp_mention_file, 'w') as fout:
 				for mention in mention_list:
 					fout.write(str(mention)+'\n')
-
-			return (article, mention_list)
-
-		with multiprocessing.Pool() as pool:
-			results  = [pool.apply_async(__func, args=(article, article_path, tmp_mention_path,)) for article in articles]
-			mentions = dict([result.get() for result in results])
-			del results
 		print()
 
 	else:
 		# Load mentions from file
-		def __func(tmp_mention_file, tmp_mention_path, article_path):
+		for tmp_mention_file in grep_files(tmp_mention_path):
 			path = tmp_mention_file.replace(tmp_mention_path, article_path)[:-len('.mention')]
 			article = path_to_article[path]
 			printr('Reading {}'.format(os.path.relpath(tmp_mention_file)))
@@ -104,13 +98,7 @@ if __name__ == '__main__':
 				for line in fin:
 					s_id, brand_idx, head_idxs_str = line.strip().split('\t')
 					mention_list.append(RawMention(article, int(s_id), int(brand_idx), list(map(int, head_idxs_str.split(',')))))
-			return (article, mention_list)
-
-		with multiprocessing.Pool() as pool:
-			results  = [pool.apply_async(__func, args=(tmp_mention_file, tmp_mention_path, article_path,)) \
-					for tmp_mention_file in grep_files(tmp_mention_path)]
-			mentions = dict([result.get() for result in results])
-			del results
+			mentions[article] = mention_list
 		print()
 
 	if not written_sentence:
@@ -119,7 +107,7 @@ if __name__ == '__main__':
 			shutil.rmtree(tmp_sentence_path)
 
 		# Writhe mention sentences to file
-		def __func(article, mention_list, article_path, tmp_sentence_path):
+		for article, mention_list in mentions.items():
 			sentence_file = article.path.replace(article_path, tmp_sentence_path)+'.sentence'
 			os.makedirs(os.path.dirname(sentence_file), exist_ok=True)
 			printr('Writing {}'.format(os.path.relpath(sentence_file)))
@@ -129,12 +117,6 @@ if __name__ == '__main__':
 						fout.write(str(mention.sentence)+'\n')
 					else:
 						fout.write('\n')
-
-		with multiprocessing.Pool() as pool:
-			results = [pool.apply_async(__func, args=(article, mention_list, article_path, tmp_sentence_path)) \
-					for article, mention_list in mentions.items()]
-			[result.get() for result in results]
-			del results
 		print()
 
 	if not parsed:
@@ -143,7 +125,7 @@ if __name__ == '__main__':
 	if not used_last_head:
 
 		# Write mentions to file
-		def __func(article, mention_list, article_path, mention_path):
+		for article, mention_list in mentions.items():
 			mention_file = article.path.replace(article_path, mention_path)+'.mention'
 			os.makedirs(os.path.dirname(mention_file), exist_ok=True)
 			printr('Writing {}'.format(os.path.relpath(mention_file)))
@@ -151,14 +133,6 @@ if __name__ == '__main__':
 				for mention in mention_list:
 					mention.head_idxs = [mention.head_idxs[-1]]
 					fout.write(str(mention)+'\n')
-
-		# with multiprocessing.Pool() as pool:
-			# results = [pool.apply_async(__func, args=(article, mention_list, article_path, mention_path,)) \
-			# 		for article, mention_list in mentions.items()]
-			# [result.get() for result in results]
-			# del results
-		for article, mention_list in mentions.items():
-			__func(article, mention_list, article_path, mention_path)
 		print()
 
 	pass

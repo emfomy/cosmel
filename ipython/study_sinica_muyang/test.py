@@ -20,19 +20,4 @@ if __name__ == '__main__':
 	for key, mention_list in corpus.brand_head_to_mention_list.items():
 		print(key, [m.sentence for m in mention_list])
 
-	# brands = list(repo.brand_set)
-	# brands2 = list()
-
-	# import pymp
-	# with pymp.Parallel(4) as p:
-	# 	for i in p.iterate(range(len(brands))):
-	# 		with p.lock:
-	# 			print(len(brands2))
-	# 			brands2.append(brands[i])
-
-	# print(len(brands2))
-
-	# # for i in range(len(brands)):
-	# # 	print(brands[i], brands2[i])
-
 	pass

@@ -7,7 +7,6 @@
 """
 
 import functools
-import multiprocessing
 import os
 import re
 import shutil
@@ -54,7 +53,7 @@ if __name__ == '__main__':
 		re_script  = re.compile(r'<script(?:.|\s)*</script>')
 		re_variant = ReplaceVariant()
 
-		def __func(re_url, re_script, re_variant, orig_path, prune_path, orig_file):
+		for orig_file in grep_files(orig_path):
 			prune_file = orig_file.replace(orig_path, prune_path)
 			os.makedirs(os.path.dirname(prune_file), exist_ok=True)
 			print(prune_file)
@@ -66,12 +65,6 @@ if __name__ == '__main__':
 				lines = re_variant.sub(lines)
 				lines = prune_string(lines+'\n')
 				fout.write(lines.strip()+'\n')
-
-		with multiprocessing.Pool() as pool:
-			results = [pool.apply_async(__func, args=(re_url, re_script, re_variant, orig_path, prune_path, orig_file,)) \
-					for orig_file in grep_files(orig_path)]
-			[result.get() for result in results]
-			del results
 		print()
 
 	# Copy Temp Files
@@ -86,18 +79,12 @@ if __name__ == '__main__':
 			shutil.rmtree(ws_re_tmp_path)
 
 		# Copy Files
-		def __func(prune_path, prune_tmp_path, prune_file):
+		for prune_file in grep_files(prune_path):
 			prune_tmp_file = prune_file.replace(prune_path, prune_tmp_path)
 			os.makedirs(os.path.dirname(prune_tmp_file), exist_ok=True)
 			print(prune_tmp_file)
 			with open(prune_file) as fin, open(prune_tmp_file, 'w', encoding='big5') as fout:
 				fout.write(fin.read())
-
-		with multiprocessing.Pool() as pool:
-			results = [pool.apply_async(__func, args=(prune_path, prune_tmp_path, prune_file,)) \
-					for prune_file in grep_files(prune_path)]
-			[result.get() for result in results]
-			del results
 		print()
 
 		subprocess_call('cd {1} && rm {0}.zip && zip -q -r {0}.zip {0}/*'.format( \
@@ -115,17 +102,11 @@ if __name__ == '__main__':
 		subprocess_call('unzip -q {0}.zip -d {1}'.format(ws_tmp_path, tmp_path), shell=True)
 
 		# Replace post-tags
-		def __func(ws, ws_tmp_path, ws_re_tmp_path, ws_tmp_file):
+		for ws_tmp_file in grep_files(ws_tmp_path):
 			ws_re_tmp_file = ws_tmp_file.replace(ws_tmp_path, ws_re_tmp_path)
 			os.makedirs(os.path.dirname(ws_re_tmp_file), exist_ok=True)
 			print(ws_re_tmp_file)
 			ws.replace(ws_tmp_file, ws_re_tmp_file)
-
-		with multiprocessing.Pool() as pool:
-			results = [pool.apply_async(__func, args=(ws, ws_tmp_path, ws_re_tmp_path, ws_tmp_file,)) \
-					for ws_tmp_file in grep_files(ws_tmp_path)]
-			[result.get() for result in results]
-			del results
 		print()
 
 	if not replaced_product:
@@ -144,7 +125,7 @@ if __name__ == '__main__':
 			regexes.append((re.compile(r'(\A|(?<=\n|　)){}\(N_Product\)'.format(lex)), tag, lex))
 
 		# Replace N_Product
-		def __func(regexes, ws_path, ws_re_tmp_path, ws_re_tmp_file):
+		for ws_re_tmp_file in grep_files(ws_re_tmp_path):
 			ws_file = ws_re_tmp_file.replace(ws_re_tmp_path, ws_path)
 			os.makedirs(os.path.dirname(ws_file), exist_ok=True)
 			print(ws_file)
@@ -154,12 +135,6 @@ if __name__ == '__main__':
 					printr(regex[2])
 					lines = regex[0].sub(regex[1], lines)
 				fout.write(lines)
-
-		with multiprocessing.Pool() as pool:
-			results = [pool.apply_async(__func, args=(regexes, ws_path, ws_re_tmp_path, ws_re_tmp_file,)) \
-					for ws_re_tmp_file in grep_files(ws_re_tmp_path)]
-			[result.get() for result in results]
-			del results
 		print()
 
 	pass

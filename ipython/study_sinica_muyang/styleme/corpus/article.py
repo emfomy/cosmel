@@ -7,7 +7,6 @@
 """
 
 import collections.abc
-import multiprocessing
 import os
 
 from styleme.util import *
@@ -74,9 +73,6 @@ class ArticleSet(collections.abc.Collection):
 
 	def __init__(self, article_path):
 		super().__init__()
-		# with multiprocessing.Pool() as pool:
-		# 	results = [pool.apply_async(Article, args=(file,)) for file in grep_files(article_path)]
-		# 	self.__data = [result.get() for result in results]
 		self.__data = [Article(file) for file in grep_files(article_path)]
 		print()
 
