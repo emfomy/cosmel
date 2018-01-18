@@ -65,13 +65,13 @@ class Product:
 		return self.__name_ws
 
 	@property
-	def descri_ws(self):
-		""":class:`.WsWords`: the word-segmented descritions."""
+	def infix_ws(self):
+		""":class:`.WsWords`: the word-segmented infix."""
 		return self.__name_ws[:self.__head_idx]
 
 	@property
 	def suffix_ws(self):
-		""":class:`.WsWords`: the word-segmented suffixes."""
+		""":class:`.WsWords`: the word-segmented suffix."""
 		return self.__name_ws[self.__head_idx+1:]
 
 

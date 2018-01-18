@@ -17,11 +17,11 @@ def relu(x):
 def decision_tree(mention, repo, previous_products):
 	candidates = repo.brandhead_to_product_list[(mention.brand, mention.head)]
 
-	mention_descri_set       = set(mention.descri_ws.txts)
-	mention_descri_no_de_set = mention_descri_set - set('的')
+	mention_affix_set       = set(mention.infix_ws.txts)
+	mention_affix_no_de_set = mention_affix_set - set('的')
 
-	candidate_descri_sets = [set(candidate.descri_ws.txts + candidate.suffix_ws.txts) for candidate in candidates]
-	candidate_descri_no_de_sets = [candidate_descri_set - set('的') for candidate_descri_set in candidate_descri_sets]
+	candidate_affix_sets = [set(candidate.infix_ws.txts + candidate.suffix_ws.txts) for candidate in candidates]
+	candidate_affix_no_de_sets = [candidate_affix_set - set('的') for candidate_affix_set in candidate_affix_sets]
 
 	# Exact --- exact match
 	for i, candidate in enumerate(candidates):
@@ -31,17 +31,17 @@ def decision_tree(mention, repo, previous_products):
 			return
 
 	# Rule 1a --- mention's description is a subset of the candidate's
-	if len(mention_descri_set) > 0:
+	if len(mention_affix_set) > 0:
 		for i, candidate in enumerate(candidates):
-			if mention_descri_set <= candidate_descri_sets[i]:
+			if mention_affix_set <= candidate_affix_sets[i]:
 				mention.set_rule('1a')
 				mention.set_p_id(candidate.p_id)
 				return
 
 	# Rule 1b --- mention's description is a subset of the candidate's (excluding "的")
-	if len(mention_descri_no_de_set) > 0:
+	if len(mention_affix_no_de_set) > 0:
 		for i, candidate in enumerate(candidates):
-			if mention_descri_no_de_set <= candidate_descri_no_de_sets[i]:
+			if mention_affix_no_de_set <= candidate_affix_no_de_sets[i]:
 				mention.set_rule('1b')
 				mention.set_p_id(candidate.p_id)
 				return
@@ -84,13 +84,13 @@ def decision_tree(mention, repo, previous_products):
 		return
 
 	# Rule 101 --- mention has no description
-	if len(mention_descri_set) == 0:
+	if len(mention_affix_set) == 0:
 		mention.set_rule('100a')
 		mention.set_p_id('GP')
 		return
 
 	# Rule 101 --- mention contains "的"
-	if '的' in mention_descri_set:
+	if '的' in mention_affix_set:
 		mention.set_rule('101a')
 		mention.set_p_id('GP')
 		return

@@ -139,8 +139,8 @@ class Mention:
 		return self.sentence[self.beginning_idx+1:self.ending_idx]
 
 	@property
-	def descri_ws(self):
-		""":class:`.WsWords`: the word-segmented descritions (excluding brand and head)."""
+	def infix_ws(self):
+		""":class:`.WsWords`: the word-segmented infix (excluding brand and head)."""
 		return self.sentence[self.beginning_idx+1:self.head_idx]
 
 	@property
