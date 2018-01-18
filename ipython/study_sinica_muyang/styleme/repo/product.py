@@ -82,10 +82,10 @@ class ProductSet(collections.abc.Collection):
 
 	Args:
 		repo_path (str): the path to the folder containing data files.
-		name2brand (:class:`.Name2Brand`): the dictionary maps name to brand.
+		name_to_brand (:class:`.Name2Brand`): the dictionary maps name to brand.
 	"""
 
-	def __init__(self, repo_path, name2brand):
+	def __init__(self, repo_path, name_to_brand):
 		super().__init__()
 		self.__data = list()
 
@@ -111,7 +111,7 @@ class ProductSet(collections.abc.Collection):
 				line = line.strip()
 				assert not line == ''
 				p_id, b_name, name = line.split('\t')
-				self.__data.append(Product(p_id, name2brand[b_name], name, head_dict[p_id], tag_dict[name]))
+				self.__data.append(Product(p_id, name_to_brand[b_name], name, head_dict[p_id], tag_dict[name]))
 
 	def __contains__(self, item):
 		return item in self.__data
@@ -190,7 +190,7 @@ class BrandName2Product(collections.abc.Mapping):
 		return len(self.__data)
 
 
-class BrandHead2Products(collections.abc.Mapping):
+class BrandHead2ProductList(collections.abc.Mapping):
 	"""The dictionary maps brand and head to product list.
 
 	* Key:  tuple of brand class (:class:`.Brand`) and product head (str).

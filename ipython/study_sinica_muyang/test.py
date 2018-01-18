@@ -17,10 +17,10 @@ if __name__ == '__main__':
 	repo = Repo(repo_path)
 	corpus = Corpus(article_path, mention_path, repo)
 
-	for key, mention_list in corpus.brandhead2mentions.items():
+	for key, mention_list in corpus.brand_head_to_mention_list.items():
 		print(key, [m.sentence for m in mention_list])
 
-	# brands = list(repo.brands)
+	# brands = list(repo.brand_set)
 	# brands2 = list()
 
 	# import pymp

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
-# Entity Linking documentation build configuration file, created by
+# StyleMe documentation build configuration file, created by
 # sphinx-quickstart on Thu Dec 14 11:06:54 2017.
 #
 # This file is execfile()d with the current directory set to its
@@ -57,7 +57,7 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = 'Entity Linking'
+project = 'StyleMe'
 copyright = '2017–2018, Mu Yang &ltemfomy@gmail.com&gt'
 author = 'Mu Yang &ltemfomy@gmail.com&gt'
 
@@ -128,7 +128,7 @@ html_sidebars = {
 # -- Options for HTMLHelp output:---------------------------------------
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'EntityLinkingdoc'
+htmlhelp_basename = 'StyleMedoc'
 
 
 # -- Options for LaTeX output:------------------------------------------
@@ -155,7 +155,7 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, 'EntityLinking.tex', 'Entity Linking Documentation',
+    (master_doc, 'StyleMe.tex', 'StyleMe Documentation',
      'Mu Yang \\textless{}emfomy@gmail.com\\textgreater{}', 'manual'),
 ]
 
@@ -165,7 +165,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, 'entitylinking', 'Entity Linking Documentation',
+    (master_doc, 'styleme', 'StyleMe Documentation',
      [author], 1)
 ]
 
@@ -176,8 +176,8 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    (master_doc, 'EntityLinking', 'Entity Linking Documentation',
-     author, 'EntityLinking', 'One line description of project.',
+    (master_doc, 'StyleMe', 'StyleMe Documentation',
+     author, 'StyleMe', 'One line description of project.',
      'Miscellaneous'),
 ]
 

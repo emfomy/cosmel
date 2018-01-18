@@ -48,7 +48,7 @@ if __name__ == '__main__':
 
 	repo         = Repo(repo_path)
 	articles     = ArticleSet(article_path, ignore_duplicated=True)
-	path2article = Path2Article(articles)
+	path_to_article = Path2Article(articles)
 
 	max_len_mention = 10
 
@@ -97,7 +97,7 @@ if __name__ == '__main__':
 		# Load mentions from file
 		def __func(tmp_mention_file, tmp_mention_path, article_path):
 			path = tmp_mention_file.replace(tmp_mention_path, article_path)[:-len('.mention')]
-			article = path2article[path]
+			article = path_to_article[path]
 			printr('Reading {}'.format(os.path.relpath(tmp_mention_file)))
 			with open(tmp_mention_file) as fin:
 				mention_list = []

@@ -22,33 +22,40 @@ class Corpus:
 	"""
 
 	def __init__(self, article_path, mention_path, repo):
-		self.__articles           = ArticleSet(article_path)
-		self.__path2article       = Path2Article(self.__articles)
-		self.__mentions           = MentionSet(article_path, mention_path, self.__articles, repo)
-		self.__article2mentions   = Article2Mentions(self.__mentions)
-		self.__brandhead2mentions = BrandHead2Mentions(self.__mentions)
+		self.__article_set                = ArticleSet(article_path)
+		self.__path_to_article            = Path2Article(self.__article_set)
+
+		self.__mention_bundle_set         = MentionBundleSet(article_path, mention_path, self.__article_set, repo)
+		self.__mention_set                = MentionSet(self.__mention_bundle_set)
+		self.__article_to_mention_bundles = Article2MentionBundle(self.__mention_set)
+		self.__brand_head_to_mention_list = BrandHead2MentionList(self.__mention_set)
 
 	@property
-	def articles(self):
+	def article_set(self):
 		""":class:`.ArticleSet`: the article set."""
-		return self.__articles
+		return self.__article_set
 
 	@property
-	def path2article(self):
+	def path_to_article(self):
 		""":class:`.Path2Article`: the dictionary maps file path to brand."""
-		return self.__path2article
+		return self.__path_to_article
 
 	@property
-	def mentions(self):
+	def mention_set(self):
 		""":class:`.MentionSet`: the mention set."""
-		return self.__mentions
+		return self.__mention_set
 
 	@property
-	def article2mentions(self):
+	def mention_bundle_set(self):
+		""":class:`.MentionBundleSet`: the mention bundle set."""
+		return self.__mention_bundle_set
+
+	@property
+	def article_to_mentions(self):
 		""":class:`.Article2Mentions`: the dictionary maps article to mention list."""
-		return self.__article2mentions
+		return self.__article_to_mentions
 
 	@property
-	def brandhead2mentions(self):
-		""":class:`.BrandHead2Mentions`: the dictionary maps brand and head to mention list."""
-		return self.__brandhead2mentions
+	def brand_head_to_mention_list(self):
+		""":class:`.BrandHead2MentionList`: the dictionary maps brand and head to mention list."""
+		return self.__brand_head_to_mention_list

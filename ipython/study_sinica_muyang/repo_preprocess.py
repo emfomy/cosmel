@@ -146,7 +146,7 @@ class RawProductDict(collections.abc.Mapping):
 
 	def __init__(self, raw_data, brands):
 		super().__init__()
-		self.__brands = brands
+		self.__brand_set = brands
 		self.__data = dict()
 		self.__ids = set()
 		for v in raw_data:
@@ -168,7 +168,7 @@ class RawProductDict(collections.abc.Mapping):
 		return len(self.__data)
 
 	def __keytransform__(self, key):
-		brand = key[0] if type(key[0]) == RawBrand else self.__brands[key[0]]
+		brand = key[0] if type(key[0]) == RawBrand else self.__brand_set[key[0]]
 		name = prune_string(key[1])
 		for v in brand:
 			name = re.sub(r'\A{}'.format(v), '', name).strip().strip('□')

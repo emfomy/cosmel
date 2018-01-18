@@ -8,7 +8,6 @@
 
 import collections.abc
 import itertools
-import multiprocessing
 import os
 
 from styleme.util import *
@@ -19,16 +18,16 @@ class Mention:
 	"""The mention class.
 
 	Args:
-		article.   (:class:`.Article`):    the article containing this mention.
-		s_id       (int):                  the line index in the aritcle.
-		brand_idx  (int):                  the brand index in the sentence.
-		head_idx   (int):                  the head index in the sentence.
-		name2brand (:class:`.Name2Brand`): the dictionary maps name to brand.
-		p_id       (str):                  the product ID.
-		g_id       (str):                  the golden product ID.
+		article       (:class:`.Article`):    the article containing this mention.
+		s_id          (int):                  the line index in the aritcle.
+		brand_idx     (int):                  the brand index in the sentence.
+		head_idx      (int):                  the head index in the sentence.
+		name_to_brand (:class:`.Name2Brand`): the dictionary maps name to brand.
+		p_id          (str):                  the product ID.
+		g_id          (str):                  the golden product ID.
 	"""
 
-	def __init__(self, name2brand, article, s_id, brand_idx, head_idx, p_id='', g_id='', rule=''):
+	def __init__(self, name_to_brand, article, s_id, brand_idx, head_idx, p_id='', g_id='', rule=''):
 		super().__init__()
 
 		self.__article   = article
@@ -38,7 +37,7 @@ class Mention:
 		self.__p_id      = p_id
 		self.__g_id      = g_id
 		self.__rule      = rule
-		self.__brand     = name2brand[self.b_name]
+		self.__brand     = name_to_brand[self.b_name]
 
 	def __str__(self):
 		return str(self.mention)
@@ -162,37 +161,65 @@ class Mention:
 		self.__rule = rule
 
 
+class MentionBundle(collections.abc.Sequence):
+	"""The bundle of mentions in an article.
+
+	* Item: mention (:class:`.Mention`)
+
+	Args:
+		file_path (str):             the path to the mention bundle.
+		article (:class:`.Article`): the article containing this mention bundle.
+		repo    (:class:`.Repo`):    the product repository class.
+	"""
+
+	def __init__(self, file_path, article, repo):
+		super().__init__()
+
+		printr('Reading {}'.format(file_path))
+		with open(file_path) as fin:
+			self.__data = [Mention(repo.name_to_brand, article, *tuple(line.strip().split('\t'))) for line in fin]
+
+		self.__article = article
+		self.__path    = file_path
+
+	def __contains__(self, item):
+		return item in self.__data
+
+	def __getitem__(self, key):
+		return self.__data[key]
+
+	def __iter__(self):
+		return iter(self.__data)
+
+	def __len__(self):
+		return len(self.__data)
+
+	def __str__(self):
+		return str(list(str(item) for item in self.__data))
+
+	def __repr__(self):
+		return str(self.__data)
+
+	def save(self, file_path):
+		os.makedirs(os.path.dirname(file_path), exist_ok=True)
+		printr('Writing {}'.format(os.path.relpath(file_path)))
+		with open(file_path, 'w') as fout:
+			for mention in self:
+				fout.write(mention.filestr+'\n')
+
+
 class MentionSet(collections.abc.Collection):
 	"""The set of mentions.
 
 	* Item: mention (:class:`.Mention`)
 
 	Args:
-		article_path (str):              the path to the folder containing word segmented article files.
-		mention_path (str):              the path to the folder containing mention files.
-		articles (:class:`.ArticleSet`): the set of articles.
-		repo     (:class:`.Repo`):       the product repository class.
+		mention_bundles (:class:`.MentionBundleSet`): the set of mention bundles.
 	"""
 
-	def __init__(self, article_path, mention_path, articles, repo):
+	def __init__(self, mention_bundles):
 		super().__init__()
-		# with multiprocessing.Pool() as pool:
-		# 	results = [pool.apply_async(self._grep_mention, args=(article, article_path, mention_path, repo.name2brand,)) \
-		# 			for article in articles]
-		# 	self.__data = list(itertools.chain.from_iterable(result.get() for result in results))
-		# 	del results
-		results = [self._grep_mention(article, article_path, mention_path, repo.name2brand) \
-				for article in articles]
-		self.__data = list(itertools.chain.from_iterable(result for result in results))
-		print()
-
-	@staticmethod
-	def _grep_mention(article, article_path, mention_path, name2brand):
-		mention_file = article.path.replace(article_path, mention_path)+'.mention'
-		printr('Reading {}'.format(mention_file))
-		with open(mention_file) as fin:
-			mentions = [Mention(name2brand, article, *tuple(line.strip().split('\t'))) for line in fin]
-		return mentions
+		self.__data = list(itertools.chain.from_iterable(mention_bundles))
 
 	def __contains__(self, item):
 		return item in self.__data
@@ -204,31 +231,51 @@ class MentionSet(collections.abc.Collection):
 		return len(self.__data)
 
 
-class Article2Mentions(collections.abc.Mapping):
-	"""The dictionary maps article to mention list.
+class MentionBundleSet(collections.abc.Collection):
+	"""The set of mention bundles.
 
-	* Key:  the article (:class:`.Article`).
-	* Item: :class:`.ReadOnlyList` of mention class (:class:`.Mention`).
+	* Item: mention bundle (:class:`.MentionBundle`)
 
 	Args:
-		mentions (:class:`.MentionSet`): the mention set.
+		article_path (str):                 the path to the folder containing word segmented article files.
+		mention_path (str):                 the path to the folder containing mention files.
+		article_set (:class:`.ArticleSet`): the set of articles.
+		repo     (:class:`.Repo`):          the product repository class.
 	"""
 
-	def __init__(self, mentions):
+	def __init__(self, article_path, mention_path, article_set, repo):
 		super().__init__()
-		self.__data = dict()
+		self.__data = [self._mention_bundle(article, article_path, mention_path, repo) for article in article_set]
+		print()
 
-		mention_dict = dict()
-		for mention in mentions:
-			article = mention.article
-			if article not in mention_dict:
-				mention_dict[article] = [mention]
-			else:
-				mention_dict[article] += [mention]
+	@staticmethod
+	def _mention_bundle(article, article_path, mention_path, repo):
+		file_path = article.path.replace(article_path, mention_path)+'.mention'
+		return MentionBundle(file_path, article, repo)
 
-		for article, mentions in mention_dict.items():
-			self.__data[article] = ReadOnlyList(mentions)
+	def __contains__(self, item):
+		return item in self.__data
 
+	def __iter__(self):
+		return iter(self.__data)
+
+	def __len__(self):
+		return len(self.__data)
+
+
+class Article2MentionBundle(collections.abc.Mapping):
+	"""The dictionary maps article to mention bundle.
+
+	* Key:  the article (:class:`.Article`).
+	* Item: the mention bundle (:class:`.MentionBundle`).
+
+	Args:
+		mention_bundle_set (:class:`.MentionSet`): the mention bundle set.
+	"""
+
+	def __init__(self, mention_bundle_set):
+		super().__init__()
+		self.__data = dict((mention_bundle.article, mention_bundle) for mention_bundle in mention_bundle_set)
 		self.__empty_collection = ReadOnlyList()
 
 	def __contains__(self, item):
@@ -244,30 +291,30 @@ class Article2Mentions(collections.abc.Mapping):
 		return len(self.__data)
 
 
-class BrandHead2Mentions(collections.abc.Mapping):
+class BrandHead2MentionList(collections.abc.Mapping):
 	"""The dictionary maps brand and head to mention list.
 
 	* Key:  tuple of brand class (:class:`.Brand`) and mention head (str).
 	* Item: :class:`.ReadOnlyList` of mention class (:class:`.Mention`).
 
 	Args:
-		mentions (:class:`.MentionSet`): the mention set.
+		mention_set (:class:`.MentionSet`): the mention set.
 	"""
 
-	def __init__(self, mentions):
+	def __init__(self, mention_set):
 		super().__init__()
 		self.__data = dict()
 
 		mention_dict = dict()
-		for mention in mentions:
+		for mention in mention_set:
 			pair = (mention.brand, mention.head)
 			if pair not in mention_dict:
 				mention_dict[pair] = [mention]
 			else:
 				mention_dict[pair] += [mention]
 
-		for pair, mentions in mention_dict.items():
-			self.__data[pair] = ReadOnlyList(mentions)
+		for pair, mention_set in mention_dict.items():
+			self.__data[pair] = ReadOnlyList(mention_set)
 
 		self.__empty_collection = ReadOnlyList()
 

@@ -15,7 +15,7 @@ def relu(x):
 	return max(x, 0)
 
 def decision_tree(mention, repo, previous_products):
-	candidates = repo.brandhead2products[(mention.brand, mention.head)]
+	candidates = repo.brandhead_to_product_list[(mention.brand, mention.head)]
 
 	mention_descri_set       = set(mention.descri_ws.txts)
 	mention_descri_no_de_set = mention_descri_set - set('的')
@@ -119,7 +119,7 @@ if __name__ == '__main__':
 	corpus = Corpus(article_path, mention_path, repo)
 
 	previous_product_rules = set(['exact', '1a', '1b'])
-	for article in corpus.articles:
+	for article in corpus.article_set:
 		printr('Processing {}'.format(article.path))
 
 		# Run rules
@@ -131,11 +131,11 @@ if __name__ == '__main__':
 
 			# Update previous product
 			if mention.rule in previous_product_rules:
-				previous_products.add(repo.id2product[mention.p_id])
+				previous_products.add(repo.id_to_product[mention.p_id])
 
 			# Display result
 			# print('\t'.join([mention.p_id, mention.rule, str(mention.sentence)]))
-			# if mention.p_id.isdigit(): print(repr(repo.id2product[mention.p_id]))
+			# if mention.p_id.isdigit(): print(repr(repo.id_to_product[mention.p_id]))
 
 		# Save data
 		output_file = article.path.replace(article_path, output_path)+'.mention'

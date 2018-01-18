@@ -84,13 +84,13 @@ class Name2Brand(collections.abc.Mapping):
 	* Item: the brand class (:class:`.Brand`).
 
 	Args:
-		brands (:class:`.BrandSet`): the brand set.
+		brand_set (:class:`.BrandSet`): the brand set.
 	"""
 
-	def __init__(self, brands):
+	def __init__(self, brand_set):
 		super().__init__()
 		self.__data = dict()
-		for brand in brands:
+		for brand in brand_set:
 			for b_name in brand:
 				assert b_name not in self
 				self.__data[b_name] = brand

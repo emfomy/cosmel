@@ -90,36 +90,6 @@ class ArticleSet(collections.abc.Collection):
 		return len(self.__data)
 
 
-# class Id2Article(collections.abc.Mapping):
-# 	"""The dictionary maps name to article.
-
-# 	* Key:  the article ID (with leading author name and underscore) (str).
-# 	* Item: the article (:class:`.Article`).
-
-# 	Args:
-# 		articles (:class:`.ArticleSet`): the article set.
-# 	"""
-
-# 	def __init__(self, articles):
-# 		super().__init__()
-# 		self.__data = dict()
-# 		for article in articles:
-# 			assert article.a_id not in self.__data
-# 			self.__data[article.a_id] = article
-
-# 	def __contains__(self, item):
-# 		return item in self.__data
-
-# 	def __getitem__(self, key):
-# 		return self.__data[key]
-
-# 	def __iter__(self):
-# 		return iter(self.__data)
-
-# 	def __len__(self):
-# 		return len(self.__data)
-
-
 class Path2Article(collections.abc.Mapping):
 	"""The dictionary maps file path to article.
 
@@ -127,13 +97,13 @@ class Path2Article(collections.abc.Mapping):
 	* Item: the article (:class:`.Article`).
 
 	Args:
-		articles (:class:`.ArticleSet`): the article set.
+		article_set (:class:`.ArticleSet`): the article set.
 	"""
 
-	def __init__(self, articles):
+	def __init__(self, article_set):
 		super().__init__()
 		self.__data = dict()
-		for article in articles:
+		for article in article_set:
 			assert article.path not in self.__data
 			self.__data[article.path] = article
 

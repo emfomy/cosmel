@@ -19,40 +19,40 @@ class Repo:
 	"""
 
 	def __init__(self, repo_path):
-		self.__brands             = BrandSet(repo_path)
-		self.__name2brand         = Name2Brand(self.__brands)
+		self.__brand_set                 = BrandSet(repo_path)
+		self.__name_to_brand             = Name2Brand(self.__brand_set)
 
-		self.__products           = ProductSet(repo_path, self.__name2brand)
-		self.__id2product         = Id2Product(self.__products)
-		self.__brandname2product  = BrandName2Product(self.__products)
-		self.__brandhead2products = BrandHead2Products(self.__products)
+		self.__product_set               = ProductSet(repo_path, self.__name_to_brand)
+		self.__id_to_product             = Id2Product(self.__product_set)
+		self.__brandname_to_product      = BrandName2Product(self.__product_set)
+		self.__brandhead_to_product_list = BrandHead2ProductList(self.__product_set)
 
 	@property
 	def brands(self):
 		""":class:`.BrandSet`: the brand set."""
-		return self.__brands
+		return self.__brand_set
 
 	@property
-	def name2brand(self):
+	def name_to_brand(self):
 		""":class:`.Name2Brand`: the dictionary maps name to brand."""
-		return self.__name2brand
+		return self.__name_to_brand
 
 	@property
 	def products(self):
 		""":class:`.ProductSet`: the product set."""
-		return self.__products
+		return self.__product_set
 
 	@property
-	def id2product(self):
+	def id_to_product(self):
 		""":class:`.Id2Product`: the dictionary maps ID to product."""
-		return self.__id2product
+		return self.__id_to_product
 
 	@property
-	def brandname2product(self):
+	def brandname_to_product(self):
 		""":class:`.BrandName2Product`: the dictionary maps brand and name to product."""
-		return self.__brandname2product
+		return self.__brandname_to_product
 
 	@property
-	def brandhead2products(self):
-		""":class:`.BrandHead2Products`: the dictionary maps brand and head to product list."""
-		return self.__brandhead2products
+	def brandhead_to_product_list(self):
+		""":class:`.BrandHead2ProductList`: the dictionary maps brand and head to product list."""
+		return self.__brandhead_to_product_list

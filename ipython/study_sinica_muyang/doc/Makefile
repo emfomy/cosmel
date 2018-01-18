@@ -8,7 +8,7 @@ SPHINXAPI       = sphinx-apidoc
 SPHINXAPIENVS   = "SPHINX_APIDOC_OPTIONS=special-members"
 SPHINXAPIOPTS   =
 
-PROJ = EntityLinking
+PROJ = StyleMe
 
 DOCDIR    = .
 BUILDDIR  = _build
