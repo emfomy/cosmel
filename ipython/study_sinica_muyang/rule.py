@@ -120,11 +120,12 @@ if __name__ == '__main__':
 
 	previous_product_rules = set(['exact', '1a', '1b'])
 	for article in corpus.article_set:
-		printr('Processing {}'.format(article.path))
+		bundle = article_to_mention_bundle[article]
+		printr('Processing {}'.format(bundle.path))
 
 		# Run rules
 		previous_products = set()
-		for mention in corpus.article2mentions[article]:
+		for mention in bundle:
 
 			# Run decision tree
 			decision_tree(mention, repo, previous_products)
@@ -138,12 +139,8 @@ if __name__ == '__main__':
 			# if mention.p_id.isdigit(): print(repr(repo.id_to_product[mention.p_id]))
 
 		# Save data
-		output_file = article.path.replace(article_path, output_path)+'.mention'
-		os.makedirs(os.path.dirname(output_file), exist_ok=True)
-		printr('Writing {}'.format(os.path.relpath(output_file)))
-		with open(output_file, 'w') as fout:
-			for mention in corpus.article2mentions[article]:
-				fout.write(mention.filestr+'\n')
+		output_file = bundle.path.replace(mention_path, output_path)
+		bundle.save(output_file)
 	print()
 
 	pass

@@ -201,6 +201,7 @@ class MentionBundle(collections.abc.Sequence):
 		return str(self.__data)
 
 	def save(self, file_path):
+		"""Save the mention bundle to file."""
 		os.makedirs(os.path.dirname(file_path), exist_ok=True)
 		printr('Writing {}'.format(os.path.relpath(file_path)))
 		with open(file_path, 'w') as fout:
@@ -246,6 +247,7 @@ class MentionBundleSet(collections.abc.Collection):
 	def __init__(self, article_path, mention_path, article_set, repo):
 		super().__init__()
 		self.__data = [self._mention_bundle(article, article_path, mention_path, repo) for article in article_set]
+		self.__path = mention_path
 		print()
 
 	@staticmethod
@@ -261,6 +263,13 @@ class MentionBundleSet(collections.abc.Collection):
 
 	def __len__(self):
 		return len(self.__data)
+
+	def save(self, output_path):
+		"""Save all mention bundles to files."""
+		for bundle in self:
+			file_path = bundle.path.replace(mention_path, output_path)
+			bundle.save(file_path)
+
 
 
 class Article2MentionBundle(collections.abc.Mapping):

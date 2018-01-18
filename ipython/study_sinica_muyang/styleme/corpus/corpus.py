@@ -27,7 +27,7 @@ class Corpus:
 
 		self.__mention_bundle_set         = MentionBundleSet(article_path, mention_path, self.__article_set, repo)
 		self.__mention_set                = MentionSet(self.__mention_bundle_set)
-		self.__article_to_mention_bundles = Article2MentionBundle(self.__mention_set)
+		self.__article_to_mention_bundle  = Article2MentionBundle(self.__mention_set)
 		self.__brand_head_to_mention_list = BrandHead2MentionList(self.__mention_set)
 
 	@property
@@ -51,9 +51,9 @@ class Corpus:
 		return self.__mention_bundle_set
 
 	@property
-	def article_to_mentions(self):
-		""":class:`.Article2Mentions`: the dictionary maps article to mention list."""
-		return self.__article_to_mentions
+	def article_to_mention_bundle(self):
+		""":class:`.Article2MentionBundle`: the dictionary maps article to mention list."""
+		return self.__article_to_mention_bundle
 
 	@property
 	def brand_head_to_mention_list(self):
