@@ -30,7 +30,7 @@ def decision_tree(mention, repo, previous_products):
 			mention.set_p_id(candidate.p_id)
 			return
 
-	# Rule 1a --- mention's description is a subset of the candidate's
+	# Rule 1a --- mention's infix is a subset of the candidate's
 	if len(mention_affix_set) > 0:
 		for i, candidate in enumerate(candidates):
 			if mention_affix_set <= candidate_affix_sets[i]:
@@ -38,7 +38,7 @@ def decision_tree(mention, repo, previous_products):
 				mention.set_p_id(candidate.p_id)
 				return
 
-	# Rule 1b --- mention's description is a subset of the candidate's (excluding "的")
+	# Rule 1b --- mention's infix is a subset of the candidate's (excluding "的")
 	if len(mention_affix_no_de_set) > 0:
 		for i, candidate in enumerate(candidates):
 			if mention_affix_no_de_set <= candidate_affix_no_de_sets[i]:
@@ -83,7 +83,7 @@ def decision_tree(mention, repo, previous_products):
 		mention.set_p_id('OSP')
 		return
 
-	# Rule 101 --- mention has no description
+	# Rule 101 --- mention has no infix
 	if len(mention_affix_set) == 0:
 		mention.set_rule('100a')
 		mention.set_p_id('GP')

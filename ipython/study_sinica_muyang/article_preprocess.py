@@ -96,7 +96,7 @@ if __name__ == '__main__':
 		# Word Segment
 		ws = WordSegment(etc_path+'/for_article.ini', \
 				[repo_path+'/core.lex', repo_path+'/brands.lex', repo_path+'/heads.lex', repo_path+'/jomalone.lex'], \
-					[repo_path+'/description.lex', repo_path+'/products.lex'])
+					[repo_path+'/infix.lex', repo_path+'/products.lex'])
 
 		ws(prune_tmp_path, ws_tmp_path)
 		subprocess_call('unzip -q {0}.zip -d {1}'.format(ws_tmp_path, tmp_path), shell=True)

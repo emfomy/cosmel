@@ -331,7 +331,7 @@ if __name__ == '__main__':
 	if not has_head:
 		# Copy Files
 		shutil.copyfile(etc_path+'/core.lex', repo_path+'/core.lex')
-		shutil.copyfile(etc_path+'/description.lex', repo_path+'/description.lex')
+		shutil.copyfile(etc_path+'/infix.lex', repo_path+'/infix.lex')
 
 		# Process Head Lexicon
 		with open(etc_path+'/heads.txt') as fin, open(repo_path+'/heads.lex', 'w') as fout:
@@ -345,7 +345,7 @@ if __name__ == '__main__':
 	# Word Segment
 		ws = WordSegment(etc_path+'/for_product.ini', \
 				[repo_path+'/core.lex', repo_path+'/brands.lex', repo_path+'/heads.lex', repo_path+'/jomalone.lex'], \
-				[repo_path+'/description.lex'])
+				[repo_path+'/infix.lex'])
 
 		with open(repo_path+'/products.lex') as fin, open(tmp_path+'/products.lex', 'w', encoding='big5') as fout:
 			fout.write(re.sub(r'	N_Product', '', fin.read(), flags=re.MULTILINE))
