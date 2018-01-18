@@ -27,7 +27,7 @@ class Corpus:
 
 		self.__mention_bundle_set         = MentionBundleSet(article_path, mention_path, self.__article_set, repo)
 		self.__mention_set                = MentionSet(self.__mention_bundle_set)
-		self.__article_to_mention_bundle  = Article2MentionBundle(self.__mention_set)
+		self.__article_to_mention_bundle  = Article2MentionBundle(self.__mention_bundle_set)
 		self.__brand_head_to_mention_list = BrandHead2MentionList(self.__mention_set)
 
 	@property

@@ -161,6 +161,29 @@ class Mention:
 		self.__rule = rule
 
 
+class MentionSet(collections.abc.Collection):
+	"""The set of mentions.
+
+	* Item: mention (:class:`.Mention`)
+
+	Args:
+		mention_bundles (:class:`.MentionBundleSet`): the set of mention bundles.
+	"""
+
+	def __init__(self, mention_bundles):
+		super().__init__()
+		self.__data = list(itertools.chain.from_iterable(mention_bundles))
+
+	def __contains__(self, item):
+		return item in self.__data
+
+	def __iter__(self):
+		return iter(self.__data)
+
+	def __len__(self):
+		return len(self.__data)
+
+
 class MentionBundle(collections.abc.Sequence):
 	"""The bundle of mentions in an article.
 
@@ -200,6 +223,16 @@ class MentionBundle(collections.abc.Sequence):
 	def __repr__(self):
 		return str(self.__data)
 
+	@property
+	def article(self):
+		""":class:`.Article`: the article containing this mention."""
+		return self.__article
+
+	@property
+	def path(self):
+		"""str: the related file path."""
+		return self.__path
+
 	def save(self, file_path):
 		"""Save the mention bundle to file."""
 		os.makedirs(os.path.dirname(file_path), exist_ok=True)
@@ -207,29 +240,6 @@ class MentionBundle(collections.abc.Sequence):
 		with open(file_path, 'w') as fout:
 			for mention in self:
 				fout.write(mention.filestr+'\n')
-
-
-class MentionSet(collections.abc.Collection):
-	"""The set of mentions.
-
-	* Item: mention (:class:`.Mention`)
-
-	Args:
-		mention_bundles (:class:`.MentionBundleSet`): the set of mention bundles.
-	"""
-
-	def __init__(self, mention_bundles):
-		super().__init__()
-		self.__data = list(itertools.chain.from_iterable(mention_bundles))
-
-	def __contains__(self, item):
-		return item in self.__data
-
-	def __iter__(self):
-		return iter(self.__data)
-
-	def __len__(self):
-		return len(self.__data)
 
 
 class MentionBundleSet(collections.abc.Collection):
@@ -267,9 +277,9 @@ class MentionBundleSet(collections.abc.Collection):
 	def save(self, output_path):
 		"""Save all mention bundles to files."""
 		for bundle in self:
-			file_path = bundle.path.replace(mention_path, output_path)
+			file_path = bundle.path.replace(self.__path, output_path)
 			bundle.save(file_path)
-
+		print()
 
 
 class Article2MentionBundle(collections.abc.Mapping):
