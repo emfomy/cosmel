@@ -16,11 +16,22 @@ from styleme import *
 
 class RawData:
 
-	def __init__(self, p_id, b_name, p_name, p_aliases):
-		self.p_id      = p_id
-		self.b_name    = b_name
-		self.p_name    = p_name
-		self.p_aliases = p_aliases
+	def __init__(self, row):
+		self.p_id          = row['編號']
+		self.b_name        = row['品牌']
+		self.p_name        = row['中文品名']
+		self.p_description = row['中文簡介']
+
+		if self.b_name == '80': self.b_name = '080'
+		if self.b_name == 'babaria 西班牙babaria': self.b_name = '西班牙Babaria'
+
+		if self.p_id == '7750':  self.p_name = '巴黎時尚伸展台高級訂製濃翹美睫膏'
+		if self.p_id == '11449': self.p_name = '魚子高效活氧亮白精華液'
+		if self.p_id == '13315': self.p_name = '保濕修復膠囊面膜a'
+		if self.p_id == '13324': self.p_name = '保濕舒緩膠囊面膜b'
+		if self.p_id == '13336': self.p_name = '緊緻抗皺膠囊面膜e'
+		if self.p_id == '13342': self.p_name = '再生煥膚膠囊面膜d'
+		if self.p_id == '13345': self.p_name = '瞬效亮白膠囊面膜c'
 
 
 class RawBrand(collections.abc.Collection):
@@ -73,8 +84,8 @@ class RawBrandDict(collections.abc.Mapping):
 		for v in set([v.b_name for v in raw_data]):
 			self.update(v)
 
-	def __contains__(self, item):
-		return item in self.__data
+	def __contains__(self, key):
+		return self.__keytransform__(key) in self.__data
 
 	def __getitem__(self, key):
 		return self.__data[self.__keytransform__(key)]
@@ -136,8 +147,8 @@ class RawProduct:
 	"""The product detail."""
 
 	def __init__(self, data):
-		self.p_id      = data.p_id
-		self.p_aliases = data.p_aliases
+		self.p_id          = data.p_id
+		self.p_description = prune_string(data.p_description.replace('\n', ''))
 
 
 class RawProductDict(collections.abc.Mapping):
@@ -152,8 +163,8 @@ class RawProductDict(collections.abc.Mapping):
 		for v in raw_data:
 			self.update(v)
 
-	def __contains__(self, item):
-		return item in self.__data
+	def __contains__(self, key):
+		return self.__keytransform__(key) in self.__data
 
 	def __getitem__(self, key):
 		return self.__data[self.__keytransform__(key)]
@@ -229,32 +240,17 @@ def load_csv(csv_path):
 		The raw product data.
 	"""
 	with open(csv_path) as fin:
-		data = []
+		data = list()
 		for row in csv.DictReader(fin):
-			p_id      = row['編號']
-			b_name    = row['品牌']
-			p_name    = row['中文品名']
-			p_aliases = row['產品別名']
 
-			if not p_id or not b_name or not p_name or \
-					'測試' in b_name or '測試' in p_name or \
-					'test' in b_name.lower() or 'test' in p_name.lower() or \
-					not check_contain_chinese(p_name):
-				printr('Skip product {}'.format(p_id))
+			if not row['編號'] or not row['品牌'] or not row['中文品名'] or \
+					'測試' in row['品牌'] or '測試' in row['中文品名'] or \
+					'test' in row['品牌'].lower() or 'test' in row['中文品名'].lower() or \
+					not check_contain_chinese(row['中文品名']):
+				printr('Skip product {}'.format(row['編號']))
 				continue
 
-			if b_name == '80': b_name = '080'
-			if b_name == 'babaria 西班牙babaria': b_name = '西班牙Babaria'
-
-			if p_id == '7750':  p_name = '巴黎時尚伸展台高級訂製濃翹美睫膏'
-			if p_id == '11449': p_name = '魚子高效活氧亮白精華液'
-			if p_id == '13315': p_name = '保濕修復膠囊面膜a'
-			if p_id == '13324': p_name = '保濕舒緩膠囊面膜b'
-			if p_id == '13336': p_name = '緊緻抗皺膠囊面膜e'
-			if p_id == '13342': p_name = '再生煥膚膠囊面膜d'
-			if p_id == '13345': p_name = '瞬效亮白膠囊面膜c'
-
-			data.append(RawData(p_id=p_id, b_name=b_name, p_name=p_name, p_aliases=p_aliases))
+			data.append(RawData(row))
 
 		print('Loaded {} products form "{}"'.format(len(data), csv_path))
 
@@ -289,13 +285,14 @@ def brand_alias(full_name):
 
 if __name__ == '__main__':
 
-	has_brand           = True
-	has_product         = True
-	has_head            = True
-	is_segmented        = True
-	copied_product_head = True
+	saved_brand               = True
+	saved_product             = True
+	saved_head                = True
+	is_segmented              = True
+	copied_product_head       = True
 
-	has_product_head    = True
+	saved_product_head        = True
+	saved_product_description = True
 
 	etc_path  = 'etc'
 	repo_path = 'data/repo'
@@ -317,18 +314,18 @@ if __name__ == '__main__':
 	brands.update('惹我', key='FITIT&WHITIA')
 	brands.update('資生堂', key='SHISEIDO')
 
-	if not has_brand:
+	if not saved_brand:
 		brands.save_txt(repo_path+'/brands.txt')
 		brands.save_lex(repo_path+'/brands.lex')
 
 	# Process Product
 	products = RawProductDict(data, brands)
-	if not has_product:
+	if not saved_product:
 		products.save_txt(repo_path+'/products.txt')
 		products.save_lex(repo_path+'/products.lex')
 		# products.save_clex(repo_path+'/cproducts.lex')
 
-	if not has_head:
+	if not saved_head:
 		# Copy Files
 		shutil.copyfile(etc_path+'/core.lex', repo_path+'/core.lex')
 		shutil.copyfile(etc_path+'/infix.lex', repo_path+'/infix.lex')
@@ -356,14 +353,14 @@ if __name__ == '__main__':
 		# Copy Files
 		shutil.copyfile(etc_path+'/products.head', repo_path+'/products.head')
 
-	if not has_product_head:
+	if not saved_product_head:
 		# Grep Head
 		with open(repo_path+'/products.tag') as fin, open(repo_path+'/products.head', 'w') as fout:
 			for line in fin:
 				sentence = WsWords(line.strip().split('\t')[0])
 				if '□' in sentence.txts:
 					raise Exception('□(SP): "{}"'.format(sentence))
-				heads = []
+				heads = list()
 				if 'N_Head' in sentence.tags:
 					for i, post in enumerate(sentence.tags):
 						if post == 'N_Head':
@@ -373,6 +370,12 @@ if __name__ == '__main__':
 				fout.write('\t'.join(heads) + '\n')
 
 		print('Saved product heads into "{}"'.format(repo_path+'/products.head'))
+
+	if not saved_product_description:
+		with open(repo_path+'/products.description', 'w') as fout:
+			for _, product in products.items():
+				fout.write('\t'.join([product.p_id, product.p_description]) + '\n')
+		print('Saved product descriptions into "{}"'.format(repo_path+'/products.description'))
 
 	# Check Head
 	heads = {}

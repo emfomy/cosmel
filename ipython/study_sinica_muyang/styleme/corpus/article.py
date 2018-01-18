@@ -103,8 +103,8 @@ class Path2Article(collections.abc.Mapping):
 			assert article.path not in self.__data
 			self.__data[article.path] = article
 
-	def __contains__(self, item):
-		return item in self.__data
+	def __contains__(self, key):
+		return key in self.__data
 
 	def __getitem__(self, key):
 		return self.__data[key]

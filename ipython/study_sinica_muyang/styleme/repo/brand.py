@@ -95,8 +95,8 @@ class Name2Brand(collections.abc.Mapping):
 				assert b_name not in self
 				self.__data[b_name] = brand
 
-	def __contains__(self, item):
-		return item in self.__data
+	def __contains__(self, key):
+		return key in self.__data
 
 	def __getitem__(self, key):
 		return self.__data[key]

@@ -28,13 +28,13 @@ class RawMention:
 		return self.article[self.s_id]
 
 
-def indices(lst, ele, start, end = None):
+def indices(lst, ele, start=0, end=None):
 	return [i+start for i, val in enumerate(lst[start:end]) if val == ele]
 
 
 if __name__ == '__main__':
 
-	greped_mention   = True
+	greped_mention   = False
 	written_sentence = True
 	parsed           = True
 	used_last_head   = False
@@ -45,8 +45,8 @@ if __name__ == '__main__':
 	repo_path     = 'data/repo'
 	tmp_path      = 'data/tmp'
 
-	repo         = Repo(repo_path)
-	articles     = ArticleSet(article_path, ignore_duplicated=True)
+	repo            = Repo(repo_path)
+	articles        = ArticleSet(article_path)
 	path_to_article = Path2Article(articles)
 
 	max_len_mention = 10
@@ -66,16 +66,12 @@ if __name__ == '__main__':
 			mention_list = []
 
 			for s_id, line in enumerate(article):
-				idx = -1
-				while True:
-					try:
-						idx = line.tags.index('N_Brand', idx+1)
-					except ValueError:
-						break
-					head_idxs = indices(line.tags, 'N_Head', idx+1, idx+max_len_mention)
-					if len(head_idxs):
-						mention_list.append(RawMention(article, s_id, idx, head_idxs))
-						idx = head_idxs[-1]
+				brand_idxs = indices(line.tags, 'N_Brand')
+				if len(brand_idxs):
+					for brand_idx, next_idx in zip(brand_idxs, brand_idxs[1:]+[len(line.tags)]):
+						head_idxs = indices(line.tags, 'N_Head', brand_idx+1, min(brand_idx+max_len_mention, next_idx))
+						if len(head_idxs):
+							mention_list.append(RawMention(article, s_id, brand_idx, head_idxs))
 			mentions[article] = mention_list
 
 			# Write mentions to file

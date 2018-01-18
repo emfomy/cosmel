@@ -297,8 +297,8 @@ class Article2MentionBundle(collections.abc.Mapping):
 		self.__data = dict((mention_bundle.article, mention_bundle) for mention_bundle in mention_bundle_set)
 		self.__empty_collection = ReadOnlyList()
 
-	def __contains__(self, item):
-		return item in self.__data
+	def __contains__(self, key):
+		return key in self.__data
 
 	def __getitem__(self, key):
 		return self.__data.get(key, self.__empty_collection)
@@ -337,8 +337,8 @@ class BrandHead2MentionList(collections.abc.Mapping):
 
 		self.__empty_collection = ReadOnlyList()
 
-	def __contains__(self, item):
-		return item in self.__data
+	def __contains__(self, key):
+		return key in self.__data
 
 	def __getitem__(self, key):
 		return self.__data.get(key, self.__empty_collection)

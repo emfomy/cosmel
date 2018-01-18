@@ -26,12 +26,12 @@ class Product:
 	"""
 
 	def __init__(self, p_id, brand, name, head, name_ws):
-		self.__p_id     = p_id
-		self.__brand    = brand
-		self.__name     = name
-		self.__head     = head
-		self.__name_ws  = WsWords(name_ws)
-		self.__head_idx = self.name_ws.txts.index(head)
+		self.__p_id        = p_id
+		self.__brand       = brand
+		self.__name        = name
+		self.__head        = head
+		self.__name_ws     = WsWords(name_ws)
+		self.__head_idx    = self.name_ws.txts.index(head)
 
 	def __str__(self):
 		return '{} {} {}'.format(self.__p_id, str(self.__brand), self.__name)
@@ -146,8 +146,8 @@ class Id2Product(collections.abc.Mapping):
 			assert product.p_id not in self.__data
 			self.__data[product.p_id] = product
 
-	def __contains__(self, item):
-		return item in self.__data
+	def __contains__(self, key):
+		return key in self.__data
 
 	def __getitem__(self, key):
 		return self.__data[key]
@@ -177,8 +177,8 @@ class BrandName2Product(collections.abc.Mapping):
 			assert pair not in self.__data
 			self.__data[pair] = product
 
-	def __contains__(self, item):
-		return item in self.__data
+	def __contains__(self, key):
+		return key in self.__data
 
 	def __getitem__(self, key):
 		return self.__data[key]
@@ -217,8 +217,8 @@ class BrandHead2ProductList(collections.abc.Mapping):
 
 		self.__empty_collection = ReadOnlyList()
 
-	def __contains__(self, item):
-		return item in self.__data
+	def __contains__(self, key):
+		return key in self.__data
 
 	def __getitem__(self, key):
 		return self.__data.get(key, self.__empty_collection)

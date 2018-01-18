@@ -28,7 +28,7 @@ class Repo:
 		self.__brandhead_to_product_list = BrandHead2ProductList(self.__product_set)
 
 	@property
-	def brands(self):
+	def brand_set(self):
 		""":class:`.BrandSet`: the brand set."""
 		return self.__brand_set
 
@@ -38,7 +38,7 @@ class Repo:
 		return self.__name_to_brand
 
 	@property
-	def products(self):
+	def product_set(self):
 		""":class:`.ProductSet`: the product set."""
 		return self.__product_set
 
