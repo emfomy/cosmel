@@ -16,13 +16,18 @@ class Corpus:
 	"""The corpus class.
 
 	Args:
-		article_path (str): the path to the folder containing word segmented article files.
-		mention_path (str): the path to the folder containing mention files.
+		article_path (str):    the path to the folder containing word segmented article files.
+		mention_path (str):    the path to the folder containing mention files.
 		repo (:class:`.Repo`): the product repository class.
+		parts (list):          the list of article/mention parts.
+
+	Notes:
+		* Load all articles from ``article_path``/``part`` for all ``part`` in ``parts``.
+		* Load all mentions from ``mention_path``/``part`` for all ``part`` in ``parts``.
 	"""
 
-	def __init__(self, article_path, mention_path, repo):
-		self.__article_set                = ArticleSet(article_path)
+	def __init__(self, article_path, mention_path, repo, parts=['']):
+		self.__article_set                = ArticleSet(article_path, parts=parts)
 		self.__path_to_article            = Path2Article(self.__article_set)
 
 		self.__mention_bundle_set         = MentionBundleSet(article_path, mention_path, self.__article_set, repo)

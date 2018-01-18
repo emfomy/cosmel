@@ -69,11 +69,15 @@ class ArticleSet(collections.abc.Collection):
 
 	Args:
 		article_path (str): the path to the folder containing data files.
+		parts (list):       the list of article/mention parts.
+
+	Notes:
+		* Load all articles from ``article_path``/``part`` for all ``part`` in ``parts``.
 	"""
 
-	def __init__(self, article_path):
+	def __init__(self, article_path, parts=['']):
 		super().__init__()
-		self.__data = [Article(file) for file in grep_files(article_path)]
+		self.__data = [Article(file) for file in grep_files(article_path, parts)]
 		print()
 
 	def __contains__(self, item):

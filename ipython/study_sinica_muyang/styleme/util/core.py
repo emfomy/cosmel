@@ -78,13 +78,17 @@ def check_contain_chinese(chars):
 	return False
 
 
-def grep_files(root):
+def grep_files(root, parts=['']):
 	"""Grep all files in the directory."""
 
-	if os.path.isdir(root):
-		return sorted([os.path.join(path, file) for path, _, files in os.walk(root) for file in files])
-	else:
-		return [root]
+	retval = list()
+	for part in parts:
+		subroot = root+'/'+part
+		if os.path.isdir(subroot):
+			retval += sorted([os.path.join(path, file) for path, _, files in os.walk(subroot) for file in files])
+		else:
+			retval += [subroot]
+	return retval
 
 
 def printr(chars):
