@@ -17,10 +17,10 @@ from styleme import *
 class RawData:
 
 	def __init__(self, row):
-		self.p_id          = row['編號']
-		self.b_name        = row['品牌']
-		self.p_name        = row['中文品名']
-		self.p_description = row['中文簡介']
+		self.p_id    = row['編號']
+		self.b_name  = row['品牌']
+		self.p_name  = row['中文品名']
+		self.p_descr = row['中文簡介']
 
 		if self.b_name == '80': self.b_name = '080'
 		if self.b_name == 'babaria 西班牙babaria': self.b_name = '西班牙Babaria'
@@ -147,8 +147,8 @@ class RawProduct:
 	"""The product detail."""
 
 	def __init__(self, data):
-		self.p_id          = data.p_id
-		self.p_description = prune_string(data.p_description.replace('\n', ''))
+		self.p_id    = data.p_id
+		self.p_descr = prune_string(data.p_descr.replace('\n', ''))
 
 
 class RawProductDict(collections.abc.Mapping):
@@ -214,6 +214,15 @@ class RawProductDict(collections.abc.Mapping):
 			for k in self:
 				fout.write(k[1] + '\tN_Product\n')
 			print(f'Saved {len(self)} products into "{lex_path}"')
+
+	def save_descr(self, file_path):
+		"""Save description to file."""
+		os.makedirs(os.path.dirname(file_path), exist_ok=True)
+		with open(file_path, 'w') as fout:
+			for _, v in self.items():
+				if v.p_descr:
+					fout.write('\t'.join([v.p_id, v.p_descr]) + '\n')
+			print(f'Saved {len(self)} descriptions into "{file_path}"')
 
 	def save_lex_c(self, lex_path):
 		"""Save compute products to lexicon file."""
@@ -284,14 +293,15 @@ def brand_alias(full_name):
 
 if __name__ == '__main__':
 
-	saved_brand               = True
-	saved_product             = True
-	saved_head                = True
-	is_segmented              = True
-	copied_product_head       = True
+	saved_brand         = True
+	saved_product       = True
+	saved_descri        = True
+	copied_head_lex     = True
+	segmented_product   = True
+	segmented_descr     = True
+	copied_product_head = True
 
-	saved_product_head        = True
-	saved_product_description = True
+	saved_product_head  = True
 
 	etc_path  = 'etc'
 	repo_path = 'data/repo'
@@ -324,7 +334,11 @@ if __name__ == '__main__':
 		products.save_lex(repo_path+'/products.lex')
 		# products.save_clex(repo_path+'/cproducts.lex')
 
-	if not saved_head:
+	# Save Description
+	if not saved_descri:
+		products.save_descr(repo_path+'/products.descr')
+
+	if not copied_head_lex:
 		# Copy Files
 		shutil.copyfile(etc_path+'/core.lex', repo_path+'/core.lex')
 		shutil.copyfile(etc_path+'/infix.lex', repo_path+'/infix.lex')
@@ -337,16 +351,25 @@ if __name__ == '__main__':
 			for line in fin:
 				fout.write(line.strip() + '	N_Head\n')
 
-	if not is_segmented:
 	# Word Segment
+	if not segmented_product or not segmented_descr:
 		ws = WordSegment(etc_path+'/for_product.ini', \
 				[repo_path+'/core.lex', repo_path+'/brands.lex', repo_path+'/heads.lex', repo_path+'/jomalone.lex'], \
 				[repo_path+'/infix.lex'])
 
+	# Word Segment Product
+	if not segmented_product:
 		with open(repo_path+'/products.lex') as fin, open(tmp_path+'/products.lex', 'w', encoding='big5') as fout:
 			fout.write(re.sub(r'	N_Product', '', fin.read(), flags=re.MULTILINE))
 		ws(tmp_path+'/products.lex', tmp_path+'/products.tag')
 		ws.replace(tmp_path+'/products.tag', repo_path+'/products.tag')
+
+	# Word Segment Description
+	if not segmented_descr:
+		with open(repo_path+'/products.descr') as fin, open(tmp_path+'/products.descr', 'w', encoding='big5') as fout:
+			fout.write(re.sub(r'(\A|(?<=\n)).*\t', '', fin.read(), flags=re.MULTILINE))
+		ws(tmp_path+'/products.descr', tmp_path+'/products.descr.tag')
+		ws.replace(tmp_path+'/products.descr.tag', repo_path+'/products.descr.tag')
 
 	if not copied_product_head:
 		# Copy Files
@@ -369,12 +392,6 @@ if __name__ == '__main__':
 				fout.write('\t'.join(heads) + '\n')
 
 		print(f'''Saved product heads into "{repo_path+'/products.head'}"''')
-
-	if not saved_product_description:
-		with open(repo_path+'/products.description', 'w') as fout:
-			for _, product in products.items():
-				fout.write('\t'.join([product.p_id, product.p_description]) + '\n')
-		print(f'''Saved product descriptions into "{repo_path+'/products.description'}"''')
 
 	# Check Head
 	heads = {}

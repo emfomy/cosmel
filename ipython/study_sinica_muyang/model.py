@@ -143,7 +143,7 @@ if __name__ == '__main__':
 			outputs=[text_target])
 
 	# Summarize the model
-	print(f'\n\n\nTraining Model')
+	print(f'\n\nTraining Model')
 	model.summary()
 
 	# Define test model
@@ -153,7 +153,7 @@ if __name__ == '__main__':
 			outputs=[text_max])
 
 	# Summarize test model
-	print('\n\n\nTesting Model')
+	print('\n\nTesting Model')
 	test_model.summary()
 
 	# Compile the model
