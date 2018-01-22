@@ -198,7 +198,7 @@ class MentionBundle(collections.abc.Sequence):
 	def __init__(self, file_path, article, repo):
 		super().__init__()
 
-		printr('Reading {}'.format(file_path))
+		printr(f'Reading {file_path}')
 		with open(file_path) as fin:
 			self.__data = [Mention(repo.name_to_brand, article, *tuple(line.strip().split('\t'))) for line in fin]
 
@@ -236,7 +236,7 @@ class MentionBundle(collections.abc.Sequence):
 	def save(self, file_path):
 		"""Save the mention bundle to file."""
 		os.makedirs(os.path.dirname(file_path), exist_ok=True)
-		printr('Writing {}'.format(os.path.relpath(file_path)))
+		printr(f'Writing {os.path.relpath(file_path)}')
 		with open(file_path, 'w') as fout:
 			for mention in self:
 				fout.write(mention.filestr+'\n')

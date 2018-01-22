@@ -91,9 +91,9 @@ def grep_files(root, parts=['']):
 	return sorted(retval)
 
 
-def printr(chars):
+def printr(*objects):
 	"""Print with '\\\\r'."""
-	print('\033[K'+str(chars)+'\r', end='')
+	print('\033[K'+' '.join(map(str, objects)), end='\r')
 
 
 def pause():

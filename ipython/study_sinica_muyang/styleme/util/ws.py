@@ -21,10 +21,10 @@ class WordSegment():
 			lines = fin.read().splitlines()
 			idx = lines.index('[CTextLexicon]')
 			if idx < 0:
-				raise Exception('INI file "{}" contains no [CTextLexicon]'.format(ini_file))
+				raise Exception(f'INI file "{ini_file}" contains no [CTextLexicon]')
 			for line in lines[idx+1::]:
 				if '[' == line[0]:
-					raise Exception('INI file "{}" contains no [CTextLexicon] FileName'.format(ini_file))
+					raise Exception(f'INI file "{ini_file}" contains no [CTextLexicon] FileName')
 				if 'FileName' in line:
 					lex_file = line.split('=')[1]
 					break
@@ -40,19 +40,19 @@ class WordSegment():
 				continue
 			seg = line.strip().split('\t')
 			self.__regexes.append(( \
-					re.compile(r'(\A|(?<=\n|　)){}\([A-Za-z0-9]*\)'.format(re.escape(seg[0]))), '{}({})'.format(seg[0], seg[1]), seg[0]))
+					re.compile(rf'(\A|(?<=\n|　)){re.escape(seg[0])}\([A-Za-z0-9]*\)'), f'{seg[0]}({seg[1]})', seg[0]))
 		self.__regexes.append((re.compile(r'　□\(SP\)'), '', '□'))
 
-		print('Initialize CKIPWS with INI "{}" using lexicon "{}"'.format(ini_file, lex_file))
+		print(f'Initialize CKIPWS with INI "{ini_file}" using lexicon "{lex_file}"')
 
 		self.__ini_file  = ini_file
 		self.__lex_file  = lex_file
 		self.__lex_files = lex_files
 
 	def __call__(self, input_file, output_file):
-		# subprocess.call('CKIPWSTester {} {} {}'.format(self.__ini_file, input_file, output_file), shell=True)
-		print('CKIPWSTester {} {} {}'.format(self.__ini_file, input_file, output_file))
-		print('Processing Word Segment on {} to {}'.format(input_file, output_file))
+		# subprocess.call(f'CKIPWSTester {self.__ini_file} {input_file} {output_file}', shell=True)
+		print(f'CKIPWSTester {self.__ini_file} {input_file} {output_file}')
+		print(f'Processing Word Segment on {input_file} to {output_file}')
 		pause()
 
 	def replace(self, input_file, output_file, input_encoding='utf-16', output_encoding=None):

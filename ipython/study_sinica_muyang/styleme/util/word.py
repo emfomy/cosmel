@@ -33,7 +33,7 @@ class WsWords(collections.abc.Sequence):
 		return len(self.__txts)
 
 	def __str__(self):
-		return '　'.join(['{}({})'.format(w, p) for w, p in zip(self.__txts, self.__tags)])
+		return '　'.join([f'{w}({p})' for w, p in zip(self.__txts, self.__tags)])
 
 	def __repr__(self):
 		return str(self)

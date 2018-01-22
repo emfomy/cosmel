@@ -23,7 +23,7 @@ class Article(collections.abc.Sequence):
 
 	def __init__(self, file_path):
 		super().__init__()
-		printr('Reading {}'.format(file_path))
+		printr(f'Reading {file_path}')
 		with open(file_path) as fin:
 			self.__data = [WsWords(line) for line in fin]
 

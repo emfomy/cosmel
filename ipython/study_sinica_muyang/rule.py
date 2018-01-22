@@ -34,7 +34,7 @@ def decision_tree(mention, repo, previous_products):
 	if len(mention_affix_set) > 0:
 		for i, candidate in enumerate(candidates):
 			if mention_affix_set <= candidate_affix_sets[i]:
-				mention.set_rule('1a')
+				mention.set_rule('01a')
 				mention.set_p_id(candidate.p_id)
 				return
 
@@ -42,7 +42,7 @@ def decision_tree(mention, repo, previous_products):
 	if len(mention_affix_no_de_set) > 0:
 		for i, candidate in enumerate(candidates):
 			if mention_affix_no_de_set <= candidate_affix_no_de_sets[i]:
-				mention.set_rule('1b')
+				mention.set_rule('01b')
 				mention.set_p_id(candidate.p_id)
 				return
 
@@ -52,12 +52,12 @@ def decision_tree(mention, repo, previous_products):
 		# Rule 2a
 		for i, candidate in enumerate(candidates):
 			if candidate in previous_products:
-				mention.set_rule('2a')
+				mention.set_rule('02a')
 				mention.set_p_id(candidate.p_id)
 				return
 
 		# Rule 2b
-		mention.set_rule('2b')
+		mention.set_rule('02b')
 		mention.set_p_id('OSP')
 		return
 
@@ -65,33 +65,33 @@ def decision_tree(mention, repo, previous_products):
 	if '一' == mention.sentence.txts[relu(mention.beginning_idx-2)] and \
 			'Nf' == mention.sentence.tags[relu(mention.beginning_idx-1)]:
 		# Rule 3c
-		if '另' == mention.sentence.tags[relu(mention.beginning_idx-3)] or \
-				'另外' in mention.sentence.tags[relu(mention.beginning_idx-3)]:
-			mention.set_rule('2b')
+		if '另' == mention.sentence.txts[relu(mention.beginning_idx-3)] or \
+				'另外' in mention.sentence.txts[relu(mention.beginning_idx-3)]:
+			mention.set_rule('03b')
 			mention.set_p_id('OSP')
 			return
 
 		# Rule 3a
 		for i, candidate in enumerate(candidates):
 			if candidate in previous_products:
-				mention.set_rule('2a')
+				mention.set_rule('03a')
 				mention.set_p_id(candidate.p_id)
 				return
 
 		# Rule 3b
-		mention.set_rule('2b')
+		mention.set_rule('03b')
 		mention.set_p_id('OSP')
 		return
 
-	# Rule 101 --- mention has no infix
+	# Rule 51 --- mention has no infix
 	if len(mention_affix_set) == 0:
-		mention.set_rule('100a')
+		mention.set_rule('50a')
 		mention.set_p_id('GP')
 		return
 
-	# Rule 101 --- mention contains "的"
+	# Rule 51 --- mention contains "的"
 	if '的' in mention_affix_set:
-		mention.set_rule('101a')
+		mention.set_rule('51a')
 		mention.set_p_id('GP')
 		return
 
@@ -110,20 +110,20 @@ def decision_tree(mention, repo, previous_products):
 if __name__ == '__main__':
 
 	date          = time.strftime("%Y%m%d.%H%M%S")
-	target        = ''
 	repo_path     = 'data/repo'
-	article_path  = 'data/article/prune_article_ws'+target
-	mention_path  = 'data/mention/prune_article_ws'+target
-	output_path   = 'data/mention/prune_article_ws_pid_'+date+target
+	article_path  = 'data/article/prune_article_ws'
+	mention_path  = 'data/mention/prune_article_ws'
+	output_path   = 'data/mention/prune_article_ws_pid_'+date
+	parts         = ['']
 
 	repo   = Repo(repo_path)
-	corpus = Corpus(article_path, mention_path, repo)
+	corpus = Corpus(article_path, mention_path, repo, parts=parts)
 
 	# Process rules
-	previous_product_rules = set(['exact', '1a', '1b'])
+	previous_product_rules = set(['exact', '01a', '01b'])
 	for article in corpus.article_set:
 		bundle = corpus.article_to_mention_bundle[article]
-		printr('Processing {}'.format(bundle.path))
+		printr(f'Processing {bundle.path}')
 
 		# Run rules
 		previous_products = set()

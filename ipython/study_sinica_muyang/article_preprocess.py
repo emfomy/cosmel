@@ -87,8 +87,8 @@ if __name__ == '__main__':
 				fout.write(fin.read())
 		print()
 
-		subprocess_call('cd {1} && rm {0}.zip && zip -q -r {0}.zip {0}/*'.format( \
-				os.path.relpath(prune_tmp_path, tmp_path), tmp_path), shell=True)
+		rel_tmp_path = os.path.relpath(prune_tmp_path, tmp_path)
+		subprocess_call(f'cd {tmp_path} && rm {rel_tmp_path}.zip && zip -q -r {rel_tmp_path}.zip {rel_tmp_path}/*', shell=True)
 
 	# Segment Articles
 	if not segmented:
@@ -99,7 +99,7 @@ if __name__ == '__main__':
 					[repo_path+'/infix.lex', repo_path+'/products.lex'])
 
 		ws(prune_tmp_path, ws_tmp_path)
-		subprocess_call('unzip -q {0}.zip -d {1}'.format(ws_tmp_path, tmp_path), shell=True)
+		subprocess_call(f'unzip -q {ws_tmp_path}.zip -d {tmp_path}', shell=True)
 
 		# Replace post-tags
 		for ws_tmp_file in grep_files(ws_tmp_path):
@@ -122,7 +122,7 @@ if __name__ == '__main__':
 
 		regexes = []
 		for lex, tag in tag_dict.items():
-			regexes.append((re.compile(r'(\A|(?<=\n|　)){}\(N_Product\)'.format(lex)), tag, lex))
+			regexes.append((re.compile(rf'(\A|(?<=\n|　)){lex}\(N_Product\)'), tag, lex))
 
 		# Replace N_Product
 		for ws_re_tmp_file in grep_files(ws_re_tmp_path):

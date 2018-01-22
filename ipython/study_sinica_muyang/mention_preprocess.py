@@ -77,7 +77,7 @@ if __name__ == '__main__':
 			# Write mentions to file
 			tmp_mention_file = article.path.replace(article_path, tmp_mention_path)+'.mention'
 			os.makedirs(os.path.dirname(tmp_mention_file), exist_ok=True)
-			printr('Writing {}'.format(os.path.relpath(tmp_mention_file)))
+			printr(f'Writing {os.path.relpath(tmp_mention_file)}')
 			with open(tmp_mention_file, 'w') as fout:
 				for mention in mention_list:
 					fout.write(str(mention)+'\n')
@@ -88,7 +88,7 @@ if __name__ == '__main__':
 		for tmp_mention_file in grep_files(tmp_mention_path):
 			path = tmp_mention_file.replace(tmp_mention_path, article_path)[:-len('.mention')]
 			article = path_to_article[path]
-			printr('Reading {}'.format(os.path.relpath(tmp_mention_file)))
+			printr(f'Reading {os.path.relpath(tmp_mention_file)}')
 			with open(tmp_mention_file) as fin:
 				mention_list = []
 				for line in fin:
@@ -106,7 +106,7 @@ if __name__ == '__main__':
 		for article, mention_list in mentions.items():
 			sentence_file = article.path.replace(article_path, tmp_sentence_path)+'.sentence'
 			os.makedirs(os.path.dirname(sentence_file), exist_ok=True)
-			printr('Writing {}'.format(os.path.relpath(sentence_file)))
+			printr(f'Writing {os.path.relpath(sentence_file)}')
 			with open(sentence_file, 'w') as fout:
 				for mention in mention_list:
 					if len(mention.head_idxs) > 1:
@@ -124,7 +124,7 @@ if __name__ == '__main__':
 		for article, mention_list in mentions.items():
 			mention_file = article.path.replace(article_path, mention_path)+'.mention'
 			os.makedirs(os.path.dirname(mention_file), exist_ok=True)
-			printr('Writing {}'.format(os.path.relpath(mention_file)))
+			printr(f'Writing {os.path.relpath(mention_file)}')
 			with open(mention_file, 'w') as fout:
 				for mention in mention_list:
 					mention.head_idxs = [mention.head_idxs[-1]]

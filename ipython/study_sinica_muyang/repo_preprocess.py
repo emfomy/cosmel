@@ -116,12 +116,12 @@ class RawBrandDict(collections.abc.Mapping):
 		aliases = RawBrand(brand_alias(name))
 		for v in set(aliases):
 			if v in self.__data:
-				print('Combine {} and {}'.format(self.__data[v], aliases))
+				print(f'Combine {self.__data[v]} and {aliases}')
 				aliases.update(self.__data[v])
 		if key:
 			for v in brand_alias(key):
 				if v in self.__data:
-					print('Combine {} and {}'.format(self.__data[v], aliases))
+					print(f'Combine {self.__data[v]} and {aliases}')
 					aliases.update(self.__data[v])
 		for v in aliases:
 			self.__data[v] = aliases
@@ -132,7 +132,7 @@ class RawBrandDict(collections.abc.Mapping):
 		with open(txt_path, 'w') as fout:
 			for v in self.list:
 				fout.write('\t'.join(v) + '\n')
-		print('Saved {} brands into "{}"'.format(len(self.set), txt_path))
+		print(f'Saved {len(self.set)} brands into "{txt_path}"')
 
 	def save_lex(self, lex_path):
 		"""Save to lexicon file."""
@@ -140,7 +140,7 @@ class RawBrandDict(collections.abc.Mapping):
 		with open(lex_path, 'w') as fout:
 			for k in sorted(self):
 				fout.write(k + '\tN_Brand\n')
-			print('Saved {} brands into "{}"'.format(len(self), lex_path))
+			print(f'Saved {len(self)} brands into "{lex_path}"')
 
 
 class RawProduct:
@@ -182,9 +182,9 @@ class RawProductDict(collections.abc.Mapping):
 		brand = key[0] if type(key[0]) == RawBrand else self.__brand_set[key[0]]
 		name = prune_string(key[1])
 		for v in brand:
-			name = re.sub(r'\A{}'.format(v), '', name).strip().strip('□')
+			name = re.sub(rf'\A{v}', '', name).strip().strip('□')
 		for v in brand:
-			name = re.sub(r'\A{}'.format(v), '', name).strip().strip('□')
+			name = re.sub(rf'\A{v}', '', name).strip().strip('□')
 		name = re.sub(r'\Ax□', '', name).strip().strip('□')
 		return (brand, name)
 
@@ -192,11 +192,10 @@ class RawProductDict(collections.abc.Mapping):
 		"""Add ``data`` to the dictionary. Skiped if already exists."""
 		key = (data.b_name, data.p_name)
 		if key in self:
-			print('Conflicted product ({:>5} / {:>5}) {}'.format(\
-				self[key].p_id, data.p_id, self.__keytransform__(key)))
+			print(f'Conflicted product ({self[key].p_id:>5} / {data.p_id:>5}) {self.__keytransform__(key)}')
 			return
 		if data.p_id in self.__ids:
-			raise Exception('Conflicted product {}'.format(data.p_id))
+			raise Exception(f'Conflicted product {data.p_id}')
 		self[key] = RawProduct(data)
 		self.__ids.add(data.p_id)
 
@@ -206,7 +205,7 @@ class RawProductDict(collections.abc.Mapping):
 		with open(txt_path, 'w') as fout:
 			for k, v in self.items():
 				fout.write('\t'.join([v.p_id, k[0].list[-1], k[1]]) + '\n')
-			print('Saved {} products into "{}"'.format(len(self), txt_path))
+			print(f'Saved {len(self)} products into "{txt_path}"')
 
 	def save_lex(self, lex_path):
 		"""Save to lexicon file."""
@@ -214,7 +213,7 @@ class RawProductDict(collections.abc.Mapping):
 		with open(lex_path, 'w') as fout:
 			for k in self:
 				fout.write(k[1] + '\tN_Product\n')
-			print('Saved {} products into "{}"'.format(len(self), lex_path))
+			print(f'Saved {len(self)} products into "{lex_path}"')
 
 	def save_lex_c(self, lex_path):
 		"""Save compute products to lexicon file."""
@@ -225,7 +224,7 @@ class RawProductDict(collections.abc.Mapping):
 				for b in k[0]:
 					fout.write(prune_string(b + '□' + k[1]) + '\tN_CProduct\n')
 					i += 1
-			print('Saved {} complete products into "{}"'.format(i, lex_path))
+			print(f'Saved {i} complete products into "{lex_path}"')
 
 
 def load_csv(csv_path):
@@ -247,12 +246,12 @@ def load_csv(csv_path):
 					'測試' in row['品牌'] or '測試' in row['中文品名'] or \
 					'test' in row['品牌'].lower() or 'test' in row['中文品名'].lower() or \
 					not check_contain_chinese(row['中文品名']):
-				printr('Skip product {}'.format(row['編號']))
+				printr(f'''Skip product {row['編號']}''')
 				continue
 
 			data.append(RawData(row))
 
-		print('Loaded {} products form "{}"'.format(len(data), csv_path))
+		print(f'Loaded {len(data)} products form "{csv_path}"')
 
 		return data
 
@@ -279,7 +278,7 @@ def brand_alias(full_name):
 	aliases = set([en, en2, zh])
 	aliases.discard('')
 	if not len(aliases):
-		raise Exception('Empty brand name "{}"'.format(full_name))
+		raise Exception(f'Empty brand name "{full_name}"')
 	return aliases
 
 
@@ -359,23 +358,23 @@ if __name__ == '__main__':
 			for line in fin:
 				sentence = WsWords(line.strip().split('\t')[0])
 				if '□' in sentence.txts:
-					raise Exception('□(SP): "{}"'.format(sentence))
+					raise Exception(f'□(SP): "{sentence}"')
 				heads = list()
 				if 'N_Head' in sentence.tags:
 					for i, post in enumerate(sentence.tags):
 						if post == 'N_Head':
 							heads.append(str(sentence.txts[i]))
 				if len(heads) == 0:
-					print('No Head: "{}"'.format(sentence))
+					print(f'No Head: "{sentence}"')
 				fout.write('\t'.join(heads) + '\n')
 
-		print('Saved product heads into "{}"'.format(repo_path+'/products.head'))
+		print(f'''Saved product heads into "{repo_path+'/products.head'}"''')
 
 	if not saved_product_description:
 		with open(repo_path+'/products.description', 'w') as fout:
 			for _, product in products.items():
 				fout.write('\t'.join([product.p_id, product.p_description]) + '\n')
-		print('Saved product descriptions into "{}"'.format(repo_path+'/products.description'))
+		print(f'''Saved product descriptions into "{repo_path+'/products.description'}"''')
 
 	# Check Head
 	heads = {}
@@ -383,7 +382,7 @@ if __name__ == '__main__':
 		for line in fin:
 			p_id, head = line.strip().split('\t')
 			if p_id in heads:
-				raise Exception('Conflicted product head {} "{}"'.format(p_id, head))
+				raise Exception(f'Conflicted product head {p_id} "{head}"')
 			heads[p_id] = head
 
 	with open(repo_path+'/products.txt') as fin_txt, open(repo_path+'/products.tag') as fin_tag:
@@ -391,11 +390,11 @@ if __name__ == '__main__':
 			p_id = text.strip().split('\t')[0]
 			sentence = WsWords(line.strip().split('\t')[0])
 			if '□' in sentence.txts:
-				raise Exception('□(SP): "{}"'.format(sentence))
+				raise Exception(f'□(SP): "{sentence}"')
 
 			if p_id not in heads:
-				print('No Head (None): {} "{}"'.format(p_id, sentence))
+				print(f'No Head (None): {p_id} "{sentence}"')
 			elif heads[p_id] not in sentence.txts:
-				print('No Head ({}): {} "{}"'.format(heads[p_id], p_id, sentence))
+				print('No Head ({heads[p_id]}): {p_id} "{sentence}"')
 
 	pass

@@ -34,10 +34,10 @@ class Product:
 		self.__head_idx    = self.name_ws.txts.index(head)
 
 	def __str__(self):
-		return '{} {} {}'.format(self.__p_id, str(self.__brand), self.__name)
+		return f'{self.__p_id} {self.__brand!s} {self.__name}'
 
 	def __repr__(self):
-		return '{} {} {}'.format(self.__p_id, repr(self.__brand), self.__name_ws)
+		return f'{self.__p_id} {self.__brand!r} {self.__name_ws}'
 
 	@property
 	def brand(self):
