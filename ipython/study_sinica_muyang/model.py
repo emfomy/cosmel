@@ -23,15 +23,45 @@ from gensim.models.keyedvectors import KeyedVectors
 
 from styleme import *
 
+class Data:
+
+	def __init__(self, mention_list, max_num_sentences = 5):
+		self.p_id = [mention.p_id for mention in mention_list]
+		self.pre  = [ \
+				' '.join(itertools.chain( \
+						itertools.chain.from_iterable( \
+								itertools.chain(s.txts, ['</s>']) \
+								for s in mention.article[max(mention.s_id-max_num_sentences, 0):mention.s_id] \
+						), \
+						mention.sentence.txts[:mention.ending_idx] \
+				)) for mention in mention_list \
+		]
+		self.post = [ \
+				' '.join(itertools.chain( \
+						mention.sentence.txts[:mention.ending_idx], \
+						itertools.chain.from_iterable( \
+								itertools.chain(['</s>'], s.txts) \
+								for s in mention.article[mention.s_id+1:mention.s_id+1+max_num_sentences] \
+						) \
+				)) for mention in mention_list \
+		]
+
+	def encode(self, tokenizer, encoder):
+		self.pre_code  = pad_sequences(tokenizer.texts_to_sequences(self.pre),  padding='pre')
+		self.post_code = pad_sequences(tokenizer.texts_to_sequences(self.post), padding='post')
+		self.p_id_code = encoder.transform(self.p_id)
+
+
 def custom_loss(y_true, y_pred):
 	return -keras.backend.mean(keras.backend.log(y_pred))
+
 
 if __name__ == '__main__':
 
 	repo_path    = 'data/repo'
 	article_path = 'data/article/prune_article_ws'
 	mention_path = 'data/mention/prune_article_ws_pid'
-	# parts        = list(f'part-{x:05}' for x in range(10))
+	# parts        = list(f'part-{x:05}' for x in range(1))
 	parts        = ['']
 	emb_file     = 'data/embedding/prune_article_ws.dim300.emb.bin'
 	model_file   = 'data/model/model.h5'
@@ -50,60 +80,29 @@ if __name__ == '__main__':
 	repo   = Repo(repo_path)
 	corpus = Corpus(article_path, mention_path, repo, parts=parts)
 
-	# Remove mentions without PID and shuffle
-	mention_data = sklearn.utils.shuffle([mention for mention in corpus.mention_set if mention.p_id.isdigit()])
-	num_mention = len(mention_data)
+	# Extract mentions with PID and shuffle them
+	mention_list = sklearn.utils.shuffle([mention for mention in corpus.mention_set if mention.p_id.isdigit()], random_state = 0)
+	num_mention = len(mention_list)
 	print(f'num_mention = {num_mention}')
 
-	# Extract mentions
-	max_num_sentences = 5
+	# Split training and testing data
+	mention_train, mention_test = sklearn.model_selection.train_test_split(mention_list)
+	print(f'num_train = {len(mention_train)}')
+	print(f'num_test  = {len(mention_test)}')
 
-	mention_p_id_data         = [mention.p_id for mention in mention_data]
-	mention_pre_content_data  = [ \
-			' '.join(itertools.chain( \
-					itertools.chain.from_iterable( \
-							itertools.chain(s.txts, ['</s>']) \
-							for s in mention.article[max(mention.s_id-max_num_sentences, 0):mention.s_id] \
-					), \
-					mention.sentence.txts[:mention.ending_idx] \
-			)) for mention in mention_data \
-	]
-	mention_post_content_data  = [ \
-			' '.join(itertools.chain( \
-					mention.sentence.txts[:mention.ending_idx], \
-					itertools.chain.from_iterable( \
-							itertools.chain(['</s>'], s.txts) \
-							for s in mention.article[mention.s_id+1:mention.s_id+1+max_num_sentences] \
-					) \
-			)) for mention in mention_data \
-	]
-
-	# for pid, pre, post in zip(mention_p_id_data, mention_pre_content_data, mention_post_content_data):
-	#   print(pid, pre, post)
-
-	# Integer encode the documents
-	encoded_mention_pre_content_data  = tokenizer.texts_to_sequences(mention_pre_content_data)
-	encoded_mention_post_content_data = tokenizer.texts_to_sequences(mention_post_content_data)
-
-	# Pad documents
-	padded_mention_pre_content_data  = pad_sequences(encoded_mention_pre_content_data, padding='pre')
-	padded_mention_post_content_data = pad_sequences(encoded_mention_post_content_data, padding='post')
+	# Extract mention data
+	train_data = Data(mention_train)
+	test_data  = Data(mention_test)
 
 	# Prepare label encoder
 	encoder = LabelEncoder()
-	encoded_mention_p_id_data = encoder.fit_transform(mention_p_id_data)
+	encoder.fit(train_data.p_id + test_data.p_id)
 	num_label = len(encoder.classes_)
 	print(f'num_label = {num_label}')
-	numpy.savetxt('data/tmp/label.txt', encoder.classes_, fmt='%s')
 
-	# Split training and testing data
-	padded_mention_pre_content_data_train, padded_mention_pre_content_data_test, \
-		padded_mention_post_content_data_train, padded_mention_post_content_data_test, \
-		encoded_mention_p_id_data_train, encoded_mention_p_id_data_test = \
-			sklearn.model_selection.train_test_split( \
-				padded_mention_pre_content_data, padded_mention_post_content_data, encoded_mention_p_id_data)
-	print(f'num_train = {len(encoded_mention_p_id_data)}')
-	print(f'num_test  = {len(encoded_mention_p_id_data_test)}')
+	# Integer encode the documents and the labels
+	train_data.encode(tokenizer, encoder)
+	test_data.encode(tokenizer, encoder)
 
 	# Prepare embeddings
 	vocab_embedding = keyed_vectors.wv[keyed_vectors.index2word]
@@ -162,16 +161,16 @@ if __name__ == '__main__':
 
 	# Train the model
 	model.fit({ \
-			'pre':   padded_mention_pre_content_data_train, \
-			'post':  padded_mention_post_content_data_train, \
-			'label': encoded_mention_p_id_data_train}, \
-			encoded_mention_p_id_data_train, epochs=10, batch_size=100)
+			'pre':   train_data.pre_code, \
+			'post':  train_data.post_code, \
+			'label': train_data.p_id_code}, \
+			train_data.p_id_code, epochs=10, batch_size=100)
 
 	# Apply test model
-	predicted_mention_p_id_data_test = test_model.predict({ \
-			'pre':  padded_mention_pre_content_data_test, \
-			'post': padded_mention_post_content_data_test})
-	correct = (encoded_mention_p_id_data_test == predicted_mention_p_id_data_test)
+	predicted_p_id = test_model.predict({ \
+			'pre':  test_data.pre_code, \
+			'post': test_data.post_code})
+	correct = (test_data.p_id_code == predicted_p_id)
 	accuracy = correct.sum() / correct.size
 	print(f'accuracy = {accuracy}')
 

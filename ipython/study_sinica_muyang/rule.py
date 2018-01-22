@@ -20,7 +20,7 @@ def decision_tree(mention, repo, previous_products):
 	mention_affix_set       = set(mention.infix_ws.txts)
 	mention_affix_no_de_set = mention_affix_set - set('的')
 
-	candidate_affix_sets = [set(candidate.infix_ws.txts + candidate.suffix_ws.txts) for candidate in candidates]
+	candidate_affix_sets       = [set(candidate.infix_ws.txts + candidate.suffix_ws.txts) for candidate in candidates]
 	candidate_affix_no_de_sets = [candidate_affix_set - set('的') for candidate_affix_set in candidate_affix_sets]
 
 	# Exact --- exact match
