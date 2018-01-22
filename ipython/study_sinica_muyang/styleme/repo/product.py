@@ -23,14 +23,16 @@ class Product:
 		name (str):              the name.
 		head (str):              the head word.
 		name_ws (str):           the segmented name.
+		descr_ws (str):          the segmented description.
 	"""
 
-	def __init__(self, p_id, brand, name, head, name_ws):
+	def __init__(self, p_id, brand, name, head, name_ws, descr_ws):
 		self.__p_id        = p_id
 		self.__brand       = brand
 		self.__name        = name
 		self.__head        = head
 		self.__name_ws     = WsWords(name_ws)
+		self.__descr_ws    = WsWords(descr_ws)
 		self.__head_idx    = self.name_ws.txts.index(head)
 
 	def __str__(self):
@@ -55,6 +57,11 @@ class Product:
 		return self.__name
 
 	@property
+	def descr(self):
+		"""str: the description."""
+		return txtstr(self.__descr_ws)
+
+	@property
 	def head(self):
 		"""str: the head word."""
 		return self.__head
@@ -63,6 +70,11 @@ class Product:
 	def name_ws(self):
 		""":class:`.WsWords`: the word-segmented name."""
 		return self.__name_ws
+
+	@property
+	def descr_ws(self):
+		""":class:`.WsWords`: the word-segmented description."""
+		return self.__descr_ws
 
 	@property
 	def infix_ws(self):
@@ -98,6 +110,15 @@ class ProductSet(collections.abc.Collection):
 				assert not line_tag == ''
 				tag_dict[line_lex.split('\t')[0]] = line_tag
 
+		descr_dict = {}
+		with open(repo_path+'/products.descr') as fin_descr, open(repo_path+'/products.descr.tag') as fin_tag:
+			for line_descr, line_tag in zip(fin_descr, fin_tag):
+				line_descr = line_descr.strip()
+				line_tag = line_tag.strip()
+				assert not line_descr == ''
+				assert not line_tag == ''
+				descr_dict[line_descr.split('\t')[0]] = line_tag
+
 		head_dict = {}
 		with open(repo_path+'/products.head') as fin_head:
 			for line in fin_head:
@@ -111,7 +132,8 @@ class ProductSet(collections.abc.Collection):
 				line = line.strip()
 				assert not line == ''
 				p_id, b_name, name = line.split('\t')
-				self.__data.append(Product(p_id, name_to_brand[b_name], name, head_dict[p_id], tag_dict[name]))
+				descr_ws = descr_dict.get(p_id, '')
+				self.__data.append(Product(p_id, name_to_brand[b_name], name, head_dict[p_id], tag_dict[name], descr_ws))
 
 	def __contains__(self, item):
 		return item in self.__data
