@@ -23,7 +23,7 @@ def get_html_idx(html_data, html_idx, word):
 if __name__ == '__main__':
 
 	extracted = True
-	indexed   = True
+	indexed   = False
 
 	article_dir  = f'prune_article_ws'
 	repo_path    = f'data/repo'
@@ -64,7 +64,7 @@ if __name__ == '__main__':
 	# Map word-segmented articles to html articles
 	if not indexed:
 		for html_file in grep_files(html_path, parts):
-			idx_file     = html_file.replace(html_path, idx_path).replace('.html', '.txt.idx')
+			idx_file     = html_file.replace(html_path, idx_path).replace('.html', '.txt.tag')
 			os.makedirs(os.path.dirname(idx_file), exist_ok=True)
 			printr(idx_file)
 
@@ -80,9 +80,10 @@ if __name__ == '__main__':
 						chars = ''.join(word.replace('□', ''))
 						char = chars[0]
 						html_idx = get_html_idx(html_data, html_idx, char)
-						idx_line_list.append(f'{word}({html_idx})')
+						html_idx0 = html_idx
 						for char in chars[1:]:
 							html_idx = get_html_idx(html_data, html_idx, char)
+						idx_line_list.append(f'{word}({html_idx0},{html_idx})')
 					fout.write('　'.join(idx_line_list)+'\n')
 
 	pass
