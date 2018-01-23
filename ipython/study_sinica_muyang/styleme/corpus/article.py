@@ -23,7 +23,6 @@ class Article(collections.abc.Sequence):
 
 	def __init__(self, file_path):
 		super().__init__()
-		printr(f'Reading {file_path}')
 		with open(file_path) as fin:
 			self.__data = [WsWords(line) for line in fin]
 
@@ -77,8 +76,13 @@ class ArticleSet(collections.abc.Collection):
 
 	def __init__(self, article_path, parts=['']):
 		super().__init__()
-		self.__data = [Article(file) for file in grep_files(article_path, parts)]
+		self.__data = [self.__article(file) for file in grep_files(article_path, parts)]
 		print()
+
+	@classmethod
+	def __article(self, file):
+		printr(f'Reading {file}')
+		return Article(file)
 
 	def __contains__(self, item):
 		return item in self.__data

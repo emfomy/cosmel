@@ -81,7 +81,7 @@ if __name__ == '__main__':
 	num_vocab = len(tokenizer.word_index)+1
 	print(f'num_vocab = {num_vocab}')
 
-	# Load style repository and corpus
+	# Load StyleMe repository and corpus
 	repo   = Repo(repo_path)
 	corpus = Corpus(article_path, mention_path, repo, parts=parts)
 
