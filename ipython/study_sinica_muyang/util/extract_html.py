@@ -6,6 +6,7 @@
 	 Mu Yang <emfomy@gmail.com>
 """
 
+import json
 import os
 import sys
 
@@ -26,7 +27,20 @@ if __name__ == '__main__':
 		with open(json_file) as fin:
 			for line in fin:
 				json_data = json.loads(line)
-				html_data = json_data['content']
+				html_data = '\n'.join([
+					'<!DOCTYPE html>',
+					'<html>',
+						'<head>',
+							'<meta charset="UTF-8">',
+							f'''<title>{json_data['title']}</title>''',
+						'</head>',
+						'<body>',
+							f'''<center>{json_data['title']}</center>''',
+							'<hr>',
+							json_data['content'],
+						'</body>',
+					'</html>',
+				])
 				a_id = json_data['author'] + '_' + json_data['article_id']
 				html_file = f'{html_dir}/{a_id}.html'
 				printr(html_file)
