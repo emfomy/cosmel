@@ -85,8 +85,8 @@ if __name__ == '__main__':
 	repo   = Repo(repo_path)
 	corpus = Corpus(article_path, mention_path, repo, parts=parts)
 
-	# Extract mentions with PID and shuffle them
-	mention_list = sklearn.utils.shuffle([mention for mention in corpus.mention_set if mention.p_id.isdigit()], random_state = 0)
+	# Extract mentions with PID
+	mention_list = [mention for mention in corpus.mention_set if mention.p_id.isdigit()]
 	num_mention = len(mention_list)
 	print(f'num_mention = {num_mention}')
 
@@ -152,7 +152,7 @@ if __name__ == '__main__':
 	model.summary()
 
 	# Define test model
-	text_max   = keras.layers.Lambda(lambda x: keras.backend.argmax(x), name='text_max')(text_prob)
+	text_max   = keras.layers.Lambda(keras.backend.argmax, name='text_max')(text_prob)
 	test_model = keras.models.Model( \
 			inputs=[pre_code, post_code], \
 			outputs=[text_max])
@@ -172,10 +172,10 @@ if __name__ == '__main__':
 			train_data.p_id_code, epochs=10, batch_size=100)
 
 	# Apply test model
-	predicted_p_id = test_model.predict({ \
+	predicted_p_id_code = test_model.predict({ \
 			'pre':  test_data.pre_code, \
 			'post': test_data.post_code})
-	correct = (test_data.p_id_code == predicted_p_id)
+	correct = (test_data.p_id_code == predicted_p_id_code)
 	accuracy = correct.sum() / correct.size
 	print(f'accuracy = {accuracy}')
 
