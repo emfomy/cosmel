@@ -6,6 +6,9 @@
 	 Mu Yang <emfomy@gmail.com>
 """
 
+import os
+import sys
+
 import numpy
 
 import keras.backend
@@ -21,6 +24,8 @@ import sklearn.utils
 
 from gensim.models.keyedvectors import KeyedVectors
 
+os.chdir(os.path.join(os.path.dirname(__file__), '..'))
+sys.path.insert(0, os.path.abspath('.'))
 from styleme import *
 
 class Data:

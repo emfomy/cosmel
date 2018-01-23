@@ -7,8 +7,11 @@
 """
 
 import os
+import sys
 import time
 
+os.chdir(os.path.join(os.path.dirname(__file__), '..'))
+sys.path.insert(0, os.path.abspath('.'))
 from styleme import *
 
 def relu(x):

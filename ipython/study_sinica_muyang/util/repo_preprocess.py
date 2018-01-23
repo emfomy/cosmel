@@ -10,9 +10,11 @@ import collections.abc
 import csv
 import os
 import shutil
+import sys
 
+os.chdir(os.path.join(os.path.dirname(__file__), '..'))
+sys.path.insert(0, os.path.abspath('.'))
 from styleme import *
-
 
 class RawData:
 

@@ -11,9 +11,11 @@ import os
 import re
 import shutil
 import subprocess
+import sys
 
+os.chdir(os.path.join(os.path.dirname(__file__), '..'))
+sys.path.insert(0, os.path.abspath('.'))
 from styleme import *
-
 
 class ReplaceVariant():
 	"""The driver of replacing(removing) variants in the article."""

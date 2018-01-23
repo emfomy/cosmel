@@ -6,8 +6,12 @@
 	 Mu Yang <emfomy@gmail.com>
 """
 
-from styleme import *
+import os
+import sys
 
+os.chdir(os.path.join(os.path.dirname(__file__), '..'))
+sys.path.insert(0, os.path.abspath('.'))
+from styleme import *
 
 if __name__ == '__main__':
 
