@@ -60,6 +60,7 @@ if __name__ == '__main__':
 					printr(html_file)
 					with open(html_file, 'w') as fout:
 						fout.write(html_data)
+		print()
 
 	# Map word-segmented articles to html articles
 	if not indexed:
@@ -85,5 +86,6 @@ if __name__ == '__main__':
 							html_idx = get_html_idx(html_data, html_idx, char)
 						idx_line_list.append(f'{word}({html_idx0},{html_idx})')
 					fout.write('　'.join(idx_line_list)+'\n')
+		print()
 
 	pass

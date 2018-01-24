@@ -6,7 +6,6 @@
 	 Mu Yang <emfomy@gmail.com>
 """
 
-import itertools
 import os
 import sys
 
