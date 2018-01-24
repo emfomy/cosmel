@@ -23,7 +23,7 @@ def get_html_idx(html_data, html_idx, word):
 if __name__ == '__main__':
 
 	extracted = True
-	indexed   = False
+	indexed   = True
 
 	article_dir  = f'prune_article_ws'
 	repo_path    = f'data/repo'

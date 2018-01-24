@@ -43,7 +43,7 @@ class Data:
 		]
 		self.post = [ \
 				' '.join(itertools.chain( \
-						mention.sentence.txts[:mention.ending_idx], \
+						mention.sentence.txts[mention.beginning_idx:], \
 						itertools.chain.from_iterable( \
 								itertools.chain(['</s>'], s.txts) \
 								for s in mention.article[mention.s_id+1:mention.s_id+1+max_num_sentences] \
@@ -123,24 +123,24 @@ if __name__ == '__main__':
 	post_code  = keras.layers.Input(shape=(None,), dtype='int32', name='post')
 	label_code = keras.layers.Input(shape=(1,),    dtype='int32', name='label')
 
-	word_code_emb_l  = keras.layers.Embedding(num_vocab, w2v_emb_size, weights=[vocab_embedding], trainable=False, \
+	word_code_emb_layer  = keras.layers.Embedding(num_vocab, w2v_emb_size, weights=[vocab_embedding], trainable=False, \
 			name='word_code_emb')
-	label_code_emb_l = keras.layers.Embedding(num_label, num_label,    weights=[label_embedding], trainable=False, \
+	label_code_emb_layer = keras.layers.Embedding(num_label, num_label,    weights=[label_embedding], trainable=False, \
 			name='label_code_emb')
 
-	pre_code_emb   = word_code_emb_l(pre_code)
-	post_code_emb  = word_code_emb_l(post_code)
-	label_code_emb = keras.layers.Flatten(name='label_code_flatten')(label_code_emb_l(label_code))
+	pre_code_emb   = word_code_emb_layer(pre_code)
+	post_code_emb  = word_code_emb_layer(post_code)
+	label_code_emb = keras.layers.Flatten(name='label_code_flatten')(label_code_emb_layer(label_code))
 
 	pre_emb     = keras.layers.LSTM(lstm_emb_size, go_backwards=False, name='pre_emb')(pre_code_emb)
 	post_emb    = keras.layers.LSTM(lstm_emb_size, go_backwards=True,  name='post_emb')(post_code_emb)
 	text_concat = keras.layers.concatenate([pre_emb, post_emb], name='text_concat')
 	text_emb    = keras.layers.Dense(emb_size, activation='tanh', name='text_emb')(text_concat)
 
-	entity_emb_l = keras.layers.Dense(num_label, activation='softmax', use_bias=False, input_shape=(emb_size,), \
+	entity_emb_layer = keras.layers.Dense(num_label, activation='softmax', use_bias=False, input_shape=(emb_size,), \
 			name='entity_emb')
 
-	text_prob   = entity_emb_l(text_emb)
+	text_prob   = entity_emb_layer(text_emb)
 	text_target = keras.layers.dot([text_prob, label_code_emb], axes=1, name='text_target')
 
 	model = keras.models.Model( \
@@ -180,7 +180,7 @@ if __name__ == '__main__':
 	print(f'accuracy = {accuracy}')
 
 	# Save model
-	os.makedirs(os.path.dirname(model_file), exist_ok=True)
-	model.save(model_file)
+	# os.makedirs(os.path.dirname(model_file), exist_ok=True)
+	# model.save(model_file)
 
 	pass
