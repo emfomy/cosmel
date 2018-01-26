@@ -21,12 +21,19 @@ class Article(collections.abc.Sequence):
 		file_path (str): the path to the article.
 	"""
 
+	@staticmethod
+	def path_to_a_id(path):
+		"""str: Convert file path to article ID."""
+		norm_path = os.path.normpath(path)
+		return os.path.basename(os.path.dirname(norm_path)) + '/' + os.path.basename(norm_path).split('.')[0]
+
 	def __init__(self, file_path):
 		super().__init__()
+
 		with open(file_path) as fin:
 			self.__data = [WsWords(line) for line in fin]
 
-		self.__a_id = os.path.basename(file_path).split('.')[0]
+		self.__a_id = Article.path_to_a_id(file_path)
 		self.__path = file_path
 
 	def __contains__(self, item):
@@ -94,10 +101,10 @@ class ArticleSet(collections.abc.Collection):
 		return len(self.__data)
 
 
-class Path2Article(collections.abc.Mapping):
-	"""The dictionary maps file path to article.
+class Id2Article(collections.abc.Mapping):
+	"""The dictionary maps ID to article.
 
-	* Key:  the related file path of the article (str).
+	* Key:  the article ID (str).
 	* Item: the article (:class:`.Article`).
 
 	Args:
@@ -108,8 +115,8 @@ class Path2Article(collections.abc.Mapping):
 		super().__init__()
 		self.__data = dict()
 		for article in article_set:
-			assert article.path not in self.__data
-			self.__data[article.path] = article
+			assert article.a_id not in self.__data
+			self.__data[article.a_id] = article
 
 	def __contains__(self, key):
 		return key in self.__data

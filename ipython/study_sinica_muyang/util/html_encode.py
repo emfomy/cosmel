@@ -40,8 +40,7 @@ if __name__ == '__main__':
 
 		with open(html_file) as fin, open(output_file, 'w') as fout:
 			output_data = list(fin.read())
-			article_file = html_file.replace(html_path, article_path).replace('.html', '.txt.tag')
-			article = corpus.path_to_article[article_file]
+			article = id_to_article[Article.path_to_a_id(html_path)]
 			bundle  = corpus.article_to_mention_bundle[article]
 
 			for mention in bundle:

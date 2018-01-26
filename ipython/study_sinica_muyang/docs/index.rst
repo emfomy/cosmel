@@ -4,10 +4,17 @@
    contain the root `toctree` directive.
 
 StyleMe Documentation
-==========================================
+=====================
+
+Requirements
+------------
+
+* `Python <https://www.python.org/>`_ 3.6.
+
+Contents
+--------
 
 .. toctree::
-   :glob:
 
    _api/styleme
    genindex

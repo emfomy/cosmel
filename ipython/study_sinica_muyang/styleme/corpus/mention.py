@@ -19,10 +19,10 @@ class Mention:
 
 	Args:
 		article       (:class:`.Article`):    the article containing this mention.
+		name_to_brand (:class:`.Name2Brand`): the dictionary maps name to brand.
 		s_id          (int):                  the line index in the aritcle.
 		brand_idx     (int):                  the brand index in the sentence.
 		head_idx      (int):                  the head index in the sentence.
-		name_to_brand (:class:`.Name2Brand`): the dictionary maps name to brand.
 		p_id          (str):                  the product ID.
 		g_id          (str):                  the golden product ID.
 	"""
@@ -142,11 +142,6 @@ class Mention:
 	def infix_ws(self):
 		""":class:`.WsWords`: the word-segmented infix (excluding brand and head)."""
 		return self.sentence[self.beginning_idx+1:self.head_idx]
-
-	@property
-	def filestr(self):
-		"""Change to string for file."""
-		return '\t'.join([str(self.__s_id), str(self.__brand_idx), str(self.__head_idx), self.__p_id, self.__g_id, self.__rule])
 
 	def set_p_id(self, p_id):
 		"""Sets the product ID."""

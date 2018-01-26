@@ -38,7 +38,6 @@ if __name__ == '__main__':
 
 	greped_mention   = False
 	written_sentence = True
-	parsed           = True
 	used_last_head   = False
 
 	target        = '/prune_article_ws'
@@ -47,9 +46,9 @@ if __name__ == '__main__':
 	repo_path     = 'data/repo'
 	tmp_path      = 'data/tmp'
 
-	repo            = Repo(repo_path)
-	articles        = ArticleSet(article_path)
-	path_to_article = Path2Article(articles)
+	repo          = Repo(repo_path)
+	articles      = ArticleSet(article_path)
+	id_to_article = Id2Article(articles)
 
 	max_len_mention = 10
 
@@ -88,8 +87,7 @@ if __name__ == '__main__':
 	else:
 		# Load mentions from file
 		for tmp_mention_file in grep_files(tmp_mention_path):
-			path = tmp_mention_file.replace(tmp_mention_path, article_path)[:-len('.mention')]
-			article = path_to_article[path]
+			article = id_to_article[Article.path_to_a_id(tmp_mention_path)]
 			printr(f'Reading {os.path.relpath(tmp_mention_file)}')
 			with open(tmp_mention_file) as fin:
 				mention_list = []
@@ -116,9 +114,6 @@ if __name__ == '__main__':
 					else:
 						fout.write('\n')
 		print()
-
-	if not parsed:
-		pass
 
 	if not used_last_head:
 

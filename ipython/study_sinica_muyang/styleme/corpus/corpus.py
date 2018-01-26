@@ -28,7 +28,7 @@ class Corpus:
 
 	def __init__(self, article_path, mention_path, repo, parts=['']):
 		self.__article_set                = ArticleSet(article_path, parts=parts)
-		self.__path_to_article            = Path2Article(self.__article_set)
+		self.__id_to_article              = Id2Article(self.__article_set)
 
 		self.__mention_bundle_set         = MentionBundleSet(article_path, mention_path, self.__article_set, repo)
 		self.__mention_set                = MentionSet(self.__mention_bundle_set)
@@ -41,9 +41,9 @@ class Corpus:
 		return self.__article_set
 
 	@property
-	def path_to_article(self):
-		""":class:`.Path2Article`: the dictionary maps file path to brand."""
-		return self.__path_to_article
+	def id_to_article(self):
+		""":class:`.Id2Article`: the dictionary maps ID to article."""
+		return self.__id_to_article
 
 	@property
 	def mention_set(self):
