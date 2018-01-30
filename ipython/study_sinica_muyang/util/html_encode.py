@@ -19,36 +19,34 @@ def get_html_idxs(mention):
 
 if __name__ == '__main__':
 
-	mention_dir  = f'prune_article_ws'
-	repo_path    = f'data/repo'
-	article_path = f'data/html/prune_article_ws_idx'
-	mention_path = f'data/mention/{mention_dir}'
-	html_path    = f'data/html/html_article'
-	output_path  = f'data/html/{mention_dir}'
-	# parts        = list(f'part-{x:05}' for x in range(1))
+	mention_dir  = f'prune_article_ws_pid'
+	repo_root    = f'data/repo'
+	article_root = f'data/html/prune_article_ws_idx'
+	mention_root = f'data/mention/{mention_dir}'
+	html_root    = f'data/html/html_article'
+	output_root  = f'data/html/{mention_dir}'
 	parts        = ['']
+	# parts        = list(f'part-{x:05}' for x in range(1))
 
 	# Load StyleMe repository and corpus
-	repo   = Repo(repo_path)
-	corpus = Corpus(article_path, mention_path, repo, parts=parts)
+	repo   = Repo(repo_root)
+	corpus = Corpus(article_root, mention_root, repo, parts=parts)
 
 	# Extract html from json
-	for html_file in grep_files(html_path, parts):
-		output_file = html_file.replace(html_path, output_path).replace('.html', '.xml.html')
+	for html_file in grep_files(html_root, parts):
+		output_file = html_file.replace(html_root, output_root).replace('.html', '.xml.html')
 		os.makedirs(os.path.dirname(output_file), exist_ok=True)
 		printr(output_file)
 
 		with open(html_file) as fin, open(output_file, 'w') as fout:
 			output_data = list(fin.read())
-			article = id_to_article[Article.path_to_a_id(html_path)]
+			article = corpus.id_to_article[Article.path_to_a_id(html_file)]
 			bundle  = corpus.article_to_mention_bundle[article]
 
 			for mention in bundle:
 				idx0, idx1 = get_html_idxs(mention)
-				output_data[idx0] = \
-						f'<product pid="{mention.p_id}" gid="{mention.g_id}" sid="{mention.s_id}" idx="{mention.beginning_idx}">' + \
-						output_data[idx0]
-				output_data[idx1] += '</product>'
+				output_data[idx0] = mention.beginning_xml + output_data[idx0]
+				output_data[idx1] += mention.ending_xml
 
 			fout.write(''.join(output_data))
 	print()

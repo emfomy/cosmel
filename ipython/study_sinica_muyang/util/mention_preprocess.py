@@ -41,26 +41,26 @@ if __name__ == '__main__':
 	used_last_head   = False
 
 	target        = '/prune_article_ws'
-	mention_path  = 'data/mention'+target
-	article_path  = 'data/article'+target
-	repo_path     = 'data/repo'
-	tmp_path      = 'data/tmp'
+	mention_root  = 'data/mention'+target
+	article_root  = 'data/article'+target
+	repo_root     = 'data/repo'
+	tmp_root      = 'data/tmp'
 
-	repo          = Repo(repo_path)
-	articles      = ArticleSet(article_path)
+	repo          = Repo(repo_root)
+	articles      = ArticleSet(article_root)
 	id_to_article = Id2Article(articles)
 
 	max_len_mention = 10
 
-	tmp_mention_path  = tmp_path+'/mention'+target
-	tmp_sentence_path = tmp_path+'/sentence'+target
+	tmp_mention_root  = tmp_root+'/mention'+target
+	tmp_sentence_root = tmp_root+'/sentence'+target
 
 	mentions = dict()
 	if not greped_mention:
 
 		# Remove Temp Files
-		if os.path.exists(tmp_mention_path):
-			shutil.rmtree(tmp_mention_path)
+		if os.path.exists(tmp_mention_root):
+			shutil.rmtree(tmp_mention_root)
 
 		# Grep mentions
 		for article in articles:
@@ -76,7 +76,7 @@ if __name__ == '__main__':
 			mentions[article] = mention_list
 
 			# Write mentions to file
-			tmp_mention_file = article.path.replace(article_path, tmp_mention_path)+'.mention'
+			tmp_mention_file = article.path.replace(article_root, tmp_mention_root)+'.mention'
 			os.makedirs(os.path.dirname(tmp_mention_file), exist_ok=True)
 			printr(f'Writing {os.path.relpath(tmp_mention_file)}')
 			with open(tmp_mention_file, 'w') as fout:
@@ -86,8 +86,8 @@ if __name__ == '__main__':
 
 	else:
 		# Load mentions from file
-		for tmp_mention_file in grep_files(tmp_mention_path):
-			article = id_to_article[Article.path_to_a_id(tmp_mention_path)]
+		for tmp_mention_file in grep_files(tmp_mention_root):
+			article = id_to_article[Article.path_to_a_id(tmp_mention_root)]
 			printr(f'Reading {os.path.relpath(tmp_mention_file)}')
 			with open(tmp_mention_file) as fin:
 				mention_list = []
@@ -99,12 +99,12 @@ if __name__ == '__main__':
 
 	if not written_sentence:
 		# Remove Temp Files
-		if os.path.exists(tmp_sentence_path):
-			shutil.rmtree(tmp_sentence_path)
+		if os.path.exists(tmp_sentence_root):
+			shutil.rmtree(tmp_sentence_root)
 
 		# Writhe mention sentences to file
 		for article, mention_list in mentions.items():
-			sentence_file = article.path.replace(article_path, tmp_sentence_path)+'.sentence'
+			sentence_file = article.path.replace(article_root, tmp_sentence_root)+'.sentence'
 			os.makedirs(os.path.dirname(sentence_file), exist_ok=True)
 			printr(f'Writing {os.path.relpath(sentence_file)}')
 			with open(sentence_file, 'w') as fout:
@@ -119,7 +119,7 @@ if __name__ == '__main__':
 
 		# Write mentions to file
 		for article, mention_list in mentions.items():
-			mention_file = article.path.replace(article_path, mention_path)+'.mention'
+			mention_file = article.path.replace(article_root, mention_root)+'.mention'
 			os.makedirs(os.path.dirname(mention_file), exist_ok=True)
 			printr(f'Writing {os.path.relpath(mention_file)}')
 			with open(mention_file, 'w') as fout:

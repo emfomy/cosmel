@@ -113,14 +113,14 @@ def decision_tree(mention, repo, previous_products):
 if __name__ == '__main__':
 
 	date          = time.strftime("%Y%m%d.%H%M%S")
-	repo_path     = 'data/repo'
-	article_path  = 'data/article/prune_article_ws'
-	mention_path  = 'data/mention/prune_article_ws'
-	output_path   = 'data/mention/prune_article_ws_pid_'+date
+	repo_root     = 'data/repo'
+	article_root  = 'data/article/prune_article_ws'
+	mention_root  = 'data/mention/prune_article_ws'
+	output_root   = 'data/mention/prune_article_ws_pid_'+date
 	parts         = ['']
 
-	repo   = Repo(repo_path)
-	corpus = Corpus(article_path, mention_path, repo, parts=parts)
+	repo   = Repo(repo_root)
+	corpus = Corpus(article_root, mention_root, repo, parts=parts)
 
 	# Process rules
 	previous_product_rules = set(['exact', '01a', '01b'])
@@ -146,6 +146,6 @@ if __name__ == '__main__':
 	print()
 
 	# Save data
-	corpus.mention_bundle_set.save(output_path)
+	corpus.mention_bundle_set.save(output_root)
 
 	pass

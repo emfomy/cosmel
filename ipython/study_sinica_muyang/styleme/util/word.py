@@ -20,8 +20,8 @@ class WsWords(collections.abc.Sequence):
 
 	def __init__(self, chars):
 		chars_seg = [seg for seg in chars.strip().split('　') if not seg == '']
-		self.__txts = ReadOnlyList(w.split('(', 1)[0] for w in chars_seg)
-		self.__tags = ReadOnlyList(w.split('(', 1)[1][:-1] for w in chars_seg)
+		self.__txts = list(w.split('(', 1)[0] for w in chars_seg)
+		self.__tags = list(w.split('(', 1)[1][:-1] for w in chars_seg)
 
 	def __getitem__(self, idxs):
 		retval = WsWords('')
@@ -43,12 +43,12 @@ class WsWords(collections.abc.Sequence):
 
 	@property
 	def txts(self):
-		""":class:`ReadOnlyList` -- the texts."""
+		""":class:`list` -- the texts."""
 		return self.__txts
 
 	@property
 	def tags(self):
-		""":class:`ReadOnlyList` -- the post-tags."""
+		""":class:`list` -- the post-tags."""
 		return self.__tags
 
 def txtstr(obj):

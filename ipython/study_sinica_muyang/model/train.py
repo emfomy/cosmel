@@ -45,11 +45,11 @@ class ArgMax(keras.engine.topology.Layer):
 if __name__ == '__main__':
 
 	emb_file     = f'data/embedding/prune_article_ws.dim300.emb.bin'
-	model_path   = f'data/model'
-	data_file    = f'{model_path}/data.h5'
-	train_file   = f'{model_path}/train.json'
-	predict_file = f'{model_path}/predict.json'
-	weight_file  = f'{model_path}/weight.h5'
+	model_root   = f'data/model'
+	data_file    = f'{model_root}/data.h5'
+	train_file   = f'{model_root}/train.json'
+	predict_file = f'{model_root}/predict.json'
+	weight_file  = f'{model_root}/weight.h5'
 
 	# Load data
 	data = Data.load(data_file)
@@ -77,9 +77,8 @@ if __name__ == '__main__':
 	# Count number of mentions and entities
 	num_mention = len(train_data.p_id_code)
 	counter     = collections.Counter(train_data.p_id_code)
-	num_entity  = len(counter)
-	train_data.text_weight = numpy.full((num_mention,), 1.0/num_mention, dtype='float32')
-	train_data.desc_weight = numpy.asarray([counter[i]/num_entity for i in train_data.p_id_code], dtype='float32')
+	train_data.text_weight = numpy.full((num_mention,), 1.0, dtype='float32')
+	train_data.desc_weight = numpy.asarray([1/counter[i] for i in train_data.p_id_code], dtype='float32')
 
 	# Define model
 	cnn_win_size  = 5

@@ -143,6 +143,16 @@ class Mention:
 		""":class:`.WsWords`: the word-segmented infix (excluding brand and head)."""
 		return self.sentence[self.beginning_idx+1:self.head_idx]
 
+	@property
+	def beginning_xml(self):
+		"""str: the beginning XML tag."""
+		return f'<product pid="{self.p_id}" gid="{self.g_id}" sid="{self.s_id}" idx="{self.beginning_idx}">'
+
+	@property
+	def ending_xml(self):
+		"""str: the ending XML tag."""
+		return f'</product>'
+
 	def set_p_id(self, p_id):
 		"""Sets the product ID."""
 		self.__p_id = p_id
@@ -243,21 +253,21 @@ class MentionBundleSet(collections.abc.Collection):
 	* Item: mention bundle (:class:`.MentionBundle`)
 
 	Args:
-		article_path (str):                 the path to the folder containing word segmented article files.
-		mention_path (str):                 the path to the folder containing mention files.
+		article_root (str):                 the path to the folder containing word segmented article files.
+		mention_root (str):                 the path to the folder containing mention files.
 		article_set (:class:`.ArticleSet`): the set of articles.
 		repo     (:class:`.Repo`):          the product repository class.
 	"""
 
-	def __init__(self, article_path, mention_path, article_set, repo):
+	def __init__(self, article_root, mention_root, article_set, repo):
 		super().__init__()
-		self.__data = [self._mention_bundle(article, article_path, mention_path, repo) for article in article_set]
-		self.__path = mention_path
+		self.__data = [self._mention_bundle(article, article_root, mention_root, repo) for article in article_set]
+		self.__path = mention_root
 		print()
 
 	@staticmethod
-	def _mention_bundle(article, article_path, mention_path, repo):
-		file_path = article.path.replace(article_path, mention_path)+'.mention'
+	def _mention_bundle(article, article_root, mention_root, repo):
+		file_path = article.path.replace(article_root, mention_root)+'.mention'
 		return MentionBundle(file_path, article, repo)
 
 	def __contains__(self, item):
@@ -269,10 +279,10 @@ class MentionBundleSet(collections.abc.Collection):
 	def __len__(self):
 		return len(self.__data)
 
-	def save(self, output_path):
+	def save(self, output_root):
 		"""Save all mention bundles to files."""
 		for bundle in self:
-			file_path = bundle.path.replace(self.__path, output_path)
+			file_path = bundle.path.replace(self.__path, output_root)
 			bundle.save(file_path)
 		print()
 

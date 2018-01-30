@@ -15,14 +15,14 @@ class Repo:
 	"""The product repository class.
 
 	Args:
-		repo_path (str): the path to the folder containing data files.
+		repo_root (str): the path to the folder containing data files.
 	"""
 
-	def __init__(self, repo_path):
-		self.__brand_set                  = BrandSet(repo_path)
+	def __init__(self, repo_root):
+		self.__brand_set                  = BrandSet(repo_root)
 		self.__name_to_brand              = Name2Brand(self.__brand_set)
 
-		self.__product_set                = ProductSet(repo_path, self.__name_to_brand)
+		self.__product_set                = ProductSet(repo_root, self.__name_to_brand)
 		self.__id_to_product              = Id2Product(self.__product_set)
 		self.__brand_name_to_product      = BrandName2Product(self.__product_set)
 		self.__name_name_to_product       = NameName2Product(self.__brand_name_to_product, self.__name_to_brand)

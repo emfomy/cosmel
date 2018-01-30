@@ -305,12 +305,12 @@ if __name__ == '__main__':
 
 	saved_product_head  = True
 
-	etc_path  = 'etc'
-	repo_path = 'data/repo'
-	tmp_path  = 'data/tmp'
+	etc_root  = 'etc'
+	repo_root = 'data/repo'
+	tmp_root  = 'data/tmp'
 
-	os.makedirs(repo_path, exist_ok=True)
-	os.makedirs(tmp_path,  exist_ok=True)
+	os.makedirs(repo_root, exist_ok=True)
+	os.makedirs(tmp_root,  exist_ok=True)
 
 	# Import CSV
 	csv_path = 'data/StyleMe.csv'
@@ -326,60 +326,60 @@ if __name__ == '__main__':
 	brands.update('資生堂', key='SHISEIDO')
 
 	if not saved_brand:
-		brands.save_txt(repo_path+'/brands.txt')
-		brands.save_lex(repo_path+'/brands.lex')
+		brands.save_txt(repo_root+'/brands.txt')
+		brands.save_lex(repo_root+'/brands.lex')
 
 	# Process Product
 	products = RawProductDict(data, brands)
 	if not saved_product:
-		products.save_txt(repo_path+'/products.txt')
-		products.save_lex(repo_path+'/products.lex')
-		# products.save_clex(repo_path+'/cproducts.lex')
+		products.save_txt(repo_root+'/products.txt')
+		products.save_lex(repo_root+'/products.lex')
+		# products.save_clex(repo_root+'/cproducts.lex')
 
 	# Save Description
 	if not saved_descri:
-		products.save_descr(repo_path+'/products.descr')
+		products.save_descr(repo_root+'/products.descr')
 
 	if not copied_head_lex:
 		# Copy Files
-		shutil.copyfile(etc_path+'/core.lex', repo_path+'/core.lex')
-		shutil.copyfile(etc_path+'/infix.lex', repo_path+'/infix.lex')
+		shutil.copyfile(etc_root+'/core.lex', repo_root+'/core.lex')
+		shutil.copyfile(etc_root+'/infix.lex', repo_root+'/infix.lex')
 
 		# Process Head Lexicon
-		with open(etc_path+'/heads.txt') as fin, open(repo_path+'/heads.lex', 'w') as fout:
+		with open(etc_root+'/heads.txt') as fin, open(repo_root+'/heads.lex', 'w') as fout:
 			for line in fin:
 				fout.write(line.strip() + '	N_Head\n')
-		with open(etc_path+'/jomalone.txt') as fin, open(repo_path+'/jomalone.lex', 'w') as fout:
+		with open(etc_root+'/jomalone.txt') as fin, open(repo_root+'/jomalone.lex', 'w') as fout:
 			for line in fin:
 				fout.write(line.strip() + '	N_Head\n')
 
 	# Word Segment
 	if not segmented_product or not segmented_descr:
-		ws = WordSegment(etc_path+'/for_product.ini', \
-				[repo_path+'/core.lex', repo_path+'/brands.lex', repo_path+'/heads.lex', repo_path+'/jomalone.lex'], \
-				[repo_path+'/infix.lex'])
+		ws = WordSegment(etc_root+'/for_product.ini', \
+				[repo_root+'/core.lex', repo_root+'/brands.lex', repo_root+'/heads.lex', repo_root+'/jomalone.lex'], \
+				[repo_root+'/infix.lex'])
 
 	# Word Segment Product
 	if not segmented_product:
-		with open(repo_path+'/products.lex') as fin, open(tmp_path+'/products.lex', 'w', encoding='big5') as fout:
+		with open(repo_root+'/products.lex') as fin, open(tmp_root+'/products.lex', 'w', encoding='big5') as fout:
 			fout.write(re.sub(r'	N_Product', '', fin.read(), flags=re.MULTILINE))
-		ws(tmp_path+'/products.lex', tmp_path+'/products.tag')
-		ws.replace(tmp_path+'/products.tag', repo_path+'/products.tag')
+		ws(tmp_root+'/products.lex', tmp_root+'/products.tag')
+		ws.replace(tmp_root+'/products.tag', repo_root+'/products.tag')
 
 	# Word Segment Description
 	if not segmented_descr:
-		with open(repo_path+'/products.descr') as fin, open(tmp_path+'/products.descr', 'w', encoding='big5') as fout:
+		with open(repo_root+'/products.descr') as fin, open(tmp_root+'/products.descr', 'w', encoding='big5') as fout:
 			fout.write(re.sub(r'(\A|(?<=\n)).*\t', '', fin.read(), flags=re.MULTILINE))
-		ws(tmp_path+'/products.descr', tmp_path+'/products.descr.tag')
-		ws.replace(tmp_path+'/products.descr.tag', repo_path+'/products.descr.tag')
+		ws(tmp_root+'/products.descr', tmp_root+'/products.descr.tag')
+		ws.replace(tmp_root+'/products.descr.tag', repo_root+'/products.descr.tag')
 
 	if not copied_product_head:
 		# Copy Files
-		shutil.copyfile(etc_path+'/products.head', repo_path+'/products.head')
+		shutil.copyfile(etc_root+'/products.head', repo_root+'/products.head')
 
 	if not saved_product_head:
 		# Grep Head
-		with open(repo_path+'/products.tag') as fin, open(repo_path+'/products.head', 'w') as fout:
+		with open(repo_root+'/products.tag') as fin, open(repo_root+'/products.head', 'w') as fout:
 			for line in fin:
 				sentence = WsWords(line.strip().split('\t')[0])
 				if '□' in sentence.txts:
@@ -393,18 +393,18 @@ if __name__ == '__main__':
 					print(f'No Head: "{sentence}"')
 				fout.write('\t'.join(heads) + '\n')
 
-		print(f'''Saved product heads into "{repo_path+'/products.head'}"''')
+		print(f'''Saved product heads into "{repo_root+'/products.head'}"''')
 
 	# Check Head
 	heads = {}
-	with open(repo_path+'/products.head') as fin:
+	with open(repo_root+'/products.head') as fin:
 		for line in fin:
 			p_id, head = line.strip().split('\t')
 			if p_id in heads:
 				raise Exception(f'Conflicted product head {p_id} "{head}"')
 			heads[p_id] = head
 
-	with open(repo_path+'/products.txt') as fin_txt, open(repo_path+'/products.tag') as fin_tag:
+	with open(repo_root+'/products.txt') as fin_txt, open(repo_root+'/products.tag') as fin_tag:
 		for text, line in zip(fin_txt, fin_tag):
 			p_id = text.strip().split('\t')[0]
 			sentence = WsWords(line.strip().split('\t')[0])

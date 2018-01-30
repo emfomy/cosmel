@@ -16,12 +16,12 @@ from styleme import *
 if __name__ == '__main__':
 
 	target       = '/prune_article_ws'
-	article_path = 'data/article'+target
+	article_root = 'data/article'+target
 	txt_file     = 'data/embedding'+target+'.txt'
 	emb_file     = 'data/embedding'+target+'.dim300.emb.bin'
 
 	# Concatenate articles
-	articles = ArticleSet(article_path)
+	articles = ArticleSet(article_root)
 	os.makedirs(os.path.dirname(txt_file), exist_ok=True)
 	with open(output_file, 'w') as fout:
 		for article in articles:

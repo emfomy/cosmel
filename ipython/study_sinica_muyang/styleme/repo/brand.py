@@ -49,13 +49,13 @@ class BrandSet(collections.abc.Collection):
 	* Item: the brand class (:class:`.Brand`).
 
 	Args:
-		repo_path (str): the path to the folder containing data files.
+		repo_root (str): the path to the folder containing data files.
 	"""
 
-	def __init__(self, repo_path):
+	def __init__(self, repo_root):
 		super().__init__()
 		self.__data = list()
-		with open(repo_path+'/brands.txt') as fin:
+		with open(repo_root+'/brands.txt') as fin:
 			for line in fin:
 				line = line.strip()
 				assert not line == ''

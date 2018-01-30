@@ -109,14 +109,14 @@ class RawData(Data):
 
 if __name__ == '__main__':
 
-	repo_path    = f'data/repo'
-	article_path = f'data/article/prune_article_ws'
-	mention_path = f'data/mention/prune_article_ws_pid'
-	model_path   = f'data/model'
-	parts        = list(f'part-{x:05}' for x in range(1))
-	# parts        = ['']
+	repo_root    = f'data/repo'
+	article_root = f'data/article/prune_article_ws'
+	mention_root = f'data/mention/prune_article_ws_pid'
+	model_root   = f'data/model'
+	parts        = ['']
+	# parts        = list(f'part-{x:05}' for x in range(1))
 	emb_file     = f'data/embedding/prune_article_ws.dim300.emb.bin'
-	data_file    = f'{model_path}/data.h5'
+	data_file    = f'{model_root}/data.h5'
 
 	# Load word vectors
 	keyed_vectors = KeyedVectors.load_word2vec_format(emb_file, binary=True)
@@ -128,8 +128,8 @@ if __name__ == '__main__':
 	print(f'num_vocab = {num_vocab}')
 
 	# Load StyleMe repository and corpus
-	repo   = Repo(repo_path)
-	corpus = Corpus(article_path, mention_path, repo, parts=parts)
+	repo   = Repo(repo_root)
+	corpus = Corpus(article_root, mention_root, repo, parts=parts)
 
 	# Extract mentions with PID
 	mention_list = [mention for mention in corpus.mention_set if mention.p_id.isdigit()]
@@ -150,8 +150,8 @@ if __name__ == '__main__':
 
 	# Save data
 	comment = \
-			f'article_path={article_path}\n' \
-			f'mention_path={mention_path}\n' \
+			f'article_root={article_root}\n' \
+			f'mention_root={mention_root}\n' \
 			f'emb_file={emb_file}\n' \
 			f'max_num_sentences={RawData.max_num_sentences}'
 	data.save(data_file, comment)

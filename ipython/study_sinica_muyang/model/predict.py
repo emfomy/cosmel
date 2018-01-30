@@ -26,10 +26,10 @@ from train import ArgMax
 
 if __name__ == '__main__':
 
-	model_path   = f'data/model'
-	data_file    = f'{model_path}/data.h5'
-	predict_file = f'{model_path}/predict.json'
-	weight_file  = f'{model_path}/weight.h5'
+	model_root   = f'data/model'
+	data_file    = f'{model_root}/data.h5'
+	predict_file = f'{model_root}/predict.json'
+	weight_file  = f'{model_root}/weight.h5'
 
 	# Load data
 	data = Data.load(data_file)
