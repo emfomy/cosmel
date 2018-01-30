@@ -18,7 +18,7 @@ def relu(x):
 	return max(x, 0)
 
 def decision_tree(mention, repo, previous_products):
-	candidates = repo.brand_head_to_product_list[(mention.brand, mention.head)]
+	candidates = repo.brand_head_to_product_list[mention.brand, mention.head]
 
 	mention_affix_set       = set(mention.infix_ws.txts)
 	mention_affix_no_de_set = mention_affix_set - set('的')

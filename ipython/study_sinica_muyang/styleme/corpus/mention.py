@@ -19,7 +19,7 @@ class Mention:
 
 	Args:
 		article       (:class:`.Article`):    the article containing this mention.
-		name_to_brand (:class:`.Name2Brand`): the dictionary maps name to brand.
+		name_to_brand (:class:`.Name2Brand`): the dictionary maps brand name to brand object.
 		s_id          (int):                  the line index in the aritcle.
 		brand_idx     (int):                  the brand index in the sentence.
 		head_idx      (int):                  the head index in the sentence.

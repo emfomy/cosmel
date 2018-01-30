@@ -25,7 +25,9 @@ class Repo:
 		self.__product_set                = ProductSet(repo_path, self.__name_to_brand)
 		self.__id_to_product              = Id2Product(self.__product_set)
 		self.__brand_name_to_product      = BrandName2Product(self.__product_set)
+		self.__name_name_to_product       = NameName2Product(self.__brand_name_to_product, self.__name_to_brand)
 		self.__brand_head_to_product_list = BrandHead2ProductList(self.__product_set)
+		self.__name_head_to_product_list  = NameHead2ProductList(self.__brand_head_to_product_list, self.__name_to_brand)
 
 	@property
 	def brand_set(self):
@@ -34,7 +36,7 @@ class Repo:
 
 	@property
 	def name_to_brand(self):
-		""":class:`.Name2Brand`: the dictionary maps name to brand."""
+		""":class:`.Name2Brand`: the dictionary maps brand name to brand object."""
 		return self.__name_to_brand
 
 	@property
@@ -49,10 +51,20 @@ class Repo:
 
 	@property
 	def brand_name_to_product(self):
-		""":class:`.BrandName2Product`: the dictionary maps brand and name to product."""
+		""":class:`.BrandName2Product`: the dictionary maps brand object and product name to product object."""
 		return self.__brand_name_to_product
 
 	@property
+	def name_name_to_product(self):
+		""":class:`.BrandName2Product`: the dictionary maps brand name and product name to product."""
+		return self.__name_name_to_product
+
+	@property
 	def brand_head_to_product_list(self):
-		""":class:`.BrandHead2ProductList`: the dictionary maps brand and head to product list."""
+		""":class:`.BrandHead2ProductList`: the dictionary maps brand object and head word to product object list."""
 		return self.__brand_head_to_product_list
+
+	@property
+	def name_head_to_product_list(self):
+		""":class:`.NameHead2ProductList`: the dictionary maps brand name and head word to product object list."""
+		return self.__name_head_to_product_list

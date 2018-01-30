@@ -78,7 +78,7 @@ class BrandSet(collections.abc.Collection):
 
 
 class Name2Brand(collections.abc.Mapping):
-	"""The dictionary maps name to brand.
+	"""The dictionary maps brand name to brand object.
 
 	* Key:  the brand name  (str).
 	* Item: the brand class (:class:`.Brand`).
