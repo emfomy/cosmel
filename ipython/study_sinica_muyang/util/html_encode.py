@@ -19,7 +19,7 @@ def get_html_idxs(mention):
 
 if __name__ == '__main__':
 
-	mention_dir  = f'prune_article_ws_pid'
+	mention_dir  = f'prune_article_ws'
 	repo_root    = f'data/repo'
 	article_root = f'data/html/prune_article_ws_idx'
 	mention_root = f'data/mention/{mention_dir}'

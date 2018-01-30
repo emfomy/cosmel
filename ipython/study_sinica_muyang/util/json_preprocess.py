@@ -6,6 +6,7 @@
 	 Mu Yang <emfomy@gmail.com>
 """
 
+import html
 import json
 import os
 import re
@@ -25,7 +26,7 @@ def get_html_idx(html_data, html_idx, word):
 
 if __name__ == '__main__':
 
-	extracted = True
+	extracted = False
 	parsed    = True
 	replaced  = False
 
@@ -51,7 +52,7 @@ if __name__ == '__main__':
 								'<meta charset="UTF-8">',
 							'</head>',
 							'<body>',
-								f'''<center>{json_data['title']}</center>''',
+								f'''<center>{html.escape(json_data['title'])}</center>''',
 								'<hr>',
 								json_data['content'],
 							'</body>',
@@ -74,6 +75,7 @@ if __name__ == '__main__':
 				soup = BeautifulSoup(fin.read(), 'lxml')
 				for s in soup(['script', 'style']): s.decompose()
 				fout.write(soup.get_text())
+		print()
 
 	# Replace html tags
 	if not replaced:
@@ -85,5 +87,6 @@ if __name__ == '__main__':
 			printr(notag_file)
 			with open(html_file) as fin, open(notag_file, 'w') as fout:
 				fout.write(regex.sub(repl, fin.read().lower()))
+		print()
 
 	pass

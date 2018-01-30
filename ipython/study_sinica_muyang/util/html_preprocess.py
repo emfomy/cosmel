@@ -37,13 +37,13 @@ if __name__ == '__main__':
 		for html_file in grep_files(html_root, parts):
 			idx_file     = html_file.replace(html_root, idx_path).replace('.html', '.txt.tag')
 			os.makedirs(os.path.dirname(idx_file), exist_ok=True)
-			print(html_file)
+			printr(idx_file)
 
 			article_file = html_file.replace(html_root, article_root).replace('.html', '.txt.tag')
 			article = Article(article_file)
 
 			with open(html_file) as fin, open(idx_file, 'w') as fout:
-				html_data = fin.read().lower()
+				html_data = fin.read()
 				html_idx = 0
 				for s_id, line in enumerate(article):
 					idx_line_list = []
