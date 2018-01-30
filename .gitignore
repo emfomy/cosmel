@@ -125,9 +125,3 @@ ipython/study_sinica/resources/*
 
 ipython/study_sinica/CKIP*/
 ipython/study_sinica/WSed_pickles/
-
-################################################################################
-
-# sinica_muyang
-ipython/study_sinica_muyang/test.py
-ipython/study_sinica_muyang/docs/_*
