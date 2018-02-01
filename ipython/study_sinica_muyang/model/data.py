@@ -3,14 +3,15 @@
 
 """
 .. codeauthor::
-	 Mu Yang <emfomy@gmail.com>
+   Mu Yang <emfomy@gmail.com>
 """
 
 import h5py
+import itertools
 import os
 import sys
 
-import numpy
+import numpy as np
 
 from keras.preprocessing.text import Tokenizer
 from keras.preprocessing.sequence import pad_sequences
@@ -28,6 +29,12 @@ class Data:
 
 	_attr = ['p_id_code', 'pre_code', 'post_code', 'desc_code', 'a_id', 's_id', 'idx', 'rule', 'p_id']
 
+	def __getitem__(self, key):
+		data = Data()
+		for attr in Data._attr:
+			setattr(data, attr, getattr(self, attr)[key])
+		return data
+
 	@property
 	def size(self):
 		return len(self.p_id_code)
@@ -35,12 +42,11 @@ class Data:
 	@staticmethod
 	def load(file):
 		data = Data()
-		os.makedirs(os.path.dirname(file), exist_ok=True)
 		h5f = h5py.File(file, 'r')
 		for attr in Data._attr:
 			setattr(data, attr, h5f[attr][:])
 			if getattr(data, attr).dtype.kind == 'S':
-				setattr(data, attr, numpy.array(getattr(data, attr), dtype='str'))
+				setattr(data, attr, np.array(getattr(data, attr), dtype='str'))
 		h5f.close()
 		print(f'Loaded data from "{file}"')
 		return data
@@ -117,6 +123,7 @@ if __name__ == '__main__':
 	# parts        = list(f'part-{x:05}' for x in range(1))
 	emb_file     = f'data/embedding/prune_article_ws.dim300.emb.bin'
 	data_file    = f'{model_root}/data.h5'
+	init_file    = f'{model_root}/init.h5'
 
 	# Load word vectors
 	keyed_vectors = KeyedVectors.load_word2vec_format(emb_file, binary=True)
@@ -155,5 +162,19 @@ if __name__ == '__main__':
 			f'emb_file={emb_file}\n' \
 			f'max_num_sentences={RawData.max_num_sentences}'
 	data.save(data_file, comment)
+
+	# Initialize entity embedding
+	product_init_embedding = np.zeros((num_label, keyed_vectors.vector_size))
+	for idx, p_id in enumerate(encoder.classes_):
+		product = repo.id_to_product[p_id]
+		product_init_embedding[idx] = np.mean(keyed_vectors.wv[
+			[word for word in itertools.chain(product.brand, product.name_ws.txts) if word in keyed_vectors.wv]
+		], axis=0)
+	product_init_embedding = product_init_embedding.T
+
+	h5f = h5py.File(init_file, 'w')
+	h5f.create_dataset('product_init_embedding', data=product_init_embedding)
+	h5f.close()
+	print(f'Saved initial embedding into "{init_file}"')
 
 	pass

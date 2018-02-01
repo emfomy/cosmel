@@ -3,7 +3,7 @@
 
 """
 .. codeauthor::
-	 Mu Yang <emfomy@gmail.com>
+   Mu Yang <emfomy@gmail.com>
 """
 
 import collections.abc
@@ -146,7 +146,11 @@ class Mention:
 	@property
 	def beginning_xml(self):
 		"""str: the beginning XML tag."""
-		return f'<product pid="{self.p_id}" gid="{self.g_id}" sid="{self.s_id}" idx="{self.beginning_idx}">'
+		return f'<product pid="{self.p_id}" gid="{self.g_id}" sid="{self.s_id}" idx="{self.beginning_idx}" rule="{self.rule}">'
+
+	def beginning_xml_(self, **kwargs):
+		"""str: the beginning XML tag with custom tags."""
+		return ' '.join([self.beginning_xml[:-1]] + [f'{key}="{kwargs[key]}"' for key in kwargs]) + '>'
 
 	@property
 	def ending_xml(self):

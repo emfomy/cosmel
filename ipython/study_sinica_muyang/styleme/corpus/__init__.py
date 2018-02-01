@@ -3,7 +3,7 @@
 
 """
 .. codeauthor::
-	 Mu Yang <emfomy@gmail.com>
+   Mu Yang <emfomy@gmail.com>
 """
 
 from styleme.corpus.corpus import *
