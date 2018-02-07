@@ -16,7 +16,6 @@ import keras.models
 
 from gensim.models.keyedvectors import KeyedVectors
 
-os.chdir(os.path.join(os.path.dirname(__file__), '..'))
 sys.path.insert(0, os.path.abspath('.'))
 from styleme import *
 from data import Data
@@ -44,7 +43,11 @@ def model_accuracy(predict_p_id_code, true_p_id_code, mask=slice(None,None), nam
 
 if __name__ == '__main__':
 
-	model_root   = f'data/model'
+	assert len(sys.argv) == 2
+	ver = sys.argv[1]
+
+	data_root    = f'data/{ver}'
+	model_root   = f'{data_root}/model'
 	data_file    = f'{model_root}/data.h5'
 	predict_file = f'{model_root}/predict.json'
 	weight_file  = f'{model_root}/weight.h5'

@@ -9,16 +9,16 @@
 import os
 import sys
 
-os.chdir(os.path.join(os.path.dirname(__file__), '..'))
 sys.path.insert(0, os.path.abspath('.'))
 from styleme import *
 
 if __name__ == '__main__':
 
-	target       = '/prune_article_ws'
-	article_root = 'data/article'+target
-	txt_file     = 'data/embedding'+target+'.txt'
-	emb_file     = 'data/embedding'+target+'.dim300.emb.bin'
+	data_root    = f'data/{ver}'
+	target       = f'prune_article_ws'
+	article_root = f'{data_root}/article/{target}'
+	txt_file     = f'{data_root}/embedding/{target}.txt'
+	emb_file     = f'{data_root}/embedding/{target}.dim300.emb.bin'
 
 	# Concatenate articles
 	articles = ArticleSet(article_root)

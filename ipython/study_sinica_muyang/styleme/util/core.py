@@ -9,6 +9,7 @@
 import collections.abc
 import os
 import re
+import shutil
 import subprocess
 
 from styleme.util.core import *
@@ -89,6 +90,13 @@ def grep_files(root, parts=['']):
 		else:
 			retval.add(subroot)
 	return sorted(retval)
+
+def rm_files(root, parts=['']):
+	"""Remove files in the directory."""
+	for part in parts:
+		subroot = root+'/'+part
+		if os.path.exists(subroot):
+			shutil.rmtree(subroot)
 
 
 def printr(*objects):

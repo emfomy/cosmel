@@ -8,11 +8,9 @@
 
 import os
 import re
-import shutil
 import subprocess
 import sys
 
-os.chdir(os.path.join(os.path.dirname(__file__), '..'))
 sys.path.insert(0, os.path.abspath('.'))
 from styleme import *
 
@@ -28,23 +26,30 @@ class ReplaceVariant():
 
 if __name__ == '__main__':
 
-	pruned           = True
-	copied_files     = True
-	segmented        = True
-	replaced_product = True
+	assert len(sys.argv) >= 2
+	ver = sys.argv[1]
 
-	etc_root  = 'etc'
-	article_root = 'data/article'
-	repo_root    = 'data/repo'
-	tmp_root     = 'data/tmp'
+	pruned           = False
+	copied_files     = False
+	segmented        = False
+	replaced_product = False
 
-	orig_root  = article_root+'/original_article'
-	prune_root = article_root+'/prune_article'
-	ws_root    = article_root+'/prune_article_ws'
+	etc_root     = f'etc'
+	data_root    = f'data/{ver}'
+	article_root = f'{data_root}/article'
+	repo_root    = f'{data_root}/repo'
+	tmp_root     = f'data/tmp'
+	parts        = ['']
+	# parts        = list(f'part-{x:05}' for x in range(1))
+	parts        = list(f'part-{x:05}' for x in range(128) if x % 8 == int(sys.argv[2]))
 
-	prune_tmp_root = tmp_root+'/prune_article'
-	ws_tmp_root    = tmp_root+'/prune_article_ws'
-	ws_re_tmp_root = tmp_root+'/prune_article_ws_re'
+	orig_root  = f'{article_root}/original_article'
+	prune_root = f'{article_root}/prune_article'
+	ws_root    = f'{article_root}/prune_article_ws'
+
+	prune_tmp_root = f'{tmp_root}/prune_article'
+	ws_tmp_root    = f'{tmp_root}/prune_article_ws'
+	ws_re_tmp_root = f'{tmp_root}/prune_article_ws_re'
 
 	# Prune Articles
 	if not pruned:
@@ -54,10 +59,10 @@ if __name__ == '__main__':
 		re_script  = re.compile(r'<script(?:.|\s)*</script>')
 		re_variant = ReplaceVariant()
 
-		for orig_file in grep_files(orig_root):
+		for orig_file in grep_files(orig_root, parts=parts):
 			prune_file = orig_file.replace(orig_root, prune_root)
 			os.makedirs(os.path.dirname(prune_file), exist_ok=True)
-			print(prune_file)
+			printr(prune_file)
 			with open(orig_file) as fin, open(prune_file, 'w') as fout:
 				fin.readline()
 				lines = fin.read()
@@ -72,24 +77,21 @@ if __name__ == '__main__':
 	if not copied_files:
 
 		# Remove Temp Files
-		if os.path.exists(prune_tmp_root):
-			shutil.rmtree(prune_tmp_root)
-		if os.path.exists(ws_tmp_root):
-			shutil.rmtree(ws_tmp_root)
-		if os.path.exists(ws_re_tmp_root):
-			shutil.rmtree(ws_re_tmp_root)
+		rm_files(prune_tmp_root, parts=parts)
+		rm_files(ws_tmp_root, parts=parts)
+		rm_files(ws_re_tmp_root, parts=parts)
 
 		# Copy Files
-		for prune_file in grep_files(prune_root):
+		for prune_file in grep_files(prune_root, parts=parts):
 			prune_tmp_file = prune_file.replace(prune_root, prune_tmp_root)
 			os.makedirs(os.path.dirname(prune_tmp_file), exist_ok=True)
-			print(prune_tmp_file)
+			printr(prune_tmp_file)
 			with open(prune_file) as fin, open(prune_tmp_file, 'w', encoding='big5') as fout:
 				fout.write(fin.read())
 		print()
 
 		rel_tmp_root = os.path.relpath(prune_tmp_root, tmp_root)
-		subprocess_call(f'cd {tmp_root} && rm {rel_tmp_root}.zip && zip -q -r {rel_tmp_root}.zip {rel_tmp_root}/*', shell=True)
+		subprocess_call(f'cd {tmp_root} && rm -f {rel_tmp_root}.zip && zip -q -r {rel_tmp_root}.zip {rel_tmp_root}/*', shell=True)
 
 	# Segment Articles
 	if not segmented:
@@ -103,11 +105,11 @@ if __name__ == '__main__':
 		subprocess_call(f'unzip -q {ws_tmp_root}.zip -d {tmp_root}', shell=True)
 
 		# Replace post-tags
-		for ws_tmp_file in grep_files(ws_tmp_root):
+		for ws_tmp_file in grep_files(ws_tmp_root, parts=parts):
 			ws_re_tmp_file = ws_tmp_file.replace(ws_tmp_root, ws_re_tmp_root)
 			os.makedirs(os.path.dirname(ws_re_tmp_file), exist_ok=True)
-			print(ws_re_tmp_file)
-			ws.replace(ws_tmp_file, ws_re_tmp_file)
+			printr(ws_re_tmp_file)
+			ws.replace(ws_tmp_file, ws_re_tmp_file, verbose=False)
 		print()
 
 	if not replaced_product:
@@ -126,14 +128,14 @@ if __name__ == '__main__':
 			regexes.append((re.compile(rf'(\A|(?<=\n|　)){lex}\(N_Product\)'), tag, lex))
 
 		# Replace N_Product
-		for ws_re_tmp_file in grep_files(ws_re_tmp_root):
+		for ws_re_tmp_file in grep_files(ws_re_tmp_root, parts=parts):
 			ws_file = ws_re_tmp_file.replace(ws_re_tmp_root, ws_root)
 			os.makedirs(os.path.dirname(ws_file), exist_ok=True)
-			print(ws_file)
+			printr(ws_file)
 			with open(ws_re_tmp_file) as fin, open(ws_file, 'w') as fout:
 				lines = fin.read()
 				for regex in regexes:
-					printr(regex[2])
+					# printr(regex[2])
 					lines = regex[0].sub(regex[1], lines)
 				fout.write(lines)
 		print()

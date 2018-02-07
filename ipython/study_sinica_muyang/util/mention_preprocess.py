@@ -7,10 +7,8 @@
 """
 
 import os
-import shutil
 import sys
 
-os.chdir(os.path.join(os.path.dirname(__file__), '..'))
 sys.path.insert(0, os.path.abspath('.'))
 from styleme import *
 
@@ -36,31 +34,37 @@ def indices(lst, ele, start=0, end=None):
 
 if __name__ == '__main__':
 
+	assert len(sys.argv) >= 2
+	ver = sys.argv[1]
+
 	greped_mention   = False
 	written_sentence = True
 	used_last_head   = False
 
-	target        = '/prune_article_ws'
-	mention_root  = 'data/mention'+target
-	article_root  = 'data/article'+target
-	repo_root     = 'data/repo'
-	tmp_root      = 'data/tmp'
+	data_root     = f'data/{ver}'
+	target        = f'prune_article_ws'
+	mention_root  = f'{data_root}/mention/{target}'
+	article_root  = f'{data_root}/article/{target}'
+	repo_root     = f'{data_root}/repo'
+	tmp_root      = f'data/tmp'
+	parts         = ['']
+	# parts        = list(f'part-{x:05}' for x in range(1))
+	parts        = list(f'part-{x:05}' for x in range(128) if x % 8 == int(sys.argv[2]))
 
 	repo          = Repo(repo_root)
-	articles      = ArticleSet(article_root)
+	articles      = ArticleSet(article_root, parts=parts)
 	id_to_article = Id2Article(articles)
 
 	max_len_mention = 10
 
-	tmp_mention_root  = tmp_root+'/mention'+target
-	tmp_sentence_root = tmp_root+'/sentence'+target
+	tmp_mention_root  = tmp_root+'/mention_'+target
+	tmp_sentence_root = tmp_root+'/sentence_'+target
 
 	mentions = dict()
 	if not greped_mention:
 
 		# Remove Temp Files
-		if os.path.exists(tmp_mention_root):
-			shutil.rmtree(tmp_mention_root)
+		rm_files(tmp_mention_root, parts=parts)
 
 		# Grep mentions
 		for article in articles:
@@ -86,7 +90,7 @@ if __name__ == '__main__':
 
 	else:
 		# Load mentions from file
-		for tmp_mention_file in grep_files(tmp_mention_root):
+		for tmp_mention_file in grep_files(tmp_mention_root, parts=parts):
 			article = id_to_article[Article.path_to_a_id(tmp_mention_root)]
 			printr(f'Reading {os.path.relpath(tmp_mention_file)}')
 			with open(tmp_mention_file) as fin:
@@ -99,8 +103,7 @@ if __name__ == '__main__':
 
 	if not written_sentence:
 		# Remove Temp Files
-		if os.path.exists(tmp_sentence_root):
-			shutil.rmtree(tmp_sentence_root)
+		rm_files(tmp_sentence_root, parts=parts)
 
 		# Writhe mention sentences to file
 		for article, mention_list in mentions.items():

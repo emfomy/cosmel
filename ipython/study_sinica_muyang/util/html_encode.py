@@ -6,12 +6,14 @@
    Mu Yang <emfomy@gmail.com>
 """
 
+import itertools
 import os
 import sys
 
-os.chdir(os.path.join(os.path.dirname(__file__), '..'))
 sys.path.insert(0, os.path.abspath('.'))
 from styleme import *
+
+from xml_encode import add_xml
 
 def get_html_idxs(mention):
 	return (int(mention.sentence.tags[mention.brand_idx].split(',')[0]), \
@@ -19,14 +21,19 @@ def get_html_idxs(mention):
 
 if __name__ == '__main__':
 
-	mention_dir  = f'prune_article_ws_pid'
-	repo_root    = f'data/repo'
-	article_root = f'data/html/prune_article_ws_idx'
-	mention_root = f'data/mention/{mention_dir}'
-	html_root    = f'data/html/html_article'
-	output_root  = f'data/html/{mention_dir}'
+	assert len(sys.argv) >= 2
+	ver = sys.argv[1]
+
+	target       = f'prune_article_ws_pid'
+	data_root    = f'data/{ver}'
+	repo_root    = f'{data_root}/repo'
+	article_root = f'{data_root}/html/prune_article_ws_idx'
+	mention_root = f'{data_root}/mention/{target}'
+	html_root    = f'{data_root}/html/html_article'
+	output_root  = f'{data_root}/html/{target}'
 	parts        = ['']
 	# parts        = list(f'part-{x:05}' for x in range(1))
+	parts        = list(f'part-{x:05}' for x in range(128) if x % 8 == int(sys.argv[2]))
 
 	# Load StyleMe repository and corpus
 	repo   = Repo(repo_root)
@@ -45,8 +52,9 @@ if __name__ == '__main__':
 
 			for mention in bundle:
 				idx0, idx1 = get_html_idxs(mention)
-				output_data[idx0] = mention.beginning_xml + output_data[idx0]
-				output_data[idx1] += mention.ending_xml
+				output_data[idx0], output_data[idx1] = add_xml(
+						output_data[idx0], output_data[idx1], mention, repo
+				)
 
 			fout.write(''.join(output_data))
 	print()

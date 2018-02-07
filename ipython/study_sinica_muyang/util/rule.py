@@ -6,11 +6,11 @@
    Mu Yang <emfomy@gmail.com>
 """
 
+import itertools
 import os
 import sys
 import time
 
-os.chdir(os.path.join(os.path.dirname(__file__), '..'))
 sys.path.insert(0, os.path.abspath('.'))
 from styleme import *
 
@@ -18,7 +18,9 @@ def relu(x):
 	return max(x, 0)
 
 def decision_tree(mention, repo, previous_products):
-	candidates = repo.brand_head_to_product_list[mention.brand, mention.head]
+	candidates = list(itertools.chain.from_iterable(
+			repo.brand_head_to_product_list[mention.brand, head] for head in reversed(mention.head_list)
+	))
 
 	mention_affix_set       = set(mention.infix_ws.txts)
 	mention_affix_no_de_set = mention_affix_set - set('的')
@@ -112,12 +114,17 @@ def decision_tree(mention, repo, previous_products):
 
 if __name__ == '__main__':
 
-	date          = time.strftime("%Y%m%d.%H%M%S")
-	repo_root     = 'data/repo'
-	article_root  = 'data/article/prune_article_ws'
-	mention_root  = 'data/mention/prune_article_ws'
-	output_root   = 'data/mention/prune_article_ws_pid_'+date
+	assert len(sys.argv) >= 2
+	ver = sys.argv[1]
+
+	data_root     = f'data/{ver}'
+	repo_root     = f'{data_root}/repo'
+	article_root  = f'{data_root}/article/prune_article_ws'
+	mention_root  = f'{data_root}/mention/prune_article_ws'
+	output_root   = f'{data_root}/mention/prune_article_ws_pid'
 	parts         = ['']
+	# parts        = list(f'part-{x:05}' for x in range(1))
+	parts        = list(f'part-{x:05}' for x in range(128) if x % 8 == int(sys.argv[2]))
 
 	repo   = Repo(repo_root)
 	corpus = Corpus(article_root, mention_root, repo, parts=parts)

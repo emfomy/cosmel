@@ -29,6 +29,7 @@ class WordSegment():
 					lex_file = line.split('=')[1]
 					break
 
+		os.makedirs(os.path.dirname(lex_file), exist_ok=True)
 		with open(lex_file, 'w', encoding=output_encoding) as fout:
 			for file in lex_files + extra_files:
 				with open(file, encoding=input_encoding) as fin:
@@ -55,10 +56,10 @@ class WordSegment():
 		print(f'Processing Word Segment on {input_file} to {output_file}')
 		pause()
 
-	def replace(self, input_file, output_file, input_encoding='utf-16', output_encoding=None):
+	def replace(self, input_file, output_file, input_encoding='utf-16', output_encoding=None, verbose=True):
 		with open(input_file, encoding=input_encoding) as fin, open(output_file, 'w', encoding=output_encoding) as fout:
 			lines = fin.read()
 			for regex in self.__regexes:
-				printr(regex[2])
+				if verbose: printr(regex[2])
 				lines = regex[0].sub(regex[1], lines)
 			fout.write(lines)

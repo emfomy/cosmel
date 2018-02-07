@@ -21,24 +21,22 @@ import keras.engine.topology
 
 from gensim.models.keyedvectors import KeyedVectors
 
-os.chdir(os.path.join(os.path.dirname(__file__), '..'))
 sys.path.insert(0, os.path.abspath('.'))
 from styleme import *
 from data import Data
 
 
-def custom_loss(y_true, y_pred):
-	import keras.backend as K
-	return -y_pred[-1] * K.log(K.sum(y_true * y_pred[:-1]))
-
-
 if __name__ == '__main__':
+
+	assert len(sys.argv) == 2
+	ver = sys.argv[1]
 
 	use_model3 = False
 	use_desc   = True
 
-	emb_file     = f'data/embedding/prune_article_ws.dim300.emb.bin'
-	model_root   = f'data/model'
+	data_root    = f'data/{ver}'
+	emb_file     = f'{data_root}/embedding/prune_article_ws.dim300.emb.bin'
+	model_root   = f'{data_root}/model'
 	data_file    = f'{model_root}/data.h5'
 	train_file   = f'{model_root}/train.json'
 	predict_file = f'{model_root}/predict.json'
@@ -176,8 +174,8 @@ if __name__ == '__main__':
 			'desc_weight': train_data.desc_weight, \
 	}
 	output_data = { \
-				'text': train_data.p_id_1hot, \
-				'desc': train_data.p_id_1hot, \
+			'text': train_data.p_id_1hot, \
+			'desc': train_data.p_id_1hot, \
 	}
 	if not use_desc:
 		del input_data['desc_code']

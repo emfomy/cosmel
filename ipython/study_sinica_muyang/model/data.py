@@ -21,7 +21,6 @@ import sklearn.model_selection
 
 from gensim.models.keyedvectors import KeyedVectors
 
-os.chdir(os.path.join(os.path.dirname(__file__), '..'))
 sys.path.insert(0, os.path.abspath('.'))
 from styleme import *
 
@@ -115,13 +114,17 @@ class RawData(Data):
 
 if __name__ == '__main__':
 
-	repo_root    = f'data/repo'
-	article_root = f'data/article/prune_article_ws'
-	mention_root = f'data/mention/prune_article_ws_pid'
-	model_root   = f'data/model'
+	assert len(sys.argv) == 2
+	ver = sys.argv[1]
+
+	data_root    = f'data/{ver}'
+	repo_root    = f'{data_root}/repo'
+	article_root = f'{data_root}/article/prune_article_ws'
+	mention_root = f'{data_root}/mention/prune_article_ws_pid'
+	model_root   = f'{data_root}/model'
 	parts        = ['']
 	# parts        = list(f'part-{x:05}' for x in range(1))
-	emb_file     = f'data/embedding/prune_article_ws.dim300.emb.bin'
+	emb_file     = f'{data_root}/embedding/prune_article_ws.dim300.emb.bin'
 	data_file    = f'{model_root}/data.h5'
 	init_file    = f'{model_root}/init.h5'
 

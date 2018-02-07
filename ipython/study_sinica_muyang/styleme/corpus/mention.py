@@ -134,6 +134,11 @@ class Mention:
 		return self.sentence.txts[self.__head_idx]
 
 	@property
+	def head_list(self):
+		"""str: the head word lists."""
+		return [self.mention.txts[i] for i, tag in enumerate(self.mention.tags) if tag == 'N_Head']
+
+	@property
 	def name_ws(self):
 		""":class:`.WsWords`: the word-segmented name (excluding brand)."""
 		return self.sentence[self.beginning_idx+1:self.ending_idx]
@@ -156,6 +161,11 @@ class Mention:
 	def ending_xml(self):
 		"""str: the ending XML tag."""
 		return f'</product>'
+
+	@property
+	def filestr(self):
+		"""Change to string for file."""
+		return '\t'.join([str(self.__s_id), str(self.__brand_idx), str(self.__head_idx), self.__p_id, self.__g_id, self.__rule])
 
 	def set_p_id(self, p_id):
 		"""Sets the product ID."""

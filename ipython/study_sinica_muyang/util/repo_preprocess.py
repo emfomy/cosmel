@@ -12,7 +12,6 @@ import os
 import shutil
 import sys
 
-os.chdir(os.path.join(os.path.dirname(__file__), '..'))
 sys.path.insert(0, os.path.abspath('.'))
 from styleme import *
 
@@ -34,6 +33,8 @@ class RawData:
 		if self.p_id == '13336': self.p_name = '緊緻抗皺膠囊面膜e'
 		if self.p_id == '13342': self.p_name = '再生煥膚膠囊面膜d'
 		if self.p_id == '13345': self.p_name = '瞬效亮白膠囊面膜c'
+
+		self._RawData__raw = row
 
 
 class RawBrand(collections.abc.Collection):
@@ -191,7 +192,7 @@ class RawProductDict(collections.abc.Mapping):
 		return (brand, name)
 
 	def update(self, data):
-		"""Add ``data`` to the dictionary. Skiped if already exists."""
+		"""Add ``data`` to the dictionary. Skipped if already exists."""
 		key = (data.b_name, data.p_name)
 		if key in self:
 			print(f'Conflicted product ({self[key].p_id:>5} / {data.p_id:>5}) {self.__keytransform__(key)}')
@@ -295,6 +296,9 @@ def brand_alias(full_name):
 
 if __name__ == '__main__':
 
+	assert len(sys.argv) == 2
+	ver = sys.argv[1]
+
 	saved_brand         = True
 	saved_product       = True
 	saved_descri        = True
@@ -305,15 +309,18 @@ if __name__ == '__main__':
 
 	saved_product_head  = True
 
-	etc_root  = 'etc'
-	repo_root = 'data/repo'
-	tmp_root  = 'data/tmp'
+	etc_root  = f'etc'
+	data_root = f'{data_root}'
+	repo_root = f'{data_root}/repo'
+	tmp_root  = f'data/tmp'
+
+	csv_path     = f'{data_root}/styleme.csv'
+	csv_path_new = f'{data_root}/prune_styleme.csv'
 
 	os.makedirs(repo_root, exist_ok=True)
 	os.makedirs(tmp_root,  exist_ok=True)
 
 	# Import CSV
-	csv_path = 'data/StyleMe.csv'
 	data = load_csv(csv_path)
 
 	# Process Brand
@@ -335,6 +342,14 @@ if __name__ == '__main__':
 		products.save_txt(repo_root+'/products.txt')
 		products.save_lex(repo_root+'/products.lex')
 		# products.save_clex(repo_root+'/cproducts.lex')
+
+	# Save CSV file
+	with open(csv_path_new, 'w') as csvfile:
+		rows = [d._RawData__raw for d in data if d._RawData__raw['編號'] in products._RawProductDict__ids]
+		writer = csv.DictWriter(csvfile, fieldnames=data[0]._RawData__raw.keys())
+		writer.writeheader()
+		writer.writerows(rows)
+		print(f'Saved {len(rows)} products into "{csv_path_new}"')
 
 	# Save Description
 	if not saved_descri:
