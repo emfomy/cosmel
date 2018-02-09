@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8"/>
+		<script src="https://www.w3schools.com/lib/w3.js"></script>
+		<style>
+			img {
+				max-width: 100%;
+			}
+
+			body {
+				width: 80%;
+			}
+
+			body > div.article {
+				margin: 5%;
+				border: 4px solid black;
+			}
+
+			body > a.counter {
+				font-size: 100px;
+				position: fixed;
+				right: 5%;
+			}
+
+			product {
+				background-color: #ffdddd;
+				border-left: 6px solid #f44336;
+			}
+
+			product::before {
+				content: "Product!";
+				font-size: 50px;
+				display: block;
+				float: right;
+				width: 0px;
+				margin: -10px;
+			}
+
+			product.done::before {
+				content: "Done!";
+			}
+		</style>
+	</head>
+
+	<body>
+		<center id="top">
+			<form class="form-inline" method="GET">
+				<a href="/prev?aid={{ aid }}">Prev</a>
+					<select name="aid" class="selectpicker form-control">
+					<div class="form-group">
+						<option value=""></option>
+						{% for f in files %}
+							{% if f == aid %}
+								<option value="{{ f }}" selected>{{ f }}</option>
+							{% else %}
+								<option value="{{ f }}">{{ f }}</option>
+							{% endif %}
+						{% endfor %}
+					</select>
+					<button type="submit">Load</button>
+					<a href="/next?aid={{ aid }}">Next</a>
+				</div>
+			</form>
+		</center>
+		<a href="#product" class="counter"></a>
+		<center><div class="json" w3-include-html="/json/{{ aid }}"></div></center>
+		<div class="article" w3-include-html="/article/{{ aid }}"></div>
+
+		<script type="text/javascript">
+			function updateCounter() {
+				document.querySelector('body > a.counter').innerText = document.querySelectorAll('product:not(.done)').length;
+			}
+
+			w3.includeHTML(function(){
+				updateCounter();
+
+				document.querySelectorAll('body > div.article a').forEach(
+					l => l.setAttribute('target', '_blank')
+				);
+
+				document.querySelectorAll('product').forEach(
+					l => l.setAttribute('id', 'product')
+				);
+
+				document.querySelectorAll('product').forEach(
+					l => l.addEventListener('click', function() {
+						var text = this.innerText
+						var pid  = this.getAttribute('pid')
+						var gid  = this.getAttribute('gid')
+						var sid  = this.getAttribute('sid')
+						var mid  = this.getAttribute('mid')
+						var rule = this.getAttribute('rule')
+						var hint = this.getAttribute('hint')
+
+						var gid_new = prompt(
+							text
+							+'\n'+'pid='+pid
+							+'\n'+'gid='+gid
+							+'\n'+'rule='+rule
+							+'\n'+'hint='+hint
+						)
+						if (gid_new === null) {
+							return;
+						}
+
+						this.setAttribute('gid', gid_new)
+						this.classList.add('done')
+						this.removeAttribute('id')
+
+						var data = {
+							pid: pid,
+							gid: gid_new,
+							sid: sid,
+							mid: mid
+						}
+						fetch('/save?aid={{ aid }}', {
+							method: 'POST',
+							body: JSON.stringify(data)
+						}).then(res => res).catch(error => alert('Error:', error));
+
+						updateCounter();
+					})
+				)
+			});
+		</script>
+	</body>
+
+	<footer>
+		<center><a id="product" href="#top">Top</a></center>
+	</footer>
+</html>
