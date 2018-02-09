@@ -27,17 +27,19 @@ if __name__ == '__main__':
 	target       = f'prune_article_ws_pid'
 	data_root    = f'data/{ver}'
 	repo_root    = f'{data_root}/repo'
-	article_root = f'{data_root}/html/prune_article_ws_idx'
+	idx_root     = f'{data_root}/html/prune_article_ws_idx'
+	article_root = f'{data_root}/article/prune_article_ws'
 	mention_root = f'{data_root}/mention/{target}'
 	html_root    = f'{data_root}/html/html_article'
 	output_root  = f'{data_root}/html/{target}'
 	parts        = ['']
 	# parts        = list(f'part-{x:05}' for x in range(1))
-	parts        = list(f'part-{x:05}' for x in range(128) if x % 8 == int(sys.argv[2]))
+	# parts        = list(f'part-{x:05}' for x in range(128) if x % 8 == int(sys.argv[2]))
 
 	# Load StyleMe repository and corpus
 	repo   = Repo(repo_root)
 	corpus = Corpus(article_root, mention_root, repo, parts=parts)
+	corpus_idx = Corpus(idx_root, mention_root, repo, parts=parts)
 
 	# Extract html from json
 	for html_file in grep_files(html_root, parts):
@@ -47,11 +49,10 @@ if __name__ == '__main__':
 
 		with open(html_file) as fin, open(output_file, 'w') as fout:
 			output_data = list(fin.read())
-			article = corpus.id_to_article[Article.path_to_a_id(html_file)]
-			bundle  = corpus.article_to_mention_bundle[article]
+			bundle = corpus.id_to_mention_bundle[Article.path_to_a_id(html_file)]
 
 			for mention in bundle:
-				idx0, idx1 = get_html_idxs(mention)
+				idx0, idx1 = get_html_idxs(corpus_idx.id_to_mention[hash(mention)])
 				output_data[idx0], output_data[idx1] = add_xml(
 						output_data[idx0], output_data[idx1], mention, repo
 				)

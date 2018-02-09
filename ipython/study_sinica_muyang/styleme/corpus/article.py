@@ -13,7 +13,7 @@ from styleme.util import *
 
 
 class Article(collections.abc.Sequence):
-	"""The article class (contains list of sentences).
+	"""The article object (contains list of sentences).
 
 	* Item: the word-segmented sentence (:class:`.WsWords`)
 
@@ -57,6 +57,9 @@ class Article(collections.abc.Sequence):
 	def __txtstr__(self):
 		return '\n'.join(map(txtstr, self.__data))
 
+	def __hash__(self):
+		return hash(self.a_id)
+
 	@property
 	def a_id(self):
 		"""str: the article ID (with leading author name and underscore)."""
@@ -71,7 +74,7 @@ class Article(collections.abc.Sequence):
 class ArticleSet(collections.abc.Collection):
 	"""The set of articles.
 
-	* Item: the article (:class:`.Article`)
+	* Item: the article object (:class:`.Article`)
 
 	Args:
 		article_root (str): the path to the folder containing data files.
@@ -102,10 +105,10 @@ class ArticleSet(collections.abc.Collection):
 
 
 class Id2Article(collections.abc.Mapping):
-	"""The dictionary maps ID to article.
+	"""The dictionary maps article ID to article object.
 
 	* Key:  the article ID (str).
-	* Item: the article (:class:`.Article`).
+	* Item: the article object (:class:`.Article`).
 
 	Args:
 		article_set (:class:`.ArticleSet`): the article set.

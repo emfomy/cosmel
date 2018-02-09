@@ -15,7 +15,7 @@ from styleme.repo.brand import *
 
 
 class Product:
-	"""The product class.
+	"""The product object.
 
 	Args:
 		p_id (str):              the ID.
@@ -40,6 +40,9 @@ class Product:
 
 	def __repr__(self):
 		return f'{self.__p_id} {self.__brand!r} {self.__name_ws}'
+
+	def __hash__(self):
+		return hash(self.p_id)
 
 	@property
 	def brand(self):
@@ -90,7 +93,7 @@ class Product:
 class ProductSet(collections.abc.Collection):
 	"""The set of products.
 
-	* Item: the product class (:class:`.Product`).
+	* Item: the product object (:class:`.Product`).
 
 	Args:
 		repo_root (str): the path to the folder containing data files.
@@ -155,7 +158,7 @@ class Id2Product(collections.abc.Mapping):
 	"""The dictionary maps ID to product.
 
 	* Key:  the product ID.   (str).
-	* Item: the product class (:class:`.Product`).
+	* Item: the product object (:class:`.Product`).
 
 	Args:
 		product_set (:class:`.ProductSet`): the product set.
@@ -184,8 +187,8 @@ class Id2Product(collections.abc.Mapping):
 class BrandName2Product(collections.abc.Mapping):
 	"""The dictionary maps brand object and product name to product object.
 
-	* Key:  the tuple of brand class (:class:`.Brand`) and product name (str).
-	* Item: the product class (:class:`.Product`).
+	* Key:  the tuple of brand object (:class:`.Brand`) and product name (str).
+	* Item: the product object (:class:`.Product`).
 
 	Args:
 		product_set (:class:`.ProductSet`): the product set.
@@ -195,7 +198,7 @@ class BrandName2Product(collections.abc.Mapping):
 		super().__init__()
 		self.__data = dict()
 		for product in product_set:
-			pair = (product.brand, product.name)
+			pair = (product.brand, product.name,)
 			assert pair not in self.__data
 			self.__data[pair] = product
 
@@ -216,7 +219,7 @@ class NameName2Product(collections.abc.Sequence):
 	"""The dictionary maps brand name and product name to product.
 
 	* Key:  the tuple of brand name (str) and product name (str).
-	* Item: the product class (:class:`.Product`).
+	* Item: the product object (:class:`.Product`).
 
 	Args:
 		brand_name_to_product (:class:`.BrandName2Product`): the dictionary maps brand object and product name to product object.
@@ -244,8 +247,8 @@ class NameName2Product(collections.abc.Sequence):
 class BrandHead2ProductList(collections.abc.Mapping):
 	"""The dictionary maps brand object and head word to product object list.
 
-	* Key:  tuple of brand class (:class:`.Brand`) and product head (str).
-	* Item: :class:`.ReadOnlyList` of product class (:class:`.Product`).
+	* Key:  tuple of brand object (:class:`.Brand`) and product head word (str).
+	* Item: :class:`.ReadOnlyList` of product object (:class:`.Product`).
 
 	Args:
 		product_set (:class:`.ProductSet`): the product set.
@@ -254,25 +257,39 @@ class BrandHead2ProductList(collections.abc.Mapping):
 	def __init__(self, product_set):
 		super().__init__()
 		self.__data = dict()
+		self.__by_brand = dict()
 
-		product_dict = dict()
+		data_dict = dict()
+		by_brand_dict = dict()
 		for product in product_set:
-			pair = (product.brand, product.head)
-			if pair not in product_dict:
-				product_dict[pair] = [product]
+			pair = (product.brand, product.head,)
+			if pair not in data_dict:
+				data_dict[pair] = [product]
 			else:
-				product_dict[pair] += [product]
+				data_dict[pair] += [product]
+			if product.brand not in by_brand_dict:
+				by_brand_dict[product.brand] = [product]
+			else:
+				by_brand_dict[product.brand] += [product]
 
-		for pair, product_set in product_dict.items():
+		for pair, product_set in data_dict.items():
 			self.__data[pair] = ReadOnlyList(product_set)
+		for brand, product_set in by_brand_dict.items():
+			self.__by_brand[brand] = ReadOnlyList(product_set)
 
 		self.__empty_collection = ReadOnlyList()
 
 	def __contains__(self, key):
-		return key in self.__data
+		if key[1] == slice(None):
+			return key[0] in self.__by_brand
+		else:
+			return key in self.__data
 
 	def __getitem__(self, key):
-		return self.__data.get(key, self.__empty_collection)
+		if key[1] == slice(None):
+			return self.__by_brand.get(key[0], self.__empty_collection)
+		else:
+			return self.__data.get(key, self.__empty_collection)
 
 	def __iter__(self):
 		return iter(self.__data)
@@ -284,8 +301,8 @@ class BrandHead2ProductList(collections.abc.Mapping):
 class NameHead2ProductList(collections.abc.Sequence):
 	"""The dictionary maps brand name and head word to product object list.
 
-	* Key:  tuple of brand class (:class:`.Brand`) and product head (str).
-	* Item: :class:`.ReadOnlyList` of product class (:class:`.Product`).
+	* Key:  tuple of brand name (str) and product head word (str).
+	* Item: :class:`.ReadOnlyList` of product object (:class:`.Product`).
 
 	Args:
 		brand_head_to_product_list (:class:`.BrandHead2Productlist`):
@@ -300,7 +317,7 @@ class NameHead2ProductList(collections.abc.Sequence):
 		self.__key  = name_to_brand
 
 	def __contains__(self, key):
-		return self.__key[key] in self.__data
+		return (self.__key[key[0]], key[1]) in self.__data
 
 	def __getitem__(self, key):
 		return self.__data[self.__key[key[0]], key[1]]

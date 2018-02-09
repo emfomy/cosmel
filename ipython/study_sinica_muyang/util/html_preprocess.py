@@ -50,11 +50,6 @@ if __name__ == '__main__':
 			with open(json_file) as fin:
 				for line in fin:
 					json_data = json.loads(line)
-					a_id = json_data['author'] + '_' + json_data['article_id']
-					if a_id in ['imsandra_28191442', 'imsandra_28166295', 'imsandra_28209327', 'imsandra_28096303']:
-						with open(f'{etc_root}/{a_id}.json') as f:
-							json_data = json.load(f)
-
 					html_data = '\n'.join([
 						'<!DOCTYPE html>',
 						'<html>',
@@ -68,10 +63,15 @@ if __name__ == '__main__':
 							'</body>',
 						'</html>',
 					])
+					a_id = json_data['author'] + '_' + json_data['article_id']
 					html_file = f'{html_dir}/{a_id}.html'
 					printr(html_file)
 					with open(html_file, 'w') as fout:
 						soup = BeautifulSoup(html_data, 'lxml')
+						if a_id in ['imsandra_28191442', 'imsandra_28166295', 'imsandra_28209327', 'imsandra_28096303']:
+							for s in soup('strong'):
+								for ss in s('strong'):
+									ss.unwrap()
 						fout.write(soup.prettify())
 		print()
 

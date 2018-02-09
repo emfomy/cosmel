@@ -32,7 +32,7 @@ if __name__ == '__main__':
 	xml_path     = f'{data_root}/xml/{target}'
 	parts         = ['']
 	# parts        = list(f'part-{x:05}' for x in range(1))
-	parts        = list(f'part-{x:05}' for x in range(128) if x % 8 == int(sys.argv[2]))
+	# parts        = list(f'part-{x:05}' for x in range(128) if x % 8 == int(sys.argv[2]))
 
 	# Load StyleMe repository and corpus
 	repo   = Repo(repo_root)

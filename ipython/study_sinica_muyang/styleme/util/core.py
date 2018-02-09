@@ -91,6 +91,7 @@ def grep_files(root, parts=['']):
 			retval.add(subroot)
 	return sorted(retval)
 
+
 def rm_files(root, parts=['']):
 	"""Remove files in the directory."""
 	for part in parts:

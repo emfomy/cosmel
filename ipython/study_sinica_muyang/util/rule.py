@@ -131,8 +131,7 @@ if __name__ == '__main__':
 
 	# Process rules
 	previous_product_rules = set(['exact', '01a', '01b'])
-	for article in corpus.article_set:
-		bundle = corpus.article_to_mention_bundle[article]
+	for bundle in corpus.bundle_set:
 		printr(f'Processing {bundle.path}')
 
 		# Run rules

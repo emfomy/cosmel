@@ -48,6 +48,9 @@ class Mention:
 	def __txtstr__(self):
 		return txtstr(self.mention)
 
+	def __hash__(self):
+		return hash((self.a_id, self.s_id, self.m_id,))
+
 	@property
 	def article(self):
 		""":class:`.Article`: the article containing this mention."""
@@ -72,6 +75,11 @@ class Mention:
 	def s_id(self):
 		"""int: the sentence ID (the line index in the article)."""
 		return self.__s_id
+
+	@property
+	def m_id(self):
+		"""int: the mention ID (= :attr:`brand_idx`)."""
+		return self.__brand_idx
 
 	@property
 	def brand_idx(self):
@@ -151,7 +159,7 @@ class Mention:
 	@property
 	def beginning_xml(self):
 		"""str: the beginning XML tag."""
-		return f'<product pid="{self.p_id}" gid="{self.g_id}" sid="{self.s_id}" idx="{self.beginning_idx}" rule="{self.rule}">'
+		return f'<product pid="{self.p_id}" gid="{self.g_id}" sid="{self.s_id}" mid="{self.m_id}" rule="{self.rule}">'
 
 	def beginning_xml_(self, **kwargs):
 		"""str: the beginning XML tag with custom tags."""
@@ -210,7 +218,7 @@ class MentionBundle(collections.abc.Sequence):
 
 	Args:
 		file_path (str):             the path to the mention bundle.
-		article (:class:`.Article`): the article containing this mention bundle.
+		article object (:class:`.Article`): the article containing this mention bundle.
 		repo    (:class:`.Repo`):    the product repository class.
 	"""
 
@@ -242,10 +250,18 @@ class MentionBundle(collections.abc.Sequence):
 	def __repr__(self):
 		return str(self.__data)
 
+	def __hash__(self):
+		return hash(self.a_id)
+
 	@property
 	def article(self):
 		""":class:`.Article`: the article containing this mention."""
 		return self.__article
+
+	@property
+	def a_id(self):
+		"""str: the article ID (with leading author name and underscore)."""
+		return self.__article.a_id
 
 	@property
 	def path(self):
@@ -301,19 +317,46 @@ class MentionBundleSet(collections.abc.Collection):
 		print()
 
 
-class Article2MentionBundle(collections.abc.Mapping):
-	"""The dictionary maps article to mention bundle.
+class Id2Mention(collections.abc.Mapping):
+	"""The dictionary maps article ID, sentence ID, and mention ID to mention object.
 
-	* Key:  the article (:class:`.Article`).
+	* Key:  the article ID (str).
+	* Item: the mention object (:class:`.Mention`).
+
+	Args:
+		mention_set (:class:`.MentionSet`): the mention set.
+	"""
+
+	def __init__(self, mention_set):
+		super().__init__()
+		self.__data = dict((hash(mention), mention,) for mention in mention_set)
+
+	def __contains__(self, key):
+		return key in self.__data
+
+	def __getitem__(self, key):
+		return self.__data[key]
+
+	def __iter__(self):
+		return iter(self.__data)
+
+	def __len__(self):
+		return len(self.__data)
+
+
+class Article2MentionBundle(collections.abc.Mapping):
+	"""The dictionary maps article object to mention bundle.
+
+	* Key:  the article object (:class:`.Article`).
 	* Item: the mention bundle (:class:`.MentionBundle`).
 
 	Args:
-		mention_bundle_set (:class:`.MentionSet`): the mention bundle set.
+		mention_bundle_set (:class:`.MentionBundleSet`): the mention bundle set.
 	"""
 
 	def __init__(self, mention_bundle_set):
 		super().__init__()
-		self.__data = dict((mention_bundle.article, mention_bundle) for mention_bundle in mention_bundle_set)
+		self.__data = dict((mention_bundle.article, mention_bundle,) for mention_bundle in mention_bundle_set)
 		self.__empty_collection = ReadOnlyList()
 
 	def __contains__(self, key):
@@ -329,11 +372,40 @@ class Article2MentionBundle(collections.abc.Mapping):
 		return len(self.__data)
 
 
-class BrandHead2MentionList(collections.abc.Mapping):
-	"""The dictionary maps brand and head to mention list.
+class Id2MentionBundle(collections.abc.Sequence):
+	"""The dictionary maps article ID to mention bundle.
 
-	* Key:  tuple of brand class (:class:`.Brand`) and mention head (str).
-	* Item: :class:`.ReadOnlyList` of mention class (:class:`.Mention`).
+	* Key:  the article ID (str).
+	* Item: the mention bundle (:class:`.MentionBundle`).
+
+	Args:
+		article_to_mention_bundle (:class:`.Article2MentionBundle`): the dictionary maps article object to mention bundle.
+		id_to_article             (:class:`.Id2Article`):            the dictionary maps article ID to article object.
+	"""
+
+	def __init__(self, article_to_mention_bundle, id_to_article):
+		super().__init__()
+		self.__data = article_to_mention_bundle
+		self.__key  = id_to_article
+
+	def __contains__(self, key):
+		return self.__key[key] in self.__data
+
+	def __getitem__(self, key):
+		return self.__data[self.__key[key]]
+
+	def __iter__(self):
+		return iter(self.__data.values())
+
+	def __len__(self):
+		return len(self.__data)
+
+
+class BrandHead2MentionList(collections.abc.Mapping):
+	"""The dictionary maps brand object and head word to mention object list.
+
+	* Key:  tuple of brand object (:class:`.Brand`) and mention head word (str).
+	* Item: :class:`.ReadOnlyList` of mention object (:class:`.Mention`).
 
 	Args:
 		mention_set (:class:`.MentionSet`): the mention set.
@@ -345,7 +417,7 @@ class BrandHead2MentionList(collections.abc.Mapping):
 
 		mention_dict = dict()
 		for mention in mention_set:
-			pair = (mention.brand, mention.head)
+			pair = (mention.brand, mention.head,)
 			if pair not in mention_dict:
 				mention_dict[pair] = [mention]
 			else:
@@ -364,6 +436,37 @@ class BrandHead2MentionList(collections.abc.Mapping):
 
 	def __iter__(self):
 		return iter(self.__data)
+
+	def __len__(self):
+		return len(self.__data)
+
+
+class NameHead2MentionList(collections.abc.Sequence):
+	"""The dictionary maps brand name and head word to mention object list.
+
+	* Key:  tuple of brand name (str) and mention head word (str).
+	* Item: :class:`.ReadOnlyList` of mention object (:class:`.Mention`).
+
+	Args:
+		brand_head_to_mention_list (:class:`.BrandHead2Mentionlist`):
+			the dictionary maps brand object and head word to mention object list.
+		name_to_brand              (:class:`.Name2Brand`):
+			the dictionary maps name and brand.
+	"""
+
+	def __init__(self, brand_head_to_mention_list, name_to_brand):
+		super().__init__()
+		self.__data = brand_head_to_mention_list
+		self.__key  = name_to_brand
+
+	def __contains__(self, key):
+		return (self.__key[key[0]], key[1]) in self.__data
+
+	def __getitem__(self, key):
+		return self.__data[self.__key[key[0]], key[1]]
+
+	def __iter__(self):
+		return iter(self.__data.values())
 
 	def __len__(self):
 		return len(self.__data)

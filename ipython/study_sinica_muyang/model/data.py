@@ -66,7 +66,7 @@ class RawData(Data):
 	def __init__(self, repo, mention_list):
 		self.a_id = [mention.a_id for mention in mention_list]
 		self.s_id = [mention.s_id for mention in mention_list]
-		self.idx  = [mention.beginning_idx for mention in mention_list]
+		self.m_id = [mention.m_id for mention in mention_list]
 		self.rule = [mention.rule for mention in mention_list]
 		self.p_id = [mention.p_id for mention in mention_list]
 
@@ -86,14 +86,14 @@ class RawData(Data):
 						) \
 				)) for mention in mention_list \
 		]
-		self.desc = [' '.join(repo.id_to_product[mention.p_id].descr_ws.txts) for mention in mention_list]
+		self.desc  = [' '.join(repo.id_to_product[mention.p_id].descr_ws.txts) for mention in mention_list]
 
 	def encode(self, tokenizer, encoder):
-		self.p_id_code = encoder.transform(self.p_id)
-		self.pre_code  = pad_sequences(tokenizer.texts_to_sequences(self.pre),  padding='pre')
-		self.post_code = pad_sequences(tokenizer.texts_to_sequences(self.post), padding='post')
-		self.desc_code = pad_sequences(tokenizer.texts_to_sequences(self.desc), padding='post')
-		self.classes   = encoder.classes_
+		self.p_id_code  = encoder.transform(self.p_id)
+		self.pre_code   = pad_sequences(tokenizer.texts_to_sequences(self.pre),  padding='pre')
+		self.post_code  = pad_sequences(tokenizer.texts_to_sequences(self.post), padding='post')
+		self.desc_code  = pad_sequences(tokenizer.texts_to_sequences(self.desc), padding='post')
+		self.classes    = encoder.classes_
 
 	def save(self, file, comment=''):
 		os.makedirs(os.path.dirname(file), exist_ok=True)
@@ -105,7 +105,7 @@ class RawData(Data):
 		h5f.create_dataset('desc_code', data=self.desc_code)
 		h5f.create_dataset('a_id',      data=[x.encode("ascii") for x in self.a_id])
 		h5f.create_dataset('s_id',      data=self.s_id, dtype='int32')
-		h5f.create_dataset('idx',       data=self.idx,  dtype='int32')
+		h5f.create_dataset('m_id',      data=self.m_id,  dtype='int32')
 		h5f.create_dataset('rule',      data=[x.encode("ascii") for x in self.rule])
 		h5f.create_dataset('p_id',      data=[x.encode("ascii") for x in self.p_id])
 		h5f.create_dataset('classes',   data=[x.encode("ascii") for x in self.classes])

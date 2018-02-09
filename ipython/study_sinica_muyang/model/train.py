@@ -82,12 +82,12 @@ if __name__ == '__main__':
 
 	# Define model
 	CNN_WIN_SIZE    = 5
-	CNN_EMB_SIZE    = 100
-	LSTM_EMB_SIZE   = 100
-	ENTITY_EMB_SIZE = W2V_EMB_SIZE
 	print(f'cnn_win_size    = {CNN_WIN_SIZE}')
+	CNN_EMB_SIZE    = 100
 	print(f'cnn_emb_size    = {CNN_EMB_SIZE}')
+	LSTM_EMB_SIZE   = 100
 	print(f'lstm_emb_size   = {LSTM_EMB_SIZE}')
+	ENTITY_EMB_SIZE = W2V_EMB_SIZE
 	print(f'entity_emb_size = {ENTITY_EMB_SIZE}')
 
 	pre_code  = keras.layers.Input(shape=(None,), dtype='int32', name='pre_code')
@@ -97,7 +97,7 @@ if __name__ == '__main__':
 	text_weight = keras.layers.Input(shape=(1,), dtype='float32', name='text_weight')
 	desc_weight = keras.layers.Input(shape=(1,), dtype='float32', name='desc_weight')
 
-	word_emb_layer   = keras.layers.Embedding(num_vocab, W2V_EMB_SIZE, weights=[vocab_embedding], trainable=False, \
+	word_emb_layer = keras.layers.Embedding(num_vocab, W2V_EMB_SIZE, weights=[vocab_embedding], trainable=False, \
 			name='word_emb')
 
 	pre_code_emb  = word_emb_layer(pre_code)
@@ -175,11 +175,13 @@ if __name__ == '__main__':
 	}
 	output_data = { \
 			'text': train_data.p_id_1hot, \
+			'name': train_data.p_id_1hot, \
 			'desc': train_data.p_id_1hot, \
 	}
 	if not use_desc:
 		del input_data['desc_code']
 		del input_data['desc_weight']
+		del output_data['name']
 		del output_data['desc']
 
 	model.fit(input_data, output_data, epochs=20, batch_size=1000)

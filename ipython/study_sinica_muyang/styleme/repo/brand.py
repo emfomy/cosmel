@@ -12,7 +12,7 @@ from styleme.util import *
 
 
 class Brand(collections.abc.Sequence):
-	"""The brand class (contains list of brand aliases).
+	"""The brand object (contains list of brand aliases).
 
 	* Item: the brand alias (str).
 
@@ -46,7 +46,7 @@ class Brand(collections.abc.Sequence):
 class BrandSet(collections.abc.Collection):
 	"""The set of brands.
 
-	* Item: the brand class (:class:`.Brand`).
+	* Item: the brand object (:class:`.Brand`).
 
 	Args:
 		repo_root (str): the path to the folder containing data files.
@@ -81,7 +81,7 @@ class Name2Brand(collections.abc.Mapping):
 	"""The dictionary maps brand name to brand object.
 
 	* Key:  the brand name  (str).
-	* Item: the brand class (:class:`.Brand`).
+	* Item: the brand object (:class:`.Brand`).
 
 	Args:
 		brand_set (:class:`.BrandSet`): the brand set.
@@ -96,10 +96,10 @@ class Name2Brand(collections.abc.Mapping):
 				self.__data[b_name] = brand
 
 	def __contains__(self, key):
-		return key in self.__data
+		return prune_string(key) in self.__data
 
 	def __getitem__(self, key):
-		return self.__data[key]
+		return self.__data[prune_string(key)]
 
 	def __iter__(self):
 		return iter(self.__data)
