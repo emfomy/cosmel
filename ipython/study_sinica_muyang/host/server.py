@@ -10,6 +10,7 @@ from flask import Flask
 from flask import redirect
 from flask import render_template
 from flask import request
+from flask import jsonify
 
 import json
 import os
@@ -49,24 +50,28 @@ def article_route(path):
 
 @app.route('/json/<path:path>')
 def json_route(path):
+	os.makedirs(os.path.dirname(f'json/{path}.json'), exist_ok=True)
 	with open(f'json/{path}.json') as fin:
 		data = fin.read().replace('\n', '<br/>')
 	return str(data)
 
 @app.route('/save', methods=['GET', 'POST'])
 def save_route():
-	data = request.data;
-	aid = request.args.get('aid')
-	json_data = json.loads(data)
-	d = time.time()
-	json_data['time'] = d
-	json_data['date'] = time.strftime('%a %b %d %Y %H:%M:%S GMT%z (%Z)', time.localtime(d))
-	print(aid, json_data)
-	file = f'json/{aid}.json'
-	os.makedirs(os.path.dirname(file), exist_ok=True)
-	with open(file, 'a') as fout:
-		fout.write(json.dumps(json_data)+'\n')
-	return 'success'
+	try:
+		data = request.data;
+		aid = request.args.get('aid')
+		json_data = json.loads(data)
+		d = time.time()
+		json_data['time'] = d
+		json_data['date'] = time.strftime('%a %b %d %Y %H:%M:%S GMT%z (%Z)', time.localtime(d))
+		print(aid, json_data)
+		file = f'json/{aid}.json'
+		os.makedirs(os.path.dirname(file), exist_ok=True)
+		with open(file, 'a') as fout:
+			fout.write(json.dumps(json_data)+'\n')
+		return jsonify({})
+	except Exception as e:
+		return jsonify({'status': 'failed', 'code': str(e)})
 
 if __name__ == '__main__':
 	global files

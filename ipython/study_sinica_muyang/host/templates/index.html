@@ -109,43 +109,56 @@
 
 				document.querySelectorAll('product').forEach(
 					l => l.addEventListener('click', function() {
-						const text = this.innerText;
-						const pid  = this.getAttribute('pid');
-						const gid  = this.getAttribute('gid');
-						const sid  = this.getAttribute('sid');
-						const mid  = this.getAttribute('mid');
-						const rule = this.getAttribute('rule');
-						const hint = this.getAttribute('hint');
+						try {
+							const text = this.innerText;
+							const pid  = this.getAttribute('pid');
+							const gid  = this.getAttribute('gid');
+							const sid  = this.getAttribute('sid');
+							const mid  = this.getAttribute('mid');
+							const rule = this.getAttribute('rule');
+							const hint = this.getAttribute('hint');
 
-						const gid_new = prompt(
-							text
-							+'\n'+'pid='+pid
-							+'\n'+'gid='+gid
-							+'\n'+'sid='+sid
-							+'\n'+'mid='+mid
-							+'\n'+'rule='+rule
-							+'\n'+'hint='+hint
-						);
-						if ( !gid_new ) {
-							return;
+							const gid_new = prompt(
+								text
+								+'\n'+'pid='+pid
+								+'\n'+'gid='+gid
+								+'\n'+'sid='+sid
+								+'\n'+'mid='+mid
+								+'\n'+'rule='+rule
+								+'\n'+'hint='+hint
+							);
+							if ( !gid_new ) {
+								return;
+							}
+
+							const data = {
+								pid: pid,
+								gid: gid_new,
+								sid: sid,
+								mid: mid
+							};
+
+							fetch('/save?aid={{ aid }}', {
+								method: 'POST',
+								body: JSON.stringify(data)
+							}).then(
+								res => {return res.json()}
+							).then(
+								res => {
+									if (res.status === 'failed') {
+										throw 'Server Error:\n' + res.code;
+									}
+									this.setAttribute('gid', gid_new);
+									this.classList.add('done');
+									this.removeAttribute('id');
+									updateCounter();
+								}
+							).catch(
+								e => { alert(e); }
+							);
+						} catch(e) {
+							alert(e);
 						}
-
-						this.setAttribute('gid', gid_new);
-						this.classList.add('done');
-						this.removeAttribute('id');
-
-						const data = {
-							pid: pid,
-							gid: gid_new,
-							sid: sid,
-							mid: mid
-						};
-						fetch('/save?aid={{ aid }}', {
-							method: 'POST',
-							body: JSON.stringify(data)
-						}).then(res => res).catch(error => alert('Error:', error));
-
-						updateCounter();
 					})
 				)
 			});
