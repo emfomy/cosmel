@@ -7,10 +7,11 @@
 """
 
 from flask import Flask
+from flask import abort
+from flask import jsonify
 from flask import redirect
 from flask import render_template
 from flask import request
-from flask import jsonify
 
 import json
 import os
@@ -55,7 +56,7 @@ def json_route(path):
 		data = fin.read().replace('\n', '<br/>')
 	return str(data)
 
-@app.route('/save', methods=['GET', 'POST'])
+@app.route('/save', methods=['POST'])
 def save_route():
 	try:
 		data = request.data;
@@ -69,9 +70,10 @@ def save_route():
 		os.makedirs(os.path.dirname(file), exist_ok=True)
 		with open(file, 'a') as fout:
 			fout.write(json.dumps(json_data)+'\n')
-		return jsonify({})
+		return jsonify(message='')
 	except Exception as e:
-		return jsonify({'status': 'failed', 'code': str(e)})
+		print(f'"/save" failed: {e}')
+		return jsonify(message=str(e)), 500
 
 if __name__ == '__main__':
 	global files

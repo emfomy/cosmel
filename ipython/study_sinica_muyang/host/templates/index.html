@@ -141,27 +141,35 @@
 							fetch('/save?aid={{ aid }}', {
 								method: 'POST',
 								body: JSON.stringify(data)
-							}).then(
-								res => {return res.json()}
-							).then(
-								res => {
-									if (res.status === 'failed') {
-										throw 'Server Error:\n' + res.code;
-									}
+							})
+							.then(res => {
+								if (res.ok) {
 									this.setAttribute('gid', gid_new);
 									this.classList.add('done');
 									this.removeAttribute('id');
 									updateCounter();
+									res.json().then(customSuccess);
+								} else {
+									res.json().then(res2 => customError(
+										'[' + res.status + '] ' + res.statusText + ':\n' + res2.message
+									));
 								}
-							).catch(
-								e => { alert(e); }
-							);
-						} catch(e) {
-							alert(e);
+							}).catch(customError);
+						} catch(error) {
+							customError(error);
 						}
 					})
 				)
 			});
+
+			function customSuccess(message) {
+				console.log('Success:', message);
+			}
+
+			function customError(message) {
+				alert(message);
+				console.error('Error:', message);
+			}
 		</script>
 	</body>
 </html>
