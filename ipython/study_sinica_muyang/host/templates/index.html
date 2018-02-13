@@ -2,6 +2,7 @@
 <html>
 	<head>
 		<meta charset="utf-8"/>
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
 		<script src="https://www.w3schools.com/lib/w3.js"></script>
 		<style>
 			img {
@@ -56,24 +57,22 @@
 	</head>
 
 	<body>
-		<nav>
-			<center id="top">
+		<nav id="top">
+			<center>
 				<form class="form-inline" method="GET">
 					<a href="/prev?aid={{ aid }}">Prev</a>
-						<select name="aid" class="selectpicker form-control">
-						<div class="form-group">
-							<option value=""></option>
-							{% for f in files %}
-								{% if f == aid %}
-									<option value="{{ f }}" selected>{{ f }}</option>
-								{% else %}
-									<option value="{{ f }}">{{ f }}</option>
-								{% endif %}
-							{% endfor %}
-						</select>
-						<button type="submit">Load</button>
-						<a href="/next?aid={{ aid }}">Next</a>
-					</div>
+					<select id="aid" name="aid" class="selectpicker form-control">
+						<option value=""></option>
+						{% for f in files %}
+							{% if f == aid %}
+								<option value="{{ f }}" selected>{{ f }}</option>
+							{% else %}
+								<option value="{{ f }}">{{ f }}</option>
+							{% endif %}
+						{% endfor %}
+					</select>
+					<input type="submit" value="Load" />
+					<a href="/next?aid={{ aid }}">Next</a>
 				</form>
 			</center>
 		</nav>
@@ -90,8 +89,12 @@
 
 
 		<script type="text/javascript">
+			$('#aid').change(function() {
+				this.form.submit();
+			});
+
 			function updateCounter() {
-				var e = document.querySelector('body > article > .counter')
+				var e = document.querySelector('body > article > .counter');
 				e.innerText = document.querySelectorAll('product:not(.done)').length;
 				e.addEventListener('click', function() {
 					const top = document.querySelector('product:not(.done)').getBoundingClientRect().top + window.pageYOffset;

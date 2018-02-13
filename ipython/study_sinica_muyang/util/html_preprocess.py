@@ -40,7 +40,7 @@ if __name__ == '__main__':
 	notag_root   = f'{data_root}/html/html_article_notag'
 	parts        = ['']
 	# parts        = list(f'part-{x:05}' for x in range(1))
-	parts        = list(f'part-{x:05}' for x in range(128) if x % 8 == int(sys.argv[2]))
+	# parts        = list(f'part-{x:05}' for x in range(128) if x % 8 == int(sys.argv[2]))
 
 	# Extract html from json
 	if not extracted:
@@ -78,13 +78,17 @@ if __name__ == '__main__':
 	# Replace html tags
 	if not replaced:
 		def repl(m): return '□' * len(m.group())
-		regex = re.compile('<[^<>]*?>')
+		regex_tag = re.compile('<[^<>]*?>')
+		regex_url  = re.compile(r'(?:http[s]?:)?//(?:[a-z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+')
 		for html_file in grep_files(html_root, parts):
 			notag_file = html_file.replace(html_root, notag_root)
 			os.makedirs(os.path.dirname(notag_file), exist_ok=True)
 			printr(notag_file)
 			with open(html_file) as fin, open(notag_file, 'w') as fout:
-				fout.write(regex.sub(repl, fin.read().lower()))
+				data = fin.read().lower()
+				data = regex_tag.sub(repl, data)
+				data = regex_url.sub(repl, data)
+				fout.write(data)
 		print()
 
 	# Parse html

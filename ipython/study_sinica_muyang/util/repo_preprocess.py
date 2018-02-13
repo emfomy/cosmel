@@ -302,6 +302,7 @@ if __name__ == '__main__':
 	saved_brand         = True
 	saved_product       = True
 	saved_descri        = True
+	saved_csv           = True
 	copied_head_lex     = True
 	segmented_product   = True
 	segmented_descr     = True
@@ -310,7 +311,7 @@ if __name__ == '__main__':
 	saved_product_head  = True
 
 	etc_root  = f'etc'
-	data_root = f'{data_root}'
+	data_root = f'data/{ver}'
 	repo_root = f'{data_root}/repo'
 	tmp_root  = f'data/tmp'
 
@@ -344,12 +345,13 @@ if __name__ == '__main__':
 		# products.save_clex(repo_root+'/cproducts.lex')
 
 	# Save CSV file
-	with open(csv_path_new, 'w') as csvfile:
-		rows = [d._RawData__raw for d in data if d._RawData__raw['編號'] in products._RawProductDict__ids]
-		writer = csv.DictWriter(csvfile, fieldnames=data[0]._RawData__raw.keys())
-		writer.writeheader()
-		writer.writerows(rows)
-		print(f'Saved {len(rows)} products into "{csv_path_new}"')
+	if not saved_csv:
+		with open(csv_path_new, 'w') as csvfile:
+			rows = [d._RawData__raw for d in data if d._RawData__raw['編號'] in products._RawProductDict__ids]
+			writer = csv.DictWriter(csvfile, fieldnames=data[0]._RawData__raw.keys())
+			writer.writeheader()
+			writer.writerows(rows)
+			print(f'Saved {len(rows)} products into "{csv_path_new}"')
 
 	# Save Description
 	if not saved_descri:

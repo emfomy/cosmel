@@ -83,9 +83,9 @@ if __name__ == '__main__':
 	# Define model
 	CNN_WIN_SIZE    = 5
 	print(f'cnn_win_size    = {CNN_WIN_SIZE}')
-	CNN_EMB_SIZE    = 100
+	CNN_EMB_SIZE    = 200
 	print(f'cnn_emb_size    = {CNN_EMB_SIZE}')
-	LSTM_EMB_SIZE   = 100
+	LSTM_EMB_SIZE   = 200
 	print(f'lstm_emb_size   = {LSTM_EMB_SIZE}')
 	ENTITY_EMB_SIZE = W2V_EMB_SIZE
 	print(f'entity_emb_size = {ENTITY_EMB_SIZE}')

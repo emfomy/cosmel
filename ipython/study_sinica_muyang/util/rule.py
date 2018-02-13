@@ -124,14 +124,14 @@ if __name__ == '__main__':
 	output_root   = f'{data_root}/mention/prune_article_ws_pid'
 	parts         = ['']
 	# parts        = list(f'part-{x:05}' for x in range(1))
-	parts        = list(f'part-{x:05}' for x in range(128) if x % 8 == int(sys.argv[2]))
+	# parts        = list(f'part-{x:05}' for x in range(128) if x % 8 == int(sys.argv[2]))
 
 	repo   = Repo(repo_root)
 	corpus = Corpus(article_root, mention_root, repo, parts=parts)
 
 	# Process rules
 	previous_product_rules = set(['exact', '01a', '01b'])
-	for bundle in corpus.bundle_set:
+	for bundle in corpus.mention_bundle_set:
 		printr(f'Processing {bundle.path}')
 
 		# Run rules

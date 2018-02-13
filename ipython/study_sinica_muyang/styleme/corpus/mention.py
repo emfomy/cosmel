@@ -49,7 +49,7 @@ class Mention:
 		return txtstr(self.mention)
 
 	def __hash__(self):
-		return hash((self.a_id, self.s_id, self.m_id,))
+		return hash(ids)
 
 	@property
 	def article(self):
@@ -65,6 +65,11 @@ class Mention:
 	def mention(self):
 		""":class:`.WsWords`: this mention."""
 		return self.sentence[self.slice]
+
+	@property
+	def ids(self):
+		"""tuple: the tuple of article ID, sentence ID, and mention ID."""
+		return (self.a_id, self.s_id, self.m_id,)
 
 	@property
 	def a_id(self):
@@ -329,7 +334,7 @@ class Id2Mention(collections.abc.Mapping):
 
 	def __init__(self, mention_set):
 		super().__init__()
-		self.__data = dict((hash(mention), mention,) for mention in mention_set)
+		self.__data = dict((mention.ids, mention,) for mention in mention_set)
 
 	def __contains__(self, key):
 		return key in self.__data

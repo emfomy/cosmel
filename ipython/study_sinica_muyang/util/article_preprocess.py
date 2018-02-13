@@ -41,7 +41,7 @@ if __name__ == '__main__':
 	tmp_root     = f'data/tmp'
 	parts        = ['']
 	# parts        = list(f'part-{x:05}' for x in range(1))
-	parts        = list(f'part-{x:05}' for x in range(128) if x % 8 == int(sys.argv[2]))
+	# parts        = list(f'part-{x:05}' for x in range(128) if x % 8 == int(sys.argv[2]))
 
 	orig_root  = f'{article_root}/original_article'
 	prune_root = f'{article_root}/prune_article'

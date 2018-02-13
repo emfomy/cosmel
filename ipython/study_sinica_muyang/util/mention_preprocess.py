@@ -49,7 +49,7 @@ if __name__ == '__main__':
 	tmp_root      = f'data/tmp'
 	parts         = ['']
 	# parts        = list(f'part-{x:05}' for x in range(1))
-	parts        = list(f'part-{x:05}' for x in range(128) if x % 8 == int(sys.argv[2]))
+	# parts        = list(f'part-{x:05}' for x in range(128) if x % 8 == int(sys.argv[2]))
 
 	repo          = Repo(repo_root)
 	articles      = ArticleSet(article_root, parts=parts)
