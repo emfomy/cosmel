@@ -64,7 +64,6 @@ if __name__ == '__main__':
 			os.makedirs(os.path.dirname(prune_file), exist_ok=True)
 			printr(prune_file)
 			with open(orig_file) as fin, open(prune_file, 'w') as fout:
-				fin.readline()
 				lines = fin.read()
 				lines = re_url.sub('', lines)
 				lines = re_script.sub('', lines)

@@ -66,7 +66,7 @@ class RawBrand(collections.abc.Collection):
 
 	@property
 	def list(self):
-		return sorted(self)
+		return sorted(sorted(self), key=len, reverse=True)
 
 	def update(self, *args, **kwargs):
 		for item in set(*args, **kwargs):
@@ -184,9 +184,9 @@ class RawProductDict(collections.abc.Mapping):
 	def __keytransform__(self, key):
 		brand = key[0] if type(key[0]) == RawBrand else self.__brand_set[key[0]]
 		name = prune_string(key[1])
-		for v in brand:
+		for v in brand.list:
 			name = re.sub(rf'\A{v}', '', name).strip().strip('□')
-		for v in brand:
+		for v in brand.list:
 			name = re.sub(rf'\A{v}', '', name).strip().strip('□')
 		name = re.sub(r'\Ax□', '', name).strip().strip('□')
 		return (brand, name)
@@ -286,11 +286,13 @@ def brand_alias(full_name):
 
 	en = en.strip().strip('□')
 	zh = zh.strip().strip('□')
-	en2 = re.sub(r'□', r'', en)
+	en2 = re.sub('□', '', en)
 	aliases = set([en, en2, zh])
 	aliases.discard('')
 	if not len(aliases):
 		raise Exception(f'Empty brand name "{full_name}"')
+	if '\'s' in full_name.lower():
+		aliases |= brand_alias(re.sub(r'\'s\b', '', full_name.lower()))
 	return aliases
 
 
