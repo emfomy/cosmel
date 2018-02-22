@@ -63,7 +63,7 @@ def article_route(path):
 
 @app.route('/json/<path:path>')
 def json_route(path):
-	file = 'json/{path}.json'
+	file = f'json/{path}.json'
 	os.makedirs(os.path.dirname(file), exist_ok=True)
 	with open(file) as fin:
 		data = fin.read().replace('\n', '<br/>')
