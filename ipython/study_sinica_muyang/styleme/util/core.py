@@ -7,6 +7,7 @@
 """
 
 import collections.abc
+import glob
 import os
 import re
 import shutil
@@ -87,8 +88,10 @@ def grep_files(root, parts=['']):
 		subroot = root+'/'+part
 		if os.path.isdir(subroot):
 			retval.update([os.path.join(path, file) for path, _, files in os.walk(subroot) for file in files])
-		else:
+		elif os.path.isfile(subroot):
 			retval.add(subroot)
+		else:
+			retval.update(glob.glob(f'{subroot}.*'))
 	return sorted(retval)
 
 

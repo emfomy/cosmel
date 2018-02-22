@@ -17,6 +17,10 @@ import json
 import os
 import time
 
+import sys
+sys.path.append('..')
+from styleme import *
+
 app = Flask(__name__)
 
 @app.route('/')
@@ -45,14 +49,23 @@ def next_route():
 	aid = files[idx] if idx < len(files) else None
 	return redirect(f'/?aid={aid}', code=302)
 
+@app.route('/repo')
+def repo_route():
+	global repo
+	brand = request.args.get('brand')
+	return '<br>'.join(map(str, repo.name_head_to_product_list[brand, :]))
+
 @app.route('/article/<path:path>')
 def article_route(path):
-	return render_template(f'article/{path}.xml.html')
+	with open(f'article/{path}.xml.html') as fin:
+		data = fin.read()
+	return str(data)
 
 @app.route('/json/<path:path>')
 def json_route(path):
-	os.makedirs(os.path.dirname(f'json/{path}.json'), exist_ok=True)
-	with open(f'json/{path}.json') as fin:
+	file = 'json/{path}.json'
+	os.makedirs(os.path.dirname(file), exist_ok=True)
+	with open(file) as fin:
 		data = fin.read().replace('\n', '<br/>')
 	return str(data)
 
@@ -77,8 +90,9 @@ def save_route():
 
 if __name__ == '__main__':
 	global files
-	root  = 'article'
+	global repo
+	repo  = Repo('repo')
 	part  = 'part-00000'
 	ext   = '.xml.html'
-	files = sorted([f'{part}/{file}'.replace(ext, '') for file in os.listdir(f'templates/{root}/{part}') if file.endswith(ext)])
+	files = sorted([f'{part}/{file}'.replace(ext, '') for file in os.listdir(f'article/{part}') if file.endswith(ext)])
 	app.run(host='140.109.19.229', debug=True)

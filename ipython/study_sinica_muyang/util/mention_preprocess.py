@@ -43,13 +43,13 @@ if __name__ == '__main__':
 
 	data_root     = f'data/{ver}'
 	target        = f'prune_article_ws'
-	mention_root  = f'{data_root}/mention/{target}'
 	article_root  = f'{data_root}/article/{target}'
+	mention_root  = f'{data_root}/mention/{target}'
 	repo_root     = f'{data_root}/repo'
 	tmp_root      = f'data/tmp'
 	parts         = ['']
 	# parts        = list(f'part-{x:05}' for x in range(1))
-	# parts        = list(f'part-{x:05}' for x in range(128) if x % 8 == int(sys.argv[2]))
+	if len(sys.argv) >= 3: parts = list(f'part-{x:05}' for x in range(128) if x % 8 == int(sys.argv[2]))
 
 	repo          = Repo(repo_root)
 	articles      = ArticleSet(article_root, parts=parts)

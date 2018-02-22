@@ -117,14 +117,14 @@ if __name__ == '__main__':
 	assert len(sys.argv) >= 2
 	ver = sys.argv[1]
 
-	data_root     = f'data/{ver}'
-	repo_root     = f'{data_root}/repo'
-	article_root  = f'{data_root}/article/prune_article_ws'
-	mention_root  = f'{data_root}/mention/prune_article_ws'
-	output_root   = f'{data_root}/mention/prune_article_ws_pid'
-	parts         = ['']
-	# parts        = list(f'part-{x:05}' for x in range(1))
-	# parts        = list(f'part-{x:05}' for x in range(128) if x % 8 == int(sys.argv[2]))
+	data_root    = f'data/{ver}'
+	repo_root    = f'{data_root}/repo'
+	article_root = f'{data_root}/article/prune_article_ws'
+	mention_root = f'{data_root}/mention/prune_article_ws'
+	output_root  = f'{data_root}/mention/prune_article_ws_pid'
+	parts        = ['']
+	# parts       = list(f'part-{x:05}' for x in range(1))
+	if len(sys.argv) >= 3: parts = list(f'part-{x:05}' for x in range(128) if x % 8 == int(sys.argv[2]))
 
 	repo   = Repo(repo_root)
 	corpus = Corpus(article_root, mention_root, repo, parts=parts)

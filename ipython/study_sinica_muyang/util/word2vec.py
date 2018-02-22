@@ -14,6 +14,9 @@ from styleme import *
 
 if __name__ == '__main__':
 
+	assert len(sys.argv) >= 2
+	ver = sys.argv[1]
+
 	data_root    = f'data/{ver}'
 	target       = f'prune_article_ws'
 	article_root = f'{data_root}/article/{target}'
@@ -23,10 +26,11 @@ if __name__ == '__main__':
 	# Concatenate articles
 	articles = ArticleSet(article_root)
 	os.makedirs(os.path.dirname(txt_file), exist_ok=True)
-	with open(output_file, 'w') as fout:
+	with open(txt_file, 'w') as fout:
 		for article in articles:
 			printr(f'Processing {article.path}')
 			for sentence in article:
 				fout.write(' '.join(sentence.txts)+'\n')
+	print()
 
 	pass

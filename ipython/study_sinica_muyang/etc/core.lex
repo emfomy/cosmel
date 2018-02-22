@@ -50,9 +50,4 @@ spf47	A
 spf48	A
 spf49	A
 spf50	A
-spf50+	A
 pa	A
-pa+	A
-pa++	A
-pa+++	A
-pa++++	A

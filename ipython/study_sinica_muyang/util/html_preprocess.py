@@ -40,7 +40,7 @@ if __name__ == '__main__':
 	notag_root   = f'{data_root}/html/html_article_notag'
 	parts        = ['']
 	# parts        = list(f'part-{x:05}' for x in range(1))
-	# parts        = list(f'part-{x:05}' for x in range(128) if x % 8 == int(sys.argv[2]))
+	if len(sys.argv) >= 3: parts = list(f'part-{x:05}' for x in range(128) if x % 8 == int(sys.argv[2]))
 
 	# Extract html from json
 	if not extracted:

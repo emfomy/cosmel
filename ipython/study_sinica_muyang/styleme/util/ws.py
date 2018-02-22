@@ -16,7 +16,7 @@ from styleme.util.core import *
 class WordSegment():
 	"""The word segmentation driver"""
 
-	def __init__(self, ini_file, lex_files, extra_files, input_encoding=None, output_encoding='big5'):
+	def __init__(self, ini_file, lex_files, extra_files, compound_files, input_encoding=None, output_encoding='big5'):
 		with open(ini_file, encoding=input_encoding) as fin:
 			lines = fin.read().splitlines()
 			idx = lines.index('[CTextLexicon]')
@@ -36,19 +36,23 @@ class WordSegment():
 					fout.write(fin.read())
 
 		self.__regexes = []
+		for line in itertools.chain.from_iterable(map(open, compound_files)):
+			if line.strip() == '':
+				continue
+			seg = line.strip().split('\t')
+			self.__regexes.append(( \
+					re.compile(rf'(\A|(?<=\n|　)){re.escape(seg[0])}\([A-Za-z0-9_]*\)'), seg[1], seg[0]))
 		for line in itertools.chain.from_iterable(map(open, lex_files)):
 			if line.strip() == '':
 				continue
 			seg = line.strip().split('\t')
 			self.__regexes.append(( \
-					re.compile(rf'(\A|(?<=\n|　)){re.escape(seg[0])}\([A-Za-z0-9]*\)'), f'{seg[0]}({seg[1]})', seg[0]))
+					re.compile(rf'(\A|(?<=\n|　)){re.escape(seg[0])}\([A-Za-z0-9_]*\)'), f'{seg[0]}({seg[1]})', seg[0]))
 		self.__regexes.append((re.compile(r'　□\(SP\)'), '', '□'))
 
 		print(f'Initialize CKIPWS with INI "{ini_file}" using lexicon "{lex_file}"')
 
-		self.__ini_file  = ini_file
-		self.__lex_file  = lex_file
-		self.__lex_files = lex_files
+		self.__ini_file = ini_file
 
 	def __call__(self, input_file, output_file):
 		# subprocess.call(f'CKIPWSTester {self.__ini_file} {input_file} {output_file}', shell=True)

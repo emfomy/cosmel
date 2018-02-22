@@ -29,8 +29,8 @@ if __name__ == '__main__':
 	assert len(sys.argv) >= 2
 	ver = sys.argv[1]
 
-	pruned           = False
-	copied_files     = False
+	pruned           = True
+	copied_files     = True
 	segmented        = False
 	replaced_product = False
 
@@ -41,7 +41,7 @@ if __name__ == '__main__':
 	tmp_root     = f'data/tmp'
 	parts        = ['']
 	# parts        = list(f'part-{x:05}' for x in range(1))
-	# parts        = list(f'part-{x:05}' for x in range(128) if x % 8 == int(sys.argv[2]))
+	if len(sys.argv) >= 3: parts = list(f'part-{x:05}' for x in range(128) if x % 8 == int(sys.argv[2]))
 
 	orig_root  = f'{article_root}/original_article'
 	prune_root = f'{article_root}/prune_article'
@@ -94,11 +94,11 @@ if __name__ == '__main__':
 
 	# Segment Articles
 	if not segmented:
-
 		# Word Segment
 		ws = WordSegment(etc_root+'/for_article.ini', \
-				[repo_root+'/core.lex', repo_root+'/brands.lex', repo_root+'/heads.lex', repo_root+'/jomalone.lex'], \
-					[repo_root+'/infix.lex', repo_root+'/products.lex'])
+				[repo_root+'/core.lex', repo_root+'/brands.lex', repo_root+'/heads.lex'], \
+				[repo_root+'/infix.lex', repo_root+'/compounds.lex'], \
+				[etc_root+'/compounds.txt'])
 
 		ws(prune_tmp_root, ws_tmp_root)
 		subprocess_call(f'unzip -q {ws_tmp_root}.zip -d {tmp_root}', shell=True)

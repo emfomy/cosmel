@@ -28,6 +28,7 @@ class RawData:
 
 		if self.p_id == '7750':  self.p_name = '巴黎時尚伸展台高級訂製濃翹美睫膏'
 		if self.p_id == '11449': self.p_name = '魚子高效活氧亮白精華液'
+		if self.p_id == '12877': self.p_name = '愛麗絲完美勾勒眼線膠筆'
 		if self.p_id == '13315': self.p_name = '保濕修復膠囊面膜a'
 		if self.p_id == '13324': self.p_name = '保濕舒緩膠囊面膜b'
 		if self.p_id == '13336': self.p_name = '緊緻抗皺膠囊面膜e'
@@ -301,14 +302,14 @@ if __name__ == '__main__':
 	assert len(sys.argv) == 2
 	ver = sys.argv[1]
 
-	saved_brand         = True
-	saved_product       = True
-	saved_descri        = True
-	saved_csv           = True
-	copied_head_lex     = True
-	segmented_product   = True
-	segmented_descr     = True
-	copied_product_head = True
+	saved_brand         = False
+	saved_product       = False
+	saved_descri        = False
+	saved_csv           = False
+	copied_head_lex     = False
+	segmented_product   = False
+	segmented_descr     = False
+	copied_product_head = False
 
 	saved_product_head  = True
 
@@ -368,15 +369,16 @@ if __name__ == '__main__':
 		with open(etc_root+'/heads.txt') as fin, open(repo_root+'/heads.lex', 'w') as fout:
 			for line in fin:
 				fout.write(line.strip() + '	N_Head\n')
-		with open(etc_root+'/jomalone.txt') as fin, open(repo_root+'/jomalone.lex', 'w') as fout:
+		with open(etc_root+'/compounds.txt') as fin, open(repo_root+'/compounds.lex', 'w') as fout:
 			for line in fin:
-				fout.write(line.strip() + '	N_Head\n')
+				fout.write(line.split('\t')[0].strip() + '	N_Compound\n')
 
 	# Word Segment
 	if not segmented_product or not segmented_descr:
 		ws = WordSegment(etc_root+'/for_product.ini', \
-				[repo_root+'/core.lex', repo_root+'/brands.lex', repo_root+'/heads.lex', repo_root+'/jomalone.lex'], \
-				[repo_root+'/infix.lex'])
+				[repo_root+'/core.lex', repo_root+'/brands.lex', repo_root+'/heads.lex'], \
+				[repo_root+'/infix.lex', repo_root+'/compounds.lex'], \
+				[etc_root+'/compounds.txt'])
 
 	# Word Segment Product
 	if not segmented_product:
@@ -431,8 +433,8 @@ if __name__ == '__main__':
 				raise Exception(f'□(SP): "{sentence}"')
 
 			if p_id not in heads:
-				print(f'No Head (None): {p_id} "{sentence}"')
+				print(f'No Head ({None}): {p_id} "{sentence}"')
 			elif heads[p_id] not in sentence.txts:
-				print('No Head ({heads[p_id]}): {p_id} "{sentence}"')
+				print(f'No Head ({heads[p_id]}): {p_id} "{sentence}"')
 
 	pass

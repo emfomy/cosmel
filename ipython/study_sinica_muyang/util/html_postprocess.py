@@ -32,7 +32,7 @@ if __name__ == '__main__':
 	idx_path     = f'{data_root}/html/{target}_idx'
 	parts        = ['']
 	# parts        = list(f'part-{x:05}' for x in range(1))
-	# parts        = list(f'part-{x:05}' for x in range(128) if x % 8 == int(sys.argv[2]))
+	if len(sys.argv) >= 3: parts = list(f'part-{x:05}' for x in range(128) if x % 8 == int(sys.argv[2]))
 
 	# Map word-segmented articles to html articles
 	for html_file in grep_files(html_root, parts):
