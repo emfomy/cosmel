@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding:utf-8 -*-
 
-"""
-.. codeauthor::
-   Mu Yang <emfomy@gmail.com>
-"""
+
+__author__    = 'Mu Yang <emfomy@gmail.com>'
+__copyright__ = 'Copyright 2017-2018'
+
 
 import collections.abc
 import itertools
@@ -223,7 +223,7 @@ class MentionBundle(collections.abc.Sequence):
 
 	Args:
 		file_path (str):             the path to the mention bundle.
-		article object (:class:`.Article`): the article containing this mention bundle.
+		article (:class:`.Article`): the article containing this mention bundle.
 		repo    (:class:`.Repo`):    the product repository class.
 	"""
 
@@ -291,7 +291,7 @@ class MentionBundleSet(collections.abc.Collection):
 		article_root (str):                 the path to the folder containing word segmented article files.
 		mention_root (str):                 the path to the folder containing mention files.
 		article_set (:class:`.ArticleSet`): the set of articles.
-		repo     (:class:`.Repo`):          the product repository class.
+		repo        (:class:`.Repo`):       the product repository class.
 	"""
 
 	def __init__(self, article_root, mention_root, article_set, repo):

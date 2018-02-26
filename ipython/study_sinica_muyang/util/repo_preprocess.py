@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding:utf-8 -*-
 
-"""
-.. codeauthor::
-   Mu Yang <emfomy@gmail.com>
-"""
+
+__author__    = 'Mu Yang <emfomy@gmail.com>'
+__copyright__ = 'Copyright 2017-2018'
+
 
 import collections.abc
 import csv

@@ -58,8 +58,8 @@ master_doc = 'index'
 
 # General information about the project.
 project = 'StyleMe'
-copyright = '2017–2018, Mu Yang &ltemfomy@gmail.com&gt'
-author = 'Mu Yang &ltemfomy@gmail.com&gt'
+copyright = '2017–2018, Mu Yang <emfomy@gmail.com>'
+author = 'Mu Yang <emfomy@gmail.com>'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -94,15 +94,14 @@ todo_include_todos = True
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = 'alabaster'
+html_theme = "sphinx_rtd_theme"
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.
 #
 html_theme_options = {
-    'show_related': 'true',
-    'fixed_sidebar': 'true',
+
 }
 
 # Add any paths that contain custom static files (such as style sheets) here,
@@ -119,7 +118,6 @@ html_sidebars = {
     '**': [
         'about.html',
         'globaltoc.html',
-        'relations.html',  # needs 'show_related': True theme option to display
         'searchbox.html',
     ]
 }
