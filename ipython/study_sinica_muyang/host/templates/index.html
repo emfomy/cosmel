@@ -30,8 +30,8 @@
 			body > article > .counter {
 				font-size: 100px;
 				position: fixed;
-				top: 5%;
-				right: 5%;
+				top: 0%;
+				right: 0%;
 				cursor: pointer;
 			}
 
@@ -60,10 +60,19 @@
 		<nav id="top">
 			<center>
 				<form class="form-inline" method="GET">
-					<a href="/prev?aid={{ aid }}">Prev</a>
+					<a href="?part={{ part }}&aid={{ aid }}&act=prev">Prev</a>
+					<select id="part" name="part" class="selectpicker form-control">
+						{% for p in files.keys() %}
+							{% if p == part %}
+								<option value="{{ p }}" selected>{{ p }}</option>
+							{% else %}
+								<option value="{{ p }}">{{ p }}</option>
+							{% endif %}
+						{% endfor %}
+					</select>
 					<select id="aid" name="aid" class="selectpicker form-control">
 						<option value=""></option>
-						{% for f in files %}
+						{% for f in files[part] %}
 							{% if f == aid %}
 								<option value="{{ f }}" selected>{{ f }}</option>
 							{% else %}
@@ -72,47 +81,65 @@
 						{% endfor %}
 					</select>
 					<input type="submit" value="Load" />
-					<a href="/next?aid={{ aid }}">Next</a>
+					<a href="?part={{ part }}&aid={{ aid }}&act=next">Next</a>
 				</form>
-				<a href="/repo?brand=sk2" target="_blank">/repo?brand=sk2</a>
+				<a href="/repo/product?brand=sk2" target="_blank">/repo/product?brand=sk2</a>
+				<a href="/repo/product?brand=sk2&head=面膜" target="_blank">/repo/product?brand=sk2&amp;head=面膜</a>
+				<a href="/repo/product?pid=8,11" target="_blank">/repo/product?pid=8,11</a>
 			</center>
 		</nav>
 
 		<article>
 			<span class="counter"></span>
-			<center><div class="json" w3-include-html="/json/{{ aid }}"></div></center>
-			<div class="article" w3-include-html="/article/{{ aid }}"></div>
+			<center><div class="json" w3-include-html="/json/{{ part }}/{{ aid }}"></div></center>
+			<div class="article" w3-include-html="/article/{{ part }}/{{ aid }}"></div>
 		</article>
 
 		<footer>
-			<center><a id="product" href="#top">Top</a></center>
+			<center><a id='bottom' href="#top">Top</a></center>
 		</footer>
 
 
 		<script type="text/javascript">
-			$('#aid').change(function() {
-				this.form.submit();
-			});
+			$('#part').change(function() { this.form.submit(); });
+			$('#aid').change(function() { this.form.submit(); });
 
 			function updateCounter() {
-				var e = document.querySelector('body > article > .counter');
-				e.innerText = document.querySelectorAll('product:not(.done)').length;
-				e.addEventListener('click', function() {
-					const top = document.querySelector('product:not(.done)').getBoundingClientRect().top + window.pageYOffset;
+				$('product').each(
+					(i, e) => $(e).removeClass('done')
+				);
+
+				$('product[gid]:not([gid=""])').each(
+					(i, e) => $(e).addClass('done')
+				);
+
+				var e = $('body > article > .counter');
+				e.text($('product:not(.done)').length + '/' + $('product').length);
+				e.click(function() {
+					const top = $('product:not(.done), #bottom').offset().top + window.pageYOffset;
 					const middle = top - (window.innerHeight / 2);
 					window.scrollTo(0, middle);
 				});
 			}
 
 			w3.includeHTML(function(){
-				updateCounter();
-
-				document.querySelectorAll('body > article > .article a').forEach(
-					l => l.setAttribute('target', '_blank')
+				$('body > article > .article a').each(
+					(i, e) => $(e).removeAttr('href')
 				);
 
+				$('product').each(
+					(i, e) => $(e).attr('id', $(e).attr('sid') + '-' + $(e).attr('mid'))
+				);
+
+				{% for k, v in json_data.items() %}
+					$('#{{ k }}').attr('gid', {{ v }});
+					$('#{{ k }}').attr('gid', {{ v }});
+				{% endfor %}
+
+				updateCounter();
+
 				document.querySelectorAll('product').forEach(
-					l => l.addEventListener('click', function() {
+					e => e.addEventListener('click', function() {
 						try {
 							const text = this.innerText;
 							const pid  = this.getAttribute('pid');
@@ -122,43 +149,48 @@
 							const rule = this.getAttribute('rule');
 							const hint = this.getAttribute('hint');
 
-							const gid_new = prompt(
-								text
-								+'\n'+'pid='+pid
-								+'\n'+'gid='+gid
-								+'\n'+'sid='+sid
-								+'\n'+'mid='+mid
-								+'\n'+'rule='+rule
-								+'\n'+'hint='+hint
-							);
-							if ( !gid_new ) {
-								return;
-							}
-
-							const data = {
-								pid: pid,
-								gid: gid_new,
-								sid: sid,
-								mid: mid
-							};
-
-							fetch('/save?aid={{ aid }}', {
-								method: 'POST',
-								body: JSON.stringify(data)
-							})
-							.then(res => {
-								if (res.ok) {
-									this.setAttribute('gid', gid_new);
-									this.classList.add('done');
-									this.removeAttribute('id');
-									updateCounter();
-									res.json().then(customSuccess);
-								} else {
-									res.json().then(res2 => customError(
-										'[' + res.status + '] ' + res.statusText + ':\n' + res2.message
-									));
+							res = $.ajax({
+								url: '/repo/product?pid='+hint,
+								type: 'get',
+								error: customStatusError
+							}).done(hint_products => {
+								const gid_new = prompt(
+									text
+									+'\n'+'pid='+pid
+									+'\n'+'gid='+gid
+									+'\n'+'sid='+sid
+									+'\n'+'mid='+mid
+									+'\n'+'rule='+rule
+									+'\n'+'hint='+hint
+									+'\n'+hint_products.replace(/<br\s*[\/]?>/gi, '\n'),
+									gid
+								);
+								if ( gid_new === null ) {
+									return;
 								}
-							}).catch(customError);
+								this.setAttribute('gid', gid_new);
+								updateCounter();
+
+								const data = {
+									pid: pid,
+									gid: gid_new,
+									sid: sid,
+									mid: mid
+								};
+
+								fetch('/save?part={{ part }}&aid={{ aid }}', {
+									method: 'POST',
+									body: JSON.stringify(data)
+								})
+								.then(res => {
+									if (res.ok) {
+										res.json().then(customStatusSuccess);
+									} else {
+										res.json().then(res2 => customStatusError2(res, res2));
+									}
+								}).catch(customError);
+							});
+
 						} catch(error) {
 							customError(error);
 						}
@@ -170,9 +202,21 @@
 				console.log('Success:', message);
 			}
 
+			function customStatusSuccess(res) {
+				customSuccess(res.message);
+			}
+
 			function customError(message) {
 				alert(message);
 				console.error('Error:', message);
+			}
+
+			function customStatusError(res) {
+				customError('[' + res.status + '] ' + res.statusText);
+			}
+
+			function customStatusError2(res, res2) {
+				customError('[' + res.status + '] ' + res.statusText + '\n' + res2.message);
 			}
 		</script>
 	</body>

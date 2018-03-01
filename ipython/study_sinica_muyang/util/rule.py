@@ -14,9 +14,6 @@ import time
 sys.path.insert(0, os.path.abspath('.'))
 from styleme import *
 
-def relu(x):
-	return max(x, 0)
-
 def decision_tree(mention, repo, previous_products):
 	candidates = list(itertools.chain.from_iterable(
 			repo.brand_head_to_product_list[mention.brand, head] for head in reversed(mention.head_list)

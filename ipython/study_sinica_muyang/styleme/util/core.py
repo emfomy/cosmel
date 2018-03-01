@@ -108,6 +108,11 @@ def printr(*objects):
 	print('\033[K'+' '.join(map(str, objects)), end='\r')
 
 
+def relu(x):
+	"""ReLU function."""
+	return max(x, 0)
+
+
 def pause():
 	"""Pause until pressing Enter."""
 	input("Press Enter to continue...")
