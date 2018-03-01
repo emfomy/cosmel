@@ -14,14 +14,13 @@ from styleme import *
 
 class RawMention:
 
-	def __init__(self, article, s_id, brand_idx, head_idxs):
+	def __init__(self, article, s_id, m_id):
 		self.article   = article
 		self.s_id      = s_id
-		self.brand_idx = brand_idx
-		self.head_idxs = head_idxs
+		self.m_id      = m_id
 
 	def __str__(self):
-		return '\t'.join(map(str, [self.s_id, self.brand_idx, ','.join(map(str, self.head_idxs))]))
+		return '\t'.join(map(str, [self.s_id, self.m_id]))
 
 	@property
 	def sentence(self):
@@ -57,47 +56,44 @@ if __name__ == '__main__':
 
 	max_len_mention = 10
 
-	tmp_mention_root  = tmp_root+'/mention_'+target
 	tmp_sentence_root = tmp_root+'/sentence_'+target
 
 	mentions = dict()
 	if not greped_mention:
 
 		# Remove Temp Files
-		rm_files(tmp_mention_root, parts=parts)
+		rm_files(mention_root, parts=parts)
 
 		# Grep mentions
 		for article in articles:
 			mention_list = []
 
 			for s_id, line in enumerate(article):
-				brand_idxs = indices(line.tags, 'N_Brand')
-				if len(brand_idxs):
-					for brand_idx, next_idx in zip(brand_idxs, brand_idxs[1:]+[len(line.tags)]):
-						head_idxs = indices(line.tags, 'N_Head', brand_idx+1, min(brand_idx+max_len_mention, next_idx))
-						if len(head_idxs):
-							mention_list.append(RawMention(article, s_id, brand_idx, head_idxs))
+				head_idxs = indices(line.tags, 'N_Head')
+				if len(head_idxs):
+					for m_id in head_idxs:
+						mention_list.append(RawMention(article, s_id, m_id))
 			mentions[article] = mention_list
 
 			# Write mentions to file
-			tmp_mention_file = article.path.replace(article_root, tmp_mention_root)+'.mention'
-			os.makedirs(os.path.dirname(tmp_mention_file), exist_ok=True)
-			printr(f'Writing {os.path.relpath(tmp_mention_file)}')
-			with open(tmp_mention_file, 'w') as fout:
+			mention_file = article.path.replace(article_root, mention_root)+'.mention'
+			os.makedirs(os.path.dirname(mention_file), exist_ok=True)
+			printr(f'Writing {os.path.relpath(mention_file)}')
+			with open(mention_file, 'w') as fout:
 				for mention in mention_list:
 					fout.write(str(mention)+'\n')
 		print()
 
 	else:
 		# Load mentions from file
-		for tmp_mention_file in grep_files(tmp_mention_root, parts=parts):
-			article = id_to_article[Article.path_to_a_id(tmp_mention_root)]
-			printr(f'Reading {os.path.relpath(tmp_mention_file)}')
-			with open(tmp_mention_file) as fin:
+		for mention_file in grep_files(mention_root, parts=parts):
+			article = id_to_article[Article.path_to_a_id(mention_root)]
+			printr(f'Reading {os.path.relpath(mention_file)}')
+			with open(mention_file) as fin:
 				mention_list = []
 				for line in fin:
-					s_id, brand_idx, head_idxs_str = line.strip().split('\t')
-					mention_list.append(RawMention(article, int(s_id), int(brand_idx), list(map(int, head_idxs_str.split(',')))))
+					s_id, m_id = line.strip().split('\t')
+					mention_list.append(RawMention(article, int(s_id), int(m_id)))
 			mentions[article] = mention_list
 		print()
 
@@ -116,19 +112,6 @@ if __name__ == '__main__':
 						fout.write(str(mention.sentence)+'\n')
 					else:
 						fout.write('\n')
-		print()
-
-	if not used_last_head:
-
-		# Write mentions to file
-		for article, mention_list in mentions.items():
-			mention_file = article.path.replace(article_root, mention_root)+'.mention'
-			os.makedirs(os.path.dirname(mention_file), exist_ok=True)
-			printr(f'Writing {os.path.relpath(mention_file)}')
-			with open(mention_file, 'w') as fout:
-				for mention in mention_list:
-					mention.head_idxs = [mention.head_idxs[-1]]
-					fout.write(str(mention)+'\n')
 		print()
 
 	pass
