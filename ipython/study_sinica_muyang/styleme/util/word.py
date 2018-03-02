@@ -18,10 +18,33 @@ class WsWords(collections.abc.Sequence):
 			chars (str): the text with tag. (the format should be several 'text(post-tag)'s seperated by <U+3000>s.)
 	"""
 
+	@classmethod
+	def __split(self, w):
+		txt, w    = w.split('(', 1)
+		tag, role = w.split(')', 1)
+		return txt, tag, role
+
 	def __init__(self, chars):
-		chars_seg = [seg for seg in chars.strip().split('　') if not seg == '']
-		self.__txts = list(w.split('(', 1)[0] for w in chars_seg)
-		self.__tags = list(w.split('(', 1)[1][:-1] for w in chars_seg)
+		chars_seg = [self.__split(w) for w in chars.strip().split('　') if not w == '']
+		self.__txts  = list(w[0] for w in chars_seg)
+		self.__tags  = list(w[1] for w in chars_seg)
+		self.__roles = list(w[2] for w in chars_seg)
+
+	def index(self, word, *args):
+		"""int -- returns the index of the first word.
+
+			Args:
+				word (tuple): the tuple of text and tag, (optional) and role.
+		"""
+		if isinstance(word, tuple):
+			if len(word) == 2:
+				return list(self.zip2).index(word, *args)
+			if len(word) == 3:
+				return list(self.zip3).index(word, *args)
+		raise ValueError(f'{word} is not in list')
+
+	def __contains__(self, key):
+		return key in self.zip2 or key in self.zip3
 
 	def __getitem__(self, idxs):
 		retval = WsWords('')
@@ -33,10 +56,10 @@ class WsWords(collections.abc.Sequence):
 		return len(self.__txts)
 
 	def __str__(self):
-		return '　'.join([f'{w}({p})' for w, p in zip(self.__txts, self.__tags)])
+		return '　'.join([f'{txt}({tag})' for txt, tag in self.zip2])
 
 	def __repr__(self):
-		return str(self)
+		return '　'.join([f'{txt}({tag}){role}' for txt, tag, role in self.zip3])
 
 	def __txtstr__(self):
 		return ''.join(self.__txts)
@@ -50,6 +73,26 @@ class WsWords(collections.abc.Sequence):
 	def tags(self):
 		""":class:`list` -- the post-tags."""
 		return self.__tags
+
+	@property
+	def roles(self):
+		""":class:`list` -- the roles."""
+		return self.__roles
+
+	@property
+	def zip(self):
+		"""zip -- the zip iterator of the texts, the tags, and the roles. (= :attr:`zip3`)."""
+		return zip(self.__txts, self.__tags, self.__roles)
+
+	@property
+	def zip2(self):
+		"""zip -- the zip iterator of the texts and the tags."""
+		return zip(self.__txts, self.__tags)
+
+	@property
+	def zip3(self):
+		"""zip -- the zip iterator of the texts, the tags, and the roles.."""
+		return zip(self.__txts, self.__tags, self.__roles)
 
 def txtstr(obj):
 	"""str -- return the string of texts (obj.txts)"""

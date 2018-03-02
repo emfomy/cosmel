@@ -7,6 +7,7 @@ __copyright__ = 'Copyright 2017-2018'
 
 
 from styleme.util import *
+from styleme.repo.word import *
 from styleme.repo.brand import *
 from styleme.repo.product import *
 
@@ -19,6 +20,9 @@ class Repo:
 	"""
 
 	def __init__(self, repo_root):
+		self.__head_set                   = HeadSet(repo_root)
+		self.__infix_set                  = InfixSet(repo_root)
+
 		self.__brand_set                  = BrandSet(repo_root)
 		self.__name_to_brand              = Name2Brand(self.__brand_set)
 
@@ -28,6 +32,16 @@ class Repo:
 		self.__name_name_to_product       = NameName2Product(self.__brand_name_to_product, self.__name_to_brand)
 		self.__brand_head_to_product_list = BrandHead2ProductList(self.__product_set)
 		self.__name_head_to_product_list  = NameHead2ProductList(self.__brand_head_to_product_list, self.__name_to_brand)
+
+	@property
+	def infix_set(self):
+		""":class:`.HeadSet`: the infix word set."""
+		return self.__infix_set
+
+	@property
+	def head_set(self):
+		""":class:`.InfixSet`: the head word set."""
+		return self.__head_set
 
 	@property
 	def brand_set(self):

@@ -6,6 +6,7 @@ __author__    = 'Mu Yang <emfomy@gmail.com>'
 __copyright__ = 'Copyright 2017-2018'
 
 
+import collections
 import collections.abc
 import csv
 import os
@@ -14,6 +15,7 @@ import sys
 
 sys.path.insert(0, os.path.abspath('.'))
 from styleme import *
+
 
 class RawData:
 
@@ -26,6 +28,7 @@ class RawData:
 		if self.b_name == '80': self.b_name = '080'
 		if self.b_name == 'babaria 西班牙babaria': self.b_name = '西班牙Babaria'
 
+		if self.p_id == '2761':  self.p_name = '水感透顏粉底精華spf30□pa'
 		if self.p_id == '7750':  self.p_name = '巴黎時尚伸展台高級訂製濃翹美睫膏'
 		if self.p_id == '11449': self.p_name = '魚子高效活氧亮白精華液'
 		if self.p_id == '12877': self.p_name = '愛麗絲完美勾勒眼線膠筆'
@@ -120,12 +123,12 @@ class RawBrandDict(collections.abc.Mapping):
 		aliases = RawBrand(brand_alias(name))
 		for v in set(aliases):
 			if v in self.__data:
-				print(f'Combine {self.__data[v]} and {aliases}')
+				print(colored('0;33', f'Combine {self.__data[v]} and {aliases}'))
 				aliases.update(self.__data[v])
 		if key:
 			for v in brand_alias(key):
 				if v in self.__data:
-					print(f'Combine {self.__data[v]} and {aliases}')
+					print(colored('0;33', f'Combine {self.__data[v]} and {aliases}'))
 					aliases.update(self.__data[v])
 		for v in aliases:
 			self.__data[v] = aliases
@@ -143,7 +146,7 @@ class RawBrandDict(collections.abc.Mapping):
 		os.makedirs(os.path.dirname(lex_path), exist_ok=True)
 		with open(lex_path, 'w') as fout:
 			for k in sorted(self):
-				fout.write(k + '\tN_Brand\n')
+				fout.write(k + '\tNb\n')
 			print(f'Saved {len(self)} brands into "{lex_path}"')
 
 
@@ -196,10 +199,10 @@ class RawProductDict(collections.abc.Mapping):
 		"""Add ``data`` to the dictionary. Skipped if already exists."""
 		key = (data.b_name, data.p_name)
 		if key in self:
-			print(f'Conflicted product ({self[key].p_id:>5} / {data.p_id:>5}) {self.__keytransform__(key)}')
+			print(colored('0;33', f'Conflicted product ({self[key].p_id:>5} / {data.p_id:>5}) {self.__keytransform__(key)}'))
 			return
 		if data.p_id in self.__ids:
-			raise Exception(f'Conflicted product {data.p_id}')
+			raise Exception(colored('1;31', f'Conflicted product {data.p_id}'))
 		self[key] = RawProduct(data)
 		self.__ids.add(data.p_id)
 
@@ -216,7 +219,7 @@ class RawProductDict(collections.abc.Mapping):
 		os.makedirs(os.path.dirname(lex_path), exist_ok=True)
 		with open(lex_path, 'w') as fout:
 			for k in self:
-				fout.write(k[1] + '\tN_Product\n')
+				fout.write(k[1] + '\tNb\n')
 			print(f'Saved {len(self)} products into "{lex_path}"')
 
 	def save_descr(self, file_path):
@@ -227,17 +230,6 @@ class RawProductDict(collections.abc.Mapping):
 				if v.p_descr:
 					fout.write('\t'.join([v.p_id, v.p_descr]) + '\n')
 			print(f'Saved {len(self)} descriptions into "{file_path}"')
-
-	def save_lex_c(self, lex_path):
-		"""Save compute products to lexicon file."""
-		os.makedirs(os.path.dirname(lex_path), exist_ok=True)
-		with open(lex_path, 'w') as fout:
-			i = 0
-			for k in self:
-				for b in k[0]:
-					fout.write(prune_string(b + '□' + k[1]) + '\tN_CProduct\n')
-					i += 1
-			print(f'Saved {i} complete products into "{lex_path}"')
 
 
 def load_csv(csv_path):
@@ -291,7 +283,7 @@ def brand_alias(full_name):
 	aliases = set([en, en2, zh])
 	aliases.discard('')
 	if not len(aliases):
-		raise Exception(f'Empty brand name "{full_name}"')
+		raise Exception(colored('1;31', f'Empty brand name "{full_name}"'))
 	if '\'s' in full_name.lower():
 		aliases |= brand_alias(re.sub(r'\'s\b', '', full_name.lower()))
 	return aliases
@@ -302,16 +294,15 @@ if __name__ == '__main__':
 	assert len(sys.argv) == 2
 	ver = sys.argv[1]
 
+	copied_lexicon      = False
 	saved_brand         = False
 	saved_product       = False
 	saved_descri        = False
 	saved_csv           = False
-	copied_head_lex     = False
 	segmented_product   = False
-	segmented_descr     = False
 	copied_product_head = False
-
-	saved_product_head  = True
+	counted_word        = False
+	segmented_descr     = False
 
 	etc_root  = f'etc'
 	data_root = f'data/{ver}'
@@ -321,31 +312,51 @@ if __name__ == '__main__':
 	csv_path     = f'{data_root}/styleme.csv'
 	csv_path_new = f'{data_root}/prune_styleme.csv'
 
+	ckipws_lib = 'libWordSeg.so'
+
 	os.makedirs(repo_root, exist_ok=True)
 	os.makedirs(tmp_root,  exist_ok=True)
+
+	if not copied_lexicon:
+		# Copy Files
+		shutil.copyfile(etc_root+'/core.lex',  repo_root+'/core.lex')
+		shutil.copyfile(etc_root+'/infix0.lex', repo_root+'/infix0.lex')
+		shutil.copyfile(etc_root+'/head.txt',  repo_root+'/head.txt')
+		shutil.copyfile(etc_root+'/compound.txt',  repo_root+'/compound.txt')
+
+		# Process Heads
+		with open(repo_root+'/head.txt') as fin, open(repo_root+'/head.lex', 'w') as fout:
+			for line in fin:
+				if line.strip() == '': continue
+				fout.write(line.split('\t')[0].strip() + '	Na\n')
+
+		# Process Compounds
+		with open(repo_root+'/compound.txt') as fin, open(repo_root+'/compound.lex', 'w') as fout:
+			for line in fin:
+				if line.strip() == '': continue
+				fout.write(line.split('\t')[0].strip() + '	Nb\n')
 
 	# Import CSV
 	data = load_csv(csv_path)
 
-	# Process Brand
+	# Process Brands
 	brands = RawBrandDict(data)
-	brands.update('Pink□by□Pure□Beauty', key='Pure□Beauty')
-	brands.update('SK2', key='SKII')
-	brands.update('SYRIO', key='義貝拉')
-	brands.update('京城之霜', key='NARUKO')
-	brands.update('惹我', key='FITIT&WHITIA')
-	brands.update('資生堂', key='SHISEIDO')
+	with open(etc_root+'/brand0.txt') as fin:
+		for line in fin:
+			if line.strip() == '': continue
+			b_names = line.strip().split('\t')
+			for b_name in b_names[1:]:
+				brands.update(b_name, key=b_names[0])
 
 	if not saved_brand:
-		brands.save_txt(repo_root+'/brands.txt')
-		brands.save_lex(repo_root+'/brands.lex')
+		brands.save_txt(repo_root+'/brand.txt')
+		brands.save_lex(repo_root+'/brand.lex')
 
-	# Process Product
+	# Process Products
 	products = RawProductDict(data, brands)
 	if not saved_product:
-		products.save_txt(repo_root+'/products.txt')
-		products.save_lex(repo_root+'/products.lex')
-		# products.save_clex(repo_root+'/cproducts.lex')
+		products.save_txt(repo_root+'/product.txt')
+		products.save_lex(repo_root+'/product.lex')
 
 	# Save CSV file
 	if not saved_csv:
@@ -356,85 +367,159 @@ if __name__ == '__main__':
 			writer.writerows(rows)
 			print(f'Saved {len(rows)} products into "{csv_path_new}"')
 
-	# Save Description
+	# Save Descriptions
 	if not saved_descri:
-		products.save_descr(repo_root+'/products.descr')
+		products.save_descr(repo_root+'/product.descr')
 
-	if not copied_head_lex:
-		# Copy Files
-		shutil.copyfile(etc_root+'/core.lex', repo_root+'/core.lex')
-		shutil.copyfile(etc_root+'/infix.lex', repo_root+'/infix.lex')
+	# Load Heads
+	heads = HeadSet(repo_root)
+	with open(repo_root+'/infix0.lex') as fin:
+		for line in fin:
+			if line.strip() == '': continue
+			txt = line.strip().split('\t')[0]
+			if txt in heads:
+				print(colored('1;31', f'Conflicted infix/head ({txt})'))
 
-		# Process Head Lexicon
-		with open(etc_root+'/heads.txt') as fin, open(repo_root+'/heads.lex', 'w') as fout:
-			for line in fin:
-				fout.write(line.strip() + '	N_Head\n')
-		with open(etc_root+'/compounds.txt') as fin, open(repo_root+'/compounds.lex', 'w') as fout:
-			for line in fin:
-				fout.write(line.split('\t')[0].strip() + '	N_Compound\n')
-
-	# Word Segment
-	if not segmented_product or not segmented_descr:
-		ws = WordSegment(etc_root+'/for_product.ini', \
-				[repo_root+'/core.lex', repo_root+'/brands.lex', repo_root+'/heads.lex'], \
-				[repo_root+'/infix.lex', repo_root+'/compounds.lex'], \
-				[etc_root+'/compounds.txt'])
-
-	# Word Segment Product
+	# Word-Segment Product
 	if not segmented_product:
-		with open(repo_root+'/products.lex') as fin, open(tmp_root+'/products.lex', 'w', encoding='big5') as fout:
-			fout.write(re.sub(r'	N_Product', '', fin.read(), flags=re.MULTILINE))
-		ws(tmp_root+'/products.lex', tmp_root+'/products.tag')
-		ws.replace(tmp_root+'/products.tag', repo_root+'/products.tag')
-
-	# Word Segment Description
-	if not segmented_descr:
-		with open(repo_root+'/products.descr') as fin, open(tmp_root+'/products.descr', 'w', encoding='big5') as fout:
-			fout.write(re.sub(r'(\A|(?<=\n)).*\t', '', fin.read(), flags=re.MULTILINE))
-		ws(tmp_root+'/products.descr', tmp_root+'/products.descr.tag')
-		ws.replace(tmp_root+'/products.descr.tag', repo_root+'/products.descr.tag')
+		ckipws = CkipWs(ckipws_lib, etc_root+'/for_product.ini', \
+				[repo_root+'/core.lex', repo_root+'/brand.lex', repo_root+'/head.lex', \
+					repo_root+'/infix0.lex', repo_root+'/compound.lex'], \
+				[etc_root+'/compound.txt'])
+		with open(repo_root+'/product.lex') as fin, open(tmp_root+'/product.lex', 'w', encoding=None) as fout:
+			fout.write(re.sub(r'\t.*', '', fin.read().strip()+'\n', flags=re.MULTILINE))
+		ckipws.ws(tmp_root+'/product.lex', tmp_root+'/product.tag')
+		ckipws.replace(tmp_root+'/product.tag', repo_root+'/product.tag')
 
 	if not copied_product_head:
 		# Copy Files
-		shutil.copyfile(etc_root+'/products.head', repo_root+'/products.head')
+		shutil.copyfile(etc_root+'/product.head', repo_root+'/product.head')
 
-	if not saved_product_head:
-		# Grep Head
-		with open(repo_root+'/products.tag') as fin, open(repo_root+'/products.head', 'w') as fout:
-			for line in fin:
-				sentence = WsWords(line.strip().split('\t')[0])
-				if '□' in sentence.txts:
-					raise Exception(f'□(SP): "{sentence}"')
-				heads = list()
-				if 'N_Head' in sentence.tags:
-					for i, post in enumerate(sentence.tags):
-						if post == 'N_Head':
-							heads.append(str(sentence.txts[i]))
-				if len(heads) == 0:
-					print(f'No Head: "{sentence}"')
-				fout.write('\t'.join(heads) + '\n')
-
-		print(f'''Saved product heads into "{repo_root+'/products.head'}"''')
-
-	# Check Head
-	heads = {}
-	with open(repo_root+'/products.head') as fin:
+	# Load Product Heads
+	product_head = {}
+	with open(repo_root+'/product.head') as fin:
 		for line in fin:
+			if line.strip() == '': continue
 			p_id, head = line.strip().split('\t')
-			if p_id in heads:
-				raise Exception(f'Conflicted product head {p_id} "{head}"')
-			heads[p_id] = head
+			if p_id in product_head:
+				raise Exception(colored('1;31', f'Conflicted product head {p_id} "{head}"'))
+			product_head[p_id] = head
 
-	with open(repo_root+'/products.txt') as fin_txt, open(repo_root+'/products.tag') as fin_tag:
+	# Check Unexcepted Space
+	with open(repo_root+'/product.txt') as fin_txt, open(repo_root+'/product.tag') as fin_tag:
+		for txt_line, tag_line in zip(fin_txt, fin_tag):
+			p_id = txt_line.strip().split('\t')[0]
+			sentence = WsWords(tag_line.strip().split('\t')[0])
+			for txt in sentence.txts:
+				if '□' == txt:
+					raise Exception(colored('1;31', f'□(SP): "{sentence}"'))
+				if '□' == txt[0]:
+					raise Exception(colored('1;31', f'□***: "{sentence}"'))
+
+	# Check Unknown Heads
+	with open(repo_root+'/product.txt') as fin_txt, open(repo_root+'/product.tag') as fin_tag:
+		for txt_line, tag_line in zip(fin_txt, fin_tag):
+			p_id = txt_line.strip().split('\t')[0]
+			sentence = WsWords(tag_line.strip())
+			if product_head[p_id] not in heads:
+				print(colored('1;31', f'Unknown Head ({product_head[p_id]}): {p_id} "{sentence}"'))
+
+	# Check Product Heads
+	with open(repo_root+'/product.txt') as fin_txt, open(repo_root+'/product.tag') as fin_tag:
+		for txt_line, tag_line in zip(fin_txt, fin_tag):
+			p_id = txt_line.strip().split('\t')[0]
+			sentence = WsWords(tag_line.strip())
+
+			if p_id not in product_head:
+				print(colored('1;31', f'No Head ({None}): {p_id} "{sentence}"'))
+			elif product_head[p_id] not in sentence.txts:
+				print(colored('1;31', f'No Head ({product_head[p_id]}): {p_id} "{sentence}"'))
+
+	# Check Unbinded Tags (b)
+	with open(repo_root+'/product.txt') as fin_txt, open(repo_root+'/product.tag') as fin_tag:
 		for text, line in zip(fin_txt, fin_tag):
 			p_id = text.strip().split('\t')[0]
-			sentence = WsWords(line.strip().split('\t')[0])
-			if '□' in sentence.txts:
-				raise Exception(f'□(SP): "{sentence}"')
+			sentence = WsWords(line.strip())
+			if 'b' in sentence.tags:
+				print(colored('1;31', f'Tag (b) ({product_head[p_id]}): {p_id} "{sentence}"'))
 
-			if p_id not in heads:
-				print(f'No Head ({None}): {p_id} "{sentence}"')
-			elif heads[p_id] not in sentence.txts:
-				print(f'No Head ({heads[p_id]}): {p_id} "{sentence}"')
+	# Check Unused words
+	with open(repo_root+'/infix0.lex') as fin_infix, open(repo_root+'/compound.lex') as fin_compound, \
+			open(tmp_root+'/product.tag') as fin_tag:
+
+		infix_set = set()
+		for line in fin_infix:
+			if line.strip() == '': continue
+			infix_set.add(line.strip().split('\t')[0])
+
+		compound_set = set()
+		for line in fin_compound:
+			if line.strip() == '': continue
+			compound_set.add(line.strip().split('\t')[0])
+
+		for line in fin_tag:
+			sentence = WsWords(line.strip())
+			txt_set = set(sentence.txts)
+			infix_set -= txt_set
+			compound_set -= txt_set
+
+		for txt in infix_set:
+			print(colored('1;31', f'Unused infix ({txt})'))
+		for txt in compound_set:
+			print(colored('1;31', f'Unused compound ({txt})'))
+
+	# Output Lexicon
+	if not counted_word:
+		infix_count = collections.OrderedDict()
+
+		with open(repo_root+'/infix0.lex') as fin:
+			for line in fin:
+				if line.strip() == '': continue
+				txt, tag = line.strip().split('\t')
+				if txt not in infix_count:
+					infix_count[txt] = collections.OrderedDict()
+				if tag not in infix_count[txt]:
+					infix_count[txt][tag] = 0
+
+		with open(repo_root+'/product.tag') as fin:
+			for line in fin:
+				sentence = WsWords(line.strip())
+				for txt, tag in sentence.zip2:
+					if txt in brands or txt in heads:
+						continue
+					if txt not in infix_count:
+						infix_count[txt] = collections.OrderedDict()
+					if tag not in infix_count[txt]:
+						infix_count[txt][tag] = 1
+					else:
+						infix_count[txt][tag] += 1
+
+		with open(repo_root+'/core.lex') as fin, \
+				open(repo_root+'/infix.lex', 'w') as fout_lex, open(repo_root+'/infix.txt', 'w') as fout_txt:
+			for line in fin:
+				if line.strip() == '': continue
+				txt = line.strip().split('\t')[0]
+				if txt != '□':
+					fout_txt.write(f'{txt}\n')
+
+			for txt, tag_dict in infix_count.items():
+				total = sum(tag_dict.values())
+
+				for tag, count in tag_dict.items():
+					if 'Neu' != tag:
+						fout_lex.write(f'{txt}\t{tag}\t{count}\n')
+				if total >= 2 and 'Neu' not in tag_dict:
+						fout_txt.write(f'{txt}\n')
+
+	# Word-Segment Description
+	if not segmented_descr:
+		ckipws = CkipWs(ckipws_lib, etc_root+'/for_product.ini', \
+				[repo_root+'/core.lex', repo_root+'/brand.lex', repo_root+'/head.lex', \
+					repo_root+'/infix.lex', repo_root+'/compound.lex'], \
+				[etc_root+'/compound.txt'])
+		with open(repo_root+'/product.descr') as fin, open(tmp_root+'/product.descr', 'w', encoding=None) as fout:
+			fout.write(re.sub(r'(\A|(?<=\n)).*\t', '', fin.read().strip()+'\n', flags=re.MULTILINE))
+		ckipws.ws_line(tmp_root+'/product.descr', tmp_root+'/product.descr.tag')
+		ckipws.replace(tmp_root+'/product.descr.tag', repo_root+'/product.descr.tag')
 
 	pass

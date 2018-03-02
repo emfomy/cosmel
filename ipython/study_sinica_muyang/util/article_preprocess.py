@@ -85,7 +85,8 @@ if __name__ == '__main__':
 			prune_tmp_file = prune_file.replace(prune_root, prune_tmp_root)
 			os.makedirs(os.path.dirname(prune_tmp_file), exist_ok=True)
 			printr(prune_tmp_file)
-			with open(prune_file) as fin, open(prune_tmp_file, 'w', encoding='big5') as fout:
+			# with open(prune_file) as fin, open(prune_tmp_file, 'w', encoding='big5') as fout:
+			with open(prune_file) as fin, open(prune_tmp_file, 'w', encoding=None) as fout:
 				fout.write(fin.read())
 		print()
 
@@ -95,10 +96,10 @@ if __name__ == '__main__':
 	# Segment Articles
 	if not segmented:
 		# Word Segment
-		ws = WordSegment(etc_root+'/for_article.ini', \
-				[repo_root+'/core.lex', repo_root+'/brands.lex', repo_root+'/heads.lex'], \
-				[repo_root+'/infix.lex', repo_root+'/compounds.lex'], \
-				[etc_root+'/compounds.txt'])
+		ws = CkipWs(etc_root+'/for_article.ini', \
+				[repo_root+'/core.lex', repo_root+'/brand.lex', repo_root+'/head.lex'], \
+				[repo_root+'/infix.lex', repo_root+'/compound.lex'], \
+				[etc_root+'/compound.txt'])
 
 		ws(prune_tmp_root, ws_tmp_root)
 		subprocess_call(f'unzip -q {ws_tmp_root}.zip -d {tmp_root}', shell=True)
@@ -114,7 +115,7 @@ if __name__ == '__main__':
 	if not replaced_product:
 
 		tag_dict = {}
-		with open(repo_root+'/products.lex') as fin_lex, open(repo_root+'/products.tag') as fin_tag:
+		with open(repo_root+'/product.lex') as fin_lex, open(repo_root+'/product.tag') as fin_tag:
 			for line_lex, line_tag in zip(fin_lex, fin_tag):
 				line_lex = line_lex.strip()
 				line_tag = line_tag.strip()

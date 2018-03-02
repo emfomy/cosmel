@@ -8,4 +8,4 @@ __copyright__ = 'Copyright 2017-2018'
 
 from styleme.util.core import *
 from styleme.util.word import *
-from styleme.util.ws import *
+from styleme.util.ckipws import *

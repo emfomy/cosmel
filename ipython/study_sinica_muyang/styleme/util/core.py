@@ -57,7 +57,7 @@ class PruneString():
 			(re.compile(r'[^0-9a-z\u4e00-\u9fff\n□]+'), ''), \
 			(re.compile(r'□+($|[0-9\u4e00-\u9fff\n])'), r'\1'), \
 			(re.compile(r'(\A|[0-9\u4e00-\u9fff\n])□+'), r'\1'), \
-			(re.compile(r'spf([0-9]*)pa'), r'spf\1□pa'), \
+			(re.compile(r'([0-9]*)pa($|[^a-z])'), r'\1□pa\2'), \
 			(re.compile(r'\n+'), '\n'), \
 			(re.compile(r'□+'), '□')]
 
@@ -106,6 +106,11 @@ def rm_files(root, parts=['']):
 def printr(*objects):
 	"""Print with '\\\\r'."""
 	print('\033[K'+' '.join(map(str, objects)), end='\r')
+
+
+def colored(code, string):
+	"""Color string."""
+	return f'\033[{code}m{string}\033[0m'
 
 
 def relu(x):

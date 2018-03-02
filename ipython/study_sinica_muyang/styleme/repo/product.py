@@ -105,7 +105,7 @@ class ProductSet(collections.abc.Collection):
 		self.__data = list()
 
 		tag_dict = {}
-		with open(repo_root+'/products.lex') as fin_lex, open(repo_root+'/products.tag') as fin_tag:
+		with open(repo_root+'/product.lex') as fin_lex, open(repo_root+'/product.tag') as fin_tag:
 			for line_lex, line_tag in zip(fin_lex, fin_tag):
 				line_lex = line_lex.strip()
 				line_tag = line_tag.strip()
@@ -114,7 +114,7 @@ class ProductSet(collections.abc.Collection):
 				tag_dict[line_lex.split('\t')[0]] = line_tag
 
 		descr_dict = {}
-		with open(repo_root+'/products.descr') as fin_descr, open(repo_root+'/products.descr.tag') as fin_tag:
+		with open(repo_root+'/product.descr') as fin_descr, open(repo_root+'/product.descr.tag') as fin_tag:
 			for line_descr, line_tag in zip(fin_descr, fin_tag):
 				line_descr = line_descr.strip()
 				line_tag = line_tag.strip()
@@ -123,14 +123,14 @@ class ProductSet(collections.abc.Collection):
 				descr_dict[line_descr.split('\t')[0]] = line_tag
 
 		head_dict = {}
-		with open(repo_root+'/products.head') as fin_head:
+		with open(repo_root+'/product.head') as fin_head:
 			for line in fin_head:
 				line = line.strip()
 				assert not line == ''
 				p_id, head = line.split('\t')
 				head_dict[p_id] = head
 
-		with open(repo_root+'/products.txt') as fin_txt:
+		with open(repo_root+'/product.txt') as fin_txt:
 			for line in fin_txt:
 				line = line.strip()
 				assert not line == ''

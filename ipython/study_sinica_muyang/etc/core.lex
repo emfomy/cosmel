@@ -1,14 +1,8 @@
 □	SP
+
+pa	A
 spf	A
 spf1	A
-spf2	A
-spf3	A
-spf4	A
-spf5	A
-spf6	A
-spf7	A
-spf8	A
-spf9	A
 spf10	A
 spf11	A
 spf12	A
@@ -19,6 +13,7 @@ spf16	A
 spf17	A
 spf18	A
 spf19	A
+spf2	A
 spf20	A
 spf21	A
 spf22	A
@@ -29,6 +24,7 @@ spf26	A
 spf27	A
 spf28	A
 spf29	A
+spf3	A
 spf30	A
 spf31	A
 spf32	A
@@ -39,6 +35,7 @@ spf36	A
 spf37	A
 spf38	A
 spf39	A
+spf4	A
 spf40	A
 spf41	A
 spf42	A
@@ -49,5 +46,9 @@ spf46	A
 spf47	A
 spf48	A
 spf49	A
+spf5	A
 spf50	A
-pa	A
+spf6	A
+spf7	A
+spf8	A
+spf9	A

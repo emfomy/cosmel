@@ -55,7 +55,7 @@ class BrandSet(collections.abc.Collection):
 	def __init__(self, repo_root):
 		super().__init__()
 		self.__data = list()
-		with open(repo_root+'/brands.txt') as fin:
+		with open(repo_root+'/brand.txt') as fin:
 			for line in fin:
 				line = line.strip()
 				assert not line == ''
