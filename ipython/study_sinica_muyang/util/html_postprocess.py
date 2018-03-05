@@ -35,13 +35,13 @@ if __name__ == '__main__':
 	if len(sys.argv) >= 3: parts = list(f'part-{x:05}' for x in range(int(sys.argv[2]), 128, 8))
 
 	# Map word-segmented articles to html articles
-
 	html_files = grep_files(html_root, parts=parts)
 	n = str(len(html_files))
 	for i, html_file in enumerate(html_files):
 		idx_file = transform_path(html_file, html_root, idx_root, '.idx')
 		os.makedirs(os.path.dirname(idx_file), exist_ok=True)
-		printr(f'{i+1:0{len(n)}}/{n}\t{idx_file}')
+		# printr(f'{i+1:0{len(n)}}/{n}\t{idx_file}')
+		print(f'{i+1:0{len(n)}}/{n}\t{idx_file}')
 
 		article_file = transform_path(html_file, html_root, article_root, '.role')
 		article = Article(article_file)
@@ -53,6 +53,7 @@ if __name__ == '__main__':
 				idx_line_list = []
 				for m_id, word in enumerate(line.txts):
 					chars = ''.join(word.replace('□', ''))
+					if chars == '': continue
 					char = chars[0]
 					html_idx = get_html_idx(html_data, html_idx, char)
 					html_idx0 = html_idx

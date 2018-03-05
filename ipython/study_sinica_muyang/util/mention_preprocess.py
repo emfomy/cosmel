@@ -34,7 +34,7 @@ if __name__ == '__main__':
 	repo_root     = f'{data_root}/repo'
 	tmp_root      = f'data/tmp'
 	parts         = ['']
-	# parts         = list(f'part-{x:05}' for x in range(1))
+	# parts        = list(f'part-{x:05}' for x in range(1))
 	if len(sys.argv) >= 3: parts = list(f'part-{x:05}' for x in range(int(sys.argv[2]), 128, 8))
 
 	empty_file    = tmp_root+'/empty.tmp'

@@ -45,7 +45,7 @@ if __name__ == '__main__':
 	mention_root = f'{data_root}/mention/pruned_article_role'
 	output_root  = f'{data_root}/mention/pruned_article_role_exact'
 	parts        = ['']
-	parts       = list(f'part-{x:05}' for x in range(1))
+	# parts        = list(f'part-{x:05}' for x in range(1))
 	if len(sys.argv) >= 3: parts = list(f'part-{x:05}' for x in range(int(sys.argv[2]), 128, 8))
 
 	repo   = Repo(repo_root)

@@ -1,4 +1,6 @@
+□pa□	pa(A)
 □pa	pa(A)
+pa□	pa(A)
 
 亮白面膜	亮白(VH)　面膜(Na)
 保濕乳液	保濕(VH)　乳液(Na)
