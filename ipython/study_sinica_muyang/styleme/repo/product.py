@@ -256,26 +256,37 @@ class BrandHead2ProductList(collections.abc.Mapping):
 
 	def __init__(self, product_set):
 		super().__init__()
-		self.__data = dict()
+		self.__data     = dict()
 		self.__by_brand = dict()
+		self.__by_head  = dict()
 
-		data_dict = dict()
+		data_dict     = dict()
 		by_brand_dict = dict()
+		by_head_dict  = dict()
 		for product in product_set:
 			pair = (product.brand, product.head,)
+
 			if pair not in data_dict:
 				data_dict[pair] = [product]
 			else:
 				data_dict[pair] += [product]
+
 			if product.brand not in by_brand_dict:
 				by_brand_dict[product.brand] = [product]
 			else:
 				by_brand_dict[product.brand] += [product]
 
+			if product.head not in by_head_dict:
+				by_head_dict[product.head] = [product]
+			else:
+				by_head_dict[product.head] += [product]
+
 		for pair, product_set in data_dict.items():
 			self.__data[pair] = ReadOnlyList(product_set)
 		for brand, product_set in by_brand_dict.items():
 			self.__by_brand[brand] = ReadOnlyList(product_set)
+		for head, product_set in by_head_dict.items():
+			self.__by_head[head] = ReadOnlyList(product_set)
 
 		self.__empty_collection = ReadOnlyList()
 
@@ -286,10 +297,12 @@ class BrandHead2ProductList(collections.abc.Mapping):
 			return key in self.__data
 
 	def __getitem__(self, key):
+		assert key[0] != slice(None) or key[1] != slice(None)
+		if key[0] == slice(None):
+			return self.__by_head.get(key[1], self.__empty_collection)
 		if key[1] == slice(None):
 			return self.__by_brand.get(key[0], self.__empty_collection)
-		else:
-			return self.__data.get(key, self.__empty_collection)
+		return self.__data.get(key, self.__empty_collection)
 
 	def __iter__(self):
 		return iter(self.__data)
@@ -317,13 +330,16 @@ class NameHead2ProductList(collections.abc.Sequence):
 		self.__key  = name_to_brand
 
 	def __contains__(self, key):
-		return (self.__key[key[0]], key[1]) in self.__data
+		return self.__keytransform__(key) in self.__data
 
 	def __getitem__(self, key):
-		return self.__data[self.__key[key[0]], key[1]]
+		return self.__data[self.__keytransform__(key)]
 
 	def __iter__(self):
 		return iter(self.__data.values())
 
 	def __len__(self):
 		return len(self.__data)
+
+	def __keytransform__(self, key):
+		return (self.__key[key[0]] if key[0] != slice(None) else slice(None), key[1],)

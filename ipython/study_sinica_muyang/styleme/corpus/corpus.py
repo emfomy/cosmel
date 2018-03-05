@@ -18,7 +18,6 @@ class Corpus:
 	Args:
 		article_root (str):    the path to the folder containing word segmented article files.
 		mention_root (str):    the path to the folder containing mention files.
-		repo (:class:`.Repo`): the product repository class.
 		parts (list):          the list of article/mention parts.
 
 	Notes:
@@ -26,17 +25,16 @@ class Corpus:
 		* Load all mentions from ``mention_root``/``part`` for all ``part`` in ``parts``.
 	"""
 
-	def __init__(self, article_root, mention_root, repo, parts=['']):
-		self.__article_set                = ArticleSet(article_root, parts=parts)
-		self.__id_to_article              = Id2Article(self.__article_set)
+	def __init__(self, article_root, mention_root, parts=['']):
+		self.__article_set               = ArticleSet(article_root, parts=parts)
+		self.__id_to_article             = Id2Article(self.__article_set)
 
-		self.__mention_bundle_set         = MentionBundleSet(article_root, mention_root, self.__article_set, repo)
-		self.__mention_set                = MentionSet(self.__mention_bundle_set)
-		self.__id_to_mention              = Id2Mention(self.__mention_set)
-		self.__article_to_mention_bundle  = Article2MentionBundle(self.__mention_bundle_set)
-		self.__id_to_mention_bundle       = Id2MentionBundle(self.__article_to_mention_bundle, self.__id_to_article)
-		self.__brand_head_to_mention_list = BrandHead2MentionList(self.__mention_set)
-		self.__name_head_to_mention_list  = NameHead2MentionList(self.__brand_head_to_mention_list, repo.name_to_brand)
+		self.__mention_bundle_set        = MentionBundleSet(article_root, mention_root, self.__article_set)
+		self.__mention_set               = MentionSet(self.__mention_bundle_set)
+		self.__id_to_mention             = Id2Mention(self.__mention_set)
+		self.__article_to_mention_bundle = Article2MentionBundle(self.__mention_bundle_set)
+		self.__id_to_mention_bundle      = Id2MentionBundle(self.__article_to_mention_bundle, self.__id_to_article)
+		self.__head_to_mention_list      = Head2MentionList(self.__mention_set)
 
 	@property
 	def article_set(self):
@@ -74,11 +72,6 @@ class Corpus:
 		return self.__id_to_mention_bundle
 
 	@property
-	def brand_head_to_mention_list(self):
-		""":class:`.BrandHead2MentionList`: the dictionary maps brand object and head word to mention object list."""
-		return self.__brand_head_to_mention_list
-
-	@property
-	def name_head_to_mention_list(self):
-		""":class:`.NameHead2MentionList`: the dictionary maps brand name and head word to mention object list."""
-		return self.__name_head_to_mention_list
+	def head_to_mention_list(self):
+		""":class:`.NameHead2MentionList`: the dictionary maps head word to mention object list."""
+		return self.__head_to_mention_list

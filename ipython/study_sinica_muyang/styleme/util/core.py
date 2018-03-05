@@ -102,6 +102,13 @@ def rm_files(root, parts=['']):
 		if os.path.exists(subroot):
 			shutil.rmtree(subroot)
 
+def transform_path(path, old_root, new_root, new_ext=None):
+	"""Transform path."""
+	head, tail = os.path.split(path)
+	head = head.replace(old_root, new_root)
+	if new_ext: tail = os.path.splitext(tail)[0]+new_ext
+	return f'{head}/{tail}'
+
 
 def printr(*objects):
 	"""Print with '\\\\r'."""

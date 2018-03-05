@@ -49,7 +49,7 @@ def decision_tree(mention, repo, previous_products):
 				return
 
 	# Rule 2 --- mention has leading "這" in 5 terms
-	if '這' in mention.sentence.txts[relu(mention.beginning_idx-5):mention.beginning_idx]:
+	if '這' in mention.sentence.txts[relu(mention.start_idx-5):mention.start_idx]:
 
 		# Rule 2a
 		for i, candidate in enumerate(candidates):
@@ -64,11 +64,11 @@ def decision_tree(mention, repo, previous_products):
 		return
 
 	# Rule 3 --- mention has leading "一Nf"
-	if '一' == mention.sentence.txts[relu(mention.beginning_idx-2)] and \
-			'Nf' == mention.sentence.tags[relu(mention.beginning_idx-1)]:
+	if '一' == mention.sentence.txts[relu(mention.start_idx-2)] and \
+			'Nf' == mention.sentence.tags[relu(mention.start_idx-1)]:
 		# Rule 3c
-		if '另' == mention.sentence.txts[relu(mention.beginning_idx-3)] or \
-				'另外' in mention.sentence.txts[relu(mention.beginning_idx-3)]:
+		if '另' == mention.sentence.txts[relu(mention.start_idx-3)] or \
+				'另外' in mention.sentence.txts[relu(mention.start_idx-3)]:
 			mention.set_rule('03b')
 			mention.set_p_id('OSP')
 			return
@@ -116,12 +116,12 @@ if __name__ == '__main__':
 
 	data_root    = f'data/{ver}'
 	repo_root    = f'{data_root}/repo'
-	article_root = f'{data_root}/article/prune_article_ws'
-	mention_root = f'{data_root}/mention/prune_article_ws'
-	output_root  = f'{data_root}/mention/prune_article_ws_pid'
+	article_root = f'{data_root}/article/pruned_article_ws'
+	mention_root = f'{data_root}/mention/pruned_article_ws'
+	output_root  = f'{data_root}/mention/pruned_article_ws_pid'
 	parts        = ['']
 	# parts       = list(f'part-{x:05}' for x in range(1))
-	if len(sys.argv) >= 3: parts = list(f'part-{x:05}' for x in range(128) if x % 8 == int(sys.argv[2]))
+	if len(sys.argv) >= 3: parts = list(f'part-{x:05}' for x in range(int(sys.argv[2]), 128, 8))
 
 	repo   = Repo(repo_root)
 	corpus = Corpus(article_root, mention_root, repo, parts=parts)

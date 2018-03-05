@@ -56,6 +56,9 @@ class Article(collections.abc.Sequence):
 	def __txtstr__(self):
 		return '\n'.join(map(txtstr, self.__data))
 
+	def __roledstr__(self):
+		return '\n'.join(map(roledstr, self.__data))
+
 	def __hash__(self):
 		return hash(self.a_id)
 
@@ -85,12 +88,14 @@ class ArticleSet(collections.abc.Collection):
 
 	def __init__(self, article_root, parts=['']):
 		super().__init__()
-		self.__data = [self.__article(file) for file in grep_files(article_root, parts)]
+		files = grep_files(article_root, parts)
+		n = str(len(files))
+		self.__data = [self.__article(file, i, n) for i, file in enumerate(files)]
 		print()
 
 	@classmethod
-	def __article(self, file):
-		printr(f'Reading {file}')
+	def __article(self, file, i, n):
+		printr(f'{i+1:0{len(n)}}/{n}\tReading {file}')
 		return Article(file)
 
 	def __contains__(self, item):

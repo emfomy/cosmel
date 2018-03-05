@@ -18,35 +18,38 @@ class Mention:
 	"""The mention class.
 
 	Args:
-		article       (:class:`.Article`):    the article containing this mention.
-		name_to_brand (:class:`.Name2Brand`): the dictionary maps brand name to brand object.
-		s_id          (int):                  the line index in the aritcle.
-		brand_idx     (int):                  the brand index in the sentence.
-		head_idx      (int):                  the head index in the sentence.
-		p_id          (str):                  the product ID.
-		g_id          (str):                  the golden product ID.
+		article (:class:`.Article`): the article containing this mention.
+		s_id    (int):               the sentence index in the aritcle.
+		m_id    (int):               the mention index in the sentence.
+		p_id    (str):               the product ID.
+		g_id    (str):               the golden product ID.
+		rule    (str):               the rule.
+		idxs    (slice):             the indix slice of this mention.
 	"""
 
-	def __init__(self, name_to_brand, article, s_id, brand_idx, head_idx, p_id='', g_id='', rule=''):
+	def __init__(self, article, s_id, m_id, p_id='', g_id='', rule='', start=None, end=None):
 		super().__init__()
 
-		self.__article   = article
-		self.__s_id      = int(s_id)
-		self.__brand_idx = int(brand_idx)
-		self.__head_idx  = int(head_idx)
-		self.__p_id      = p_id
-		self.__g_id      = g_id
-		self.__rule      = rule
-		self.__brand     = name_to_brand[self.b_name]
+		self.__article = article
+		self.__s_id    = int(s_id)
+		self.__m_id    = int(m_id)
+		self.__p_id    = p_id
+		self.__g_id    = g_id
+		self.__rule    = rule
+		self.__start   = start if start else self.__m_id
+		self.__end     = end   if end   else self.__m_id+1
 
 	def __str__(self):
-		return str(self.mention)
+		return f'{str(self.sentence_pre)}　[{colored("0;95", str(self.mention))}]　{str(self.sentence_post)}'
 
 	def __repr__(self):
-		return repr(self.mention)
+		return f'{repr(self.sentence_pre)}　[{colored("0;95", repr(self.mention))}]　{repr(self.sentence_post)}'
 
 	def __txtstr__(self):
-		return txtstr(self.mention)
+		return f'{txtstr(self.sentence_pre)}　[{colored("0;95", txtstr(self.mention))}]　{txtstr(self.sentence_post)}'
+
+	def __roledstr__(self):
+		return f'{roledstr(self.sentence_pre)}　[{colored("0;95", roledstr(self.mention))}]　{roledstr(self.sentence_post)}'
 
 	def __hash__(self):
 		return hash(ids)
@@ -59,7 +62,17 @@ class Mention:
 	@property
 	def sentence(self):
 		""":class:`.WsWords`: the sentence containing this mention."""
-		return self.__article[self.__s_id]
+		return self.article[self.__s_id]
+
+	@property
+	def sentence_pre(self):
+		""":class:`.WsWords`: the words before this mention in the sentence."""
+		return self.sentence[self.slice_pre]
+
+	@property
+	def sentence_post(self):
+		""":class:`.WsWords`: the words after this mention in the sentence."""
+		return self.sentence[self.slice_post]
 
 	@property
 	def mention(self):
@@ -78,38 +91,48 @@ class Mention:
 
 	@property
 	def s_id(self):
-		"""int: the sentence ID (the line index in the article)."""
+		"""int: the sentence ID (the sentence index in the article)."""
 		return self.__s_id
 
 	@property
 	def m_id(self):
-		"""int: the mention ID (= :attr:`brand_idx`)."""
-		return self.__brand_idx
+		"""int: the mention ID (the mention index in the sentence)."""
+		return self.__m_id
 
 	@property
-	def brand_idx(self):
-		"""int: the brand index in the sentence."""
-		return self.__brand_idx
+	def start_idx(self):
+		"""int: the starting index of the mention in the sentence."""
+		return self.__start
 
 	@property
-	def head_idx(self):
-		"""int: the head index in the sentence."""
-		return self.__head_idx
+	def end_idx(self):
+		"""int: the ending index of the mention in the sentence."""
+		return self.__end
 
 	@property
-	def beginning_idx(self):
-		"""int: the beginning index in the sentence (= :attr:`brand_idx`)."""
-		return self.__brand_idx
+	def last_idx(self):
+		"""int: the index of the last word of the mention in the sentence."""
+		return self.__end-1
 
 	@property
-	def ending_idx(self):
-		"""int: the ending index in the sentence (= :attr:`head_idx` +1)."""
-		return self.__head_idx+1
+	def m_id(self):
+		"""int: the mention ID (the mention index in the sentence)."""
+		return self.__m_id
 
 	@property
 	def slice(self):
-		"""slice: the mention slice index in the sention (= :attr:`beginning_idx` : :attr:`ending_idx`)."""
-		return slice(self.beginning_idx, self.ending_idx)
+		"""slice: the slice index of this mention in the sentence."""
+		return slice(self.__start, self.__end)
+
+	@property
+	def slice_pre(self):
+		"""slice: the slice index of the words before this mention in the sentence."""
+		return slice(None, self.__start)
+
+	@property
+	def slice_post(self):
+		"""slice: the slice index of the words after this mention in the sentence."""
+		return slice(self.__end, None)
 
 	@property
 	def p_id(self):
@@ -127,58 +150,33 @@ class Mention:
 		return self.__rule
 
 	@property
-	def brand(self):
-		""":class:`.Brand`: the brand."""
-		return self.__brand
-
-	@property
-	def b_name(self):
-		"""str: the brand name."""
-		return self.sentence.txts[self.__brand_idx]
-
-	@property
-	def name(self):
-		"""str: the name (excluding brand)."""
-		return txtstr(self.name_ws)
-
-	@property
 	def head(self):
 		"""str: the head word."""
-		return self.sentence.txts[self.__head_idx]
+		return self.sentence.txts[self.__m_id]
 
 	@property
-	def head_list(self):
-		"""str: the head word lists."""
-		return [self.mention.txts[i] for i, tag in enumerate(self.mention.tags) if tag == 'N_Head']
+	def head_ws(self):
+		""":class:`.WsWords`: the word-segmented head word."""
+		return self.sentence[self.__m_id]
 
 	@property
-	def name_ws(self):
-		""":class:`.WsWords`: the word-segmented name (excluding brand)."""
-		return self.sentence[self.beginning_idx+1:self.ending_idx]
-
-	@property
-	def infix_ws(self):
-		""":class:`.WsWords`: the word-segmented infix (excluding brand and head)."""
-		return self.sentence[self.beginning_idx+1:self.head_idx]
-
-	@property
-	def beginning_xml(self):
-		"""str: the beginning XML tag."""
+	def start_xml(self):
+		"""str: the starting XML tag."""
 		return f'<product pid="{self.p_id}" gid="{self.g_id}" sid="{self.s_id}" mid="{self.m_id}" rule="{self.rule}">'
 
-	def beginning_xml_(self, **kwargs):
-		"""str: the beginning XML tag with custom tags."""
-		return ' '.join([self.beginning_xml[:-1]] + [f'{key}="{kwargs[key]}"' for key in kwargs]) + '>'
+	def start_xml_(self, **kwargs):
+		"""str: the starting XML tag with custom tags."""
+		return ' '.join([self.start_xml[:-1]] + [f'{key}="{kwargs[key]}"' for key in kwargs]) + '>'
 
 	@property
-	def ending_xml(self):
+	def end_xml(self):
 		"""str: the ending XML tag."""
 		return f'</product>'
 
 	@property
 	def filestr(self):
 		"""Change to string for file."""
-		return '\t'.join([str(self.__s_id), str(self.__brand_idx), str(self.__head_idx), self.__p_id, self.__g_id, self.__rule])
+		return '\t'.join([str(self.__s_id), str(self.__m_id), self.__p_id, self.__g_id, self.__rule])
 
 	def set_p_id(self, p_id):
 		"""Sets the product ID."""
@@ -224,15 +222,13 @@ class MentionBundle(collections.abc.Sequence):
 	Args:
 		file_path (str):             the path to the mention bundle.
 		article (:class:`.Article`): the article containing this mention bundle.
-		repo    (:class:`.Repo`):    the product repository class.
 	"""
 
-	def __init__(self, file_path, article, repo):
+	def __init__(self, file_path, article):
 		super().__init__()
 
-		printr(f'Reading {file_path}')
 		with open(file_path) as fin:
-			self.__data = [Mention(repo.name_to_brand, article, *tuple(line.strip().split('\t'))) for line in fin]
+			self.__data = [Mention(article, *tuple(line.strip().split('\t'))) for line in fin]
 
 		self.__article = article
 		self.__path    = file_path
@@ -291,19 +287,20 @@ class MentionBundleSet(collections.abc.Collection):
 		article_root (str):                 the path to the folder containing word segmented article files.
 		mention_root (str):                 the path to the folder containing mention files.
 		article_set (:class:`.ArticleSet`): the set of articles.
-		repo        (:class:`.Repo`):       the product repository class.
 	"""
 
-	def __init__(self, article_root, mention_root, article_set, repo):
+	def __init__(self, article_root, mention_root, article_set):
 		super().__init__()
-		self.__data = [self._mention_bundle(article, article_root, mention_root, repo) for article in article_set]
+		n = str(len(article_set))
+		self.__data = [self.__mention_bundle(article, article_root, mention_root, i, n) for i, article in enumerate(article_set)]
 		self.__path = mention_root
 		print()
 
 	@staticmethod
-	def _mention_bundle(article, article_root, mention_root, repo):
-		file_path = article.path.replace(article_root, mention_root)+'.mention'
-		return MentionBundle(file_path, article, repo)
+	def __mention_bundle(article, article_root, mention_root, i, n):
+		file_path = transform_path(article.path, article_root, mention_root, '.mention')
+		printr(f'{i+1:0{len(n)}}/{n}\tReading {file_path}')
+		return MentionBundle(file_path, article)
 
 	def __contains__(self, item):
 		return item in self.__data
@@ -377,7 +374,7 @@ class Article2MentionBundle(collections.abc.Mapping):
 		return len(self.__data)
 
 
-class Id2MentionBundle(collections.abc.Sequence):
+class Id2MentionBundle(collections.abc.Mapping):
 	"""The dictionary maps article ID to mention bundle.
 
 	* Key:  the article ID (str).
@@ -400,16 +397,16 @@ class Id2MentionBundle(collections.abc.Sequence):
 		return self.__data[self.__key[key]]
 
 	def __iter__(self):
-		return iter(self.__data.values())
+		return iter(self.__key.keys())
 
 	def __len__(self):
 		return len(self.__data)
 
 
-class BrandHead2MentionList(collections.abc.Mapping):
-	"""The dictionary maps brand object and head word to mention object list.
+class Head2MentionList(collections.abc.Mapping):
+	"""The dictionary maps head word to mention object list.
 
-	* Key:  tuple of brand object (:class:`.Brand`) and mention head word (str).
+	* Key:  mention head word (str).
 	* Item: :class:`.ReadOnlyList` of mention object (:class:`.Mention`).
 
 	Args:
@@ -422,14 +419,13 @@ class BrandHead2MentionList(collections.abc.Mapping):
 
 		mention_dict = dict()
 		for mention in mention_set:
-			pair = (mention.brand, mention.head,)
-			if pair not in mention_dict:
-				mention_dict[pair] = [mention]
+			if mention.head not in mention_dict:
+				mention_dict[mention.head] = [mention]
 			else:
-				mention_dict[pair] += [mention]
+				mention_dict[mention.head] += [mention]
 
-		for pair, mention_set in mention_dict.items():
-			self.__data[pair] = ReadOnlyList(mention_set)
+		for head, mention_set in mention_dict.items():
+			self.__data[head] = ReadOnlyList(mention_set)
 
 		self.__empty_collection = ReadOnlyList()
 
@@ -444,35 +440,3 @@ class BrandHead2MentionList(collections.abc.Mapping):
 
 	def __len__(self):
 		return len(self.__data)
-
-
-class NameHead2MentionList(collections.abc.Sequence):
-	"""The dictionary maps brand name and head word to mention object list.
-
-	* Key:  tuple of brand name (str) and mention head word (str).
-	* Item: :class:`.ReadOnlyList` of mention object (:class:`.Mention`).
-
-	Args:
-		brand_head_to_mention_list (:class:`.BrandHead2Mentionlist`):
-			the dictionary maps brand object and head word to mention object list.
-		name_to_brand              (:class:`.Name2Brand`):
-			the dictionary maps name and brand.
-	"""
-
-	def __init__(self, brand_head_to_mention_list, name_to_brand):
-		super().__init__()
-		self.__data = brand_head_to_mention_list
-		self.__key  = name_to_brand
-
-	def __contains__(self, key):
-		return (self.__key[key[0]], key[1]) in self.__data
-
-	def __getitem__(self, key):
-		return self.__data[self.__key[key[0]], key[1]]
-
-	def __iter__(self):
-		return iter(self.__data.values())
-
-	def __len__(self):
-		return len(self.__data)
-

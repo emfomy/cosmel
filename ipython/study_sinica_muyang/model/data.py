@@ -75,12 +75,12 @@ class RawData(Data):
 						itertools.chain.from_iterable( \
 								s.txts for s in mention.article[max(mention.s_id-RawData.max_num_sentences, 0):mention.s_id] \
 						), \
-						mention.sentence.txts[:mention.ending_idx] \
+						mention.sentence.txts[:mention.end_idx] \
 				)) for mention in mention_list \
 		]
 		self.post = [ \
 				' '.join(itertools.chain( \
-						mention.sentence.txts[mention.beginning_idx:], \
+						mention.sentence.txts[mention.start_idx:], \
 						itertools.chain.from_iterable( \
 								s.txts for s in mention.article[mention.s_id+1:mention.s_id+1+RawData.max_num_sentences] \
 						) \
@@ -119,12 +119,12 @@ if __name__ == '__main__':
 
 	data_root    = f'data/{ver}'
 	repo_root    = f'{data_root}/repo'
-	article_root = f'{data_root}/article/prune_article_ws'
-	mention_root = f'{data_root}/mention/prune_article_ws_pid'
+	article_root = f'{data_root}/article/pruned_article_ws'
+	mention_root = f'{data_root}/mention/pruned_article_ws_pid'
 	model_root   = f'{data_root}/model'
 	parts        = ['']
 	# parts        = list(f'part-{x:05}' for x in range(1))
-	emb_file     = f'{data_root}/embedding/prune_article_ws.dim300.emb.bin'
+	emb_file     = f'{data_root}/embedding/pruned_article_ws.dim300.emb.bin'
 	data_file    = f'{model_root}/data.h5'
 	init_file    = f'{model_root}/init.h5'
 

@@ -15,7 +15,7 @@ from styleme import *
 
 def get_html_idx(html_data, html_idx, word):
 	try:
-		return html_data[html_idx:].index(word)+html_idx
+		return html_data[(html_idx+1):].index(word)+(html_idx+1)
 	except ValueError:
 		return html_idx
 
@@ -25,22 +25,25 @@ if __name__ == '__main__':
 	ver = sys.argv[1]
 
 
-	target       = f'prune_article_ws'
+	target       = f'pruned_article_role'
 	data_root    = f'data/{ver}'
 	article_root = f'{data_root}/article/{target}'
 	html_root    = f'{data_root}/html/html_article_notag'
-	idx_path     = f'{data_root}/html/{target}_idx'
+	idx_root     = f'{data_root}/html/{target}_idx'
 	parts        = ['']
 	# parts        = list(f'part-{x:05}' for x in range(1))
-	if len(sys.argv) >= 3: parts = list(f'part-{x:05}' for x in range(128) if x % 8 == int(sys.argv[2]))
+	if len(sys.argv) >= 3: parts = list(f'part-{x:05}' for x in range(int(sys.argv[2]), 128, 8))
 
 	# Map word-segmented articles to html articles
-	for html_file in grep_files(html_root, parts):
-		idx_file     = html_file.replace(html_root, idx_path).replace('.html', '.txt.tag')
-		os.makedirs(os.path.dirname(idx_file), exist_ok=True)
-		printr(idx_file)
 
-		article_file = html_file.replace(html_root, article_root).replace('.html', '.txt.tag')
+	html_files = grep_files(html_root, parts=parts)
+	n = str(len(html_files))
+	for i, html_file in enumerate(html_files):
+		idx_file = transform_path(html_file, html_root, idx_root, '.idx')
+		os.makedirs(os.path.dirname(idx_file), exist_ok=True)
+		printr(f'{i+1:0{len(n)}}/{n}\t{idx_file}')
+
+		article_file = transform_path(html_file, html_root, article_root, '.role')
 		article = Article(article_file)
 
 		with open(html_file) as fin, open(idx_file, 'w') as fout:

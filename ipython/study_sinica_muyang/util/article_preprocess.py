@@ -29,27 +29,29 @@ if __name__ == '__main__':
 	assert len(sys.argv) >= 2
 	ver = sys.argv[1]
 
-	pruned           = True
-	copied_files     = True
-	segmented        = False
-	replaced_product = False
+	pruned         = True
+	segmented      = False
+	replaced_brand = False
+	added_role     = False
 
 	etc_root     = f'etc'
 	data_root    = f'data/{ver}'
-	article_root = f'{data_root}/article'
 	repo_root    = f'{data_root}/repo'
+	article_root = f'{data_root}/article'
 	tmp_root     = f'data/tmp'
 	parts        = ['']
 	# parts        = list(f'part-{x:05}' for x in range(1))
-	if len(sys.argv) >= 3: parts = list(f'part-{x:05}' for x in range(128) if x % 8 == int(sys.argv[2]))
+	if len(sys.argv) >= 3: parts = list(f'part-{x:05}' for x in range(int(sys.argv[2]), 128, 8))
 
 	orig_root  = f'{article_root}/original_article'
-	prune_root = f'{article_root}/prune_article'
-	ws_root    = f'{article_root}/prune_article_ws'
+	prune_root = f'{article_root}/pruned_article'
+	ws_root    = f'{article_root}/pruned_article_ws'
+	role_root  = f'{article_root}/pruned_article_role'
 
-	prune_tmp_root = f'{tmp_root}/prune_article'
-	ws_tmp_root    = f'{tmp_root}/prune_article_ws'
-	ws_re_tmp_root = f'{tmp_root}/prune_article_ws_re'
+	ws_tmp_root    = f'{tmp_root}/pruned_article_ws'
+	ws_re_tmp_root = f'{tmp_root}/pruned_article_ws_re'
+
+	ckipws_lib = 'libWordSeg.so'
 
 	# Prune Articles
 	if not pruned:
@@ -57,87 +59,90 @@ if __name__ == '__main__':
 		# Compile Regex Driver
 		re_url     = re.compile(r'(?:http[s]?:)?//(?:[a-z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+')
 		re_script  = re.compile(r'<script(?:.|\s)*</script>')
-		re_variant = ReplaceVariant()
+		# re_variant = ReplaceVariant()
 
-		for orig_file in grep_files(orig_root, parts=parts):
-			prune_file = orig_file.replace(orig_root, prune_root)
+		orig_files = grep_files(orig_root, parts=parts)
+		n = str(len(orig_files))
+		for i, orig_file in enumerate(orig_files):
+			prune_file = transform_path(orig_file, orig_root, prune_root)
 			os.makedirs(os.path.dirname(prune_file), exist_ok=True)
-			printr(prune_file)
+			printr(f'{i+1:0{len(n)}}/{n}\t{prune_file}')
 			with open(orig_file) as fin, open(prune_file, 'w') as fout:
 				lines = fin.read()
 				lines = re_url.sub('', lines)
 				lines = re_script.sub('', lines)
-				lines = re_variant.sub(lines)
+				# lines = re_variant.sub(lines)
 				lines = prune_string(lines+'\n')
 				fout.write(lines.strip()+'\n')
 		print()
 
-	# Copy Temp Files
-	if not copied_files:
-
-		# Remove Temp Files
-		rm_files(prune_tmp_root, parts=parts)
-		rm_files(ws_tmp_root, parts=parts)
-		rm_files(ws_re_tmp_root, parts=parts)
-
-		# Copy Files
-		for prune_file in grep_files(prune_root, parts=parts):
-			prune_tmp_file = prune_file.replace(prune_root, prune_tmp_root)
-			os.makedirs(os.path.dirname(prune_tmp_file), exist_ok=True)
-			printr(prune_tmp_file)
-			# with open(prune_file) as fin, open(prune_tmp_file, 'w', encoding='big5') as fout:
-			with open(prune_file) as fin, open(prune_tmp_file, 'w', encoding=None) as fout:
-				fout.write(fin.read())
-		print()
-
-		rel_tmp_root = os.path.relpath(prune_tmp_root, tmp_root)
-		subprocess_call(f'cd {tmp_root} && rm -f {rel_tmp_root}.zip && zip -q -r {rel_tmp_root}.zip {rel_tmp_root}/*', shell=True)
-
-	# Segment Articles
+	# Word-Segment Articles
 	if not segmented:
-		# Word Segment
-		ws = CkipWs(etc_root+'/for_article.ini', \
-				[repo_root+'/core.lex', repo_root+'/brand.lex', repo_root+'/head.lex'], \
-				[repo_root+'/infix.lex', repo_root+'/compound.lex'], \
+
+		ckipws = CkipWs(ckipws_lib, etc_root+'/for_article.ini', \
+				[repo_root+'/core.lex', repo_root+'/brand.lex', repo_root+'/head.lex', \
+					repo_root+'/infix.lex', repo_root+'/compound.lex'], \
 				[etc_root+'/compound.txt'])
 
-		ws(prune_tmp_root, ws_tmp_root)
-		subprocess_call(f'unzip -q {ws_tmp_root}.zip -d {tmp_root}', shell=True)
-
-		# Replace post-tags
-		for ws_tmp_file in grep_files(ws_tmp_root, parts=parts):
-			ws_re_tmp_file = ws_tmp_file.replace(ws_tmp_root, ws_re_tmp_root)
+		prune_files = grep_files(prune_root, parts=parts)
+		n = str(len(prune_files))
+		for i, prune_file in enumerate(prune_files):
+			ws_tmp_file    = transform_path(prune_file, prune_root, ws_tmp_root, '.tag')
+			ws_re_tmp_file = transform_path(prune_file, prune_root, ws_re_tmp_root, '.tag')
+			os.makedirs(os.path.dirname(ws_tmp_file),    exist_ok=True)
 			os.makedirs(os.path.dirname(ws_re_tmp_file), exist_ok=True)
-			printr(ws_re_tmp_file)
-			ws.replace(ws_tmp_file, ws_re_tmp_file, verbose=False)
+			printr(f'{i+1:0{len(n)}}/{n}\t{ws_re_tmp_file}')
+			# ckipws.ws_file(prune_file, ws_tmp_file, verbose=False)
+			ckipws.ws_line(prune_file, ws_tmp_file, verbose=False)
+			ckipws.replace(ws_tmp_file, ws_re_tmp_file, verbose=False)
 		print()
 
-	if not replaced_product:
+	# Replace Brand
+	if not replaced_brand:
 
-		tag_dict = {}
-		with open(repo_root+'/product.lex') as fin_lex, open(repo_root+'/product.tag') as fin_tag:
-			for line_lex, line_tag in zip(fin_lex, fin_tag):
-				line_lex = line_lex.strip()
-				line_tag = line_tag.strip()
-				assert not line_lex == ''
-				assert not line_tag == ''
-				tag_dict[line_lex.split('\t')[0]] = line_tag
+		repo     = Repo(repo_root)
+		articles = ArticleSet(ws_re_tmp_root, parts=parts)
 
-		regexes = []
-		for lex, tag in tag_dict.items():
-			regexes.append((re.compile(rf'(\A|(?<=\n|　)){lex}\(N_Product\)'), tag, lex))
+		n = str(len(articles))
+		for i, article in enumerate(articles):
 
-		# Replace N_Product
-		for ws_re_tmp_file in grep_files(ws_re_tmp_root, parts=parts):
-			ws_file = ws_re_tmp_file.replace(ws_re_tmp_root, ws_root)
+			# Replace role article to file
+			for line in article:
+				for m_id, txt in enumerate(line.txts):
+					if txt in repo.name_to_brand: line.tags[m_id] = 'Nb'
+
+			# Write article to file
+			ws_file = transform_path(article.path, ws_re_tmp_root, ws_root)
 			os.makedirs(os.path.dirname(ws_file), exist_ok=True)
-			printr(ws_file)
-			with open(ws_re_tmp_file) as fin, open(ws_file, 'w') as fout:
-				lines = fin.read()
-				for regex in regexes:
-					# printr(regex[2])
-					lines = regex[0].sub(regex[1], lines)
-				fout.write(lines)
+			printr(f'{i+1:0{len(n)}}/{n}\t{ws_file}')
+			with open(ws_file, 'w') as fout:
+				fout.write(str(article)+'\n')
+
+		print()
+
+	# Add Role
+	if not added_role:
+
+		repo     = Repo(repo_root)
+		articles = ArticleSet(ws_root, parts=parts)
+
+		n = str(len(articles))
+		for i, article in enumerate(articles):
+
+			# Replace role article to file
+			for line in article:
+				for m_id, txt in enumerate(line.txts):
+					if   txt in repo.name_to_brand: line.roles[m_id] = 'Brand'
+					elif txt in repo.head_set:      line.roles[m_id] = 'Head'
+					elif txt in repo.infix_set:     line.roles[m_id] = 'Infix'
+
+			# Write article to file
+			role_file = transform_path(article.path, ws_root, role_root, '.role')
+			os.makedirs(os.path.dirname(role_file), exist_ok=True)
+			printr(f'{i+1:0{len(n)}}/{n}\t{role_file}')
+			with open(role_file, 'w') as fout:
+				fout.write(roledstr(article)+'\n')
+
 		print()
 
 	pass

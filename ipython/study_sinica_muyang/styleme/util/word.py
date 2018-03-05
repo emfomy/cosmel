@@ -26,9 +26,9 @@ class WsWords(collections.abc.Sequence):
 
 	def __init__(self, chars):
 		chars_seg = [self.__split(w) for w in chars.strip().split('　') if not w == '']
-		self.__txts  = list(w[0] for w in chars_seg)
-		self.__tags  = list(w[1] for w in chars_seg)
-		self.__roles = list(w[2] for w in chars_seg)
+		self.__txts  = [w[0] for w in chars_seg]
+		self.__tags  = [w[1] for w in chars_seg]
+		self.__roles = [w[2] for w in chars_seg]
 
 	def index(self, word, *args):
 		"""int -- returns the index of the first word.
@@ -48,8 +48,9 @@ class WsWords(collections.abc.Sequence):
 
 	def __getitem__(self, idxs):
 		retval = WsWords('')
-		retval.__txts = self.__txts[idxs]
-		retval.__tags = self.__tags[idxs]
+		retval.__txts  = self.__txts[idxs]
+		retval.__tags  = self.__tags[idxs]
+		retval.__roles = self.__roles[idxs]
 		return retval
 
 	def __len__(self):
@@ -59,10 +60,13 @@ class WsWords(collections.abc.Sequence):
 		return '　'.join([f'{txt}({tag})' for txt, tag in self.zip2])
 
 	def __repr__(self):
-		return '　'.join([f'{txt}({tag}){role}' for txt, tag, role in self.zip3])
+		return str(self)
 
 	def __txtstr__(self):
 		return ''.join(self.__txts)
+
+	def __roledstr__(self):
+		return '　'.join([f'{txt}({tag}){role}' for txt, tag, role in self.zip3])
 
 	@property
 	def txts(self):
@@ -97,3 +101,7 @@ class WsWords(collections.abc.Sequence):
 def txtstr(obj):
 	"""str -- return the string of texts (obj.txts)"""
 	return obj.__txtstr__()
+
+def roledstr(obj):
+	"""str -- return the string with role (obj.roles)"""
+	return obj.__roledstr__()

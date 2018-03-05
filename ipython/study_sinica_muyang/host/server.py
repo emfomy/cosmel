@@ -20,8 +20,6 @@ import os
 import time
 import operator
 
-import sys
-sys.path.append('..')
 from styleme import *
 
 app = Flask(__name__)
@@ -50,9 +48,10 @@ def index_route():
 			if act == 'next': idx += 1
 		except ValueError:
 			idx = 0
-		aid = files[part][idx] if 0 <= idx < len(files) else None
-		act = None
-		do_redirect = True
+		finally:
+			aid = files[part][idx] if 0 <= idx < len(files[part]) else None
+			act = None
+			do_redirect = True
 
 	if do_redirect:
 		args = dict()
@@ -66,7 +65,7 @@ def index_route():
 		file = f'json/{part}/{aid}.json'
 		with open(file) as fin:
 			for line in sorted([json.loads(line) for line in fin], key=operator.itemgetter('time')):
-				json_data[f'''{line['sid']}-{line['mid']}'''] = line['gid']
+				json_data[f'{line["sid"]}-{line["mid"]}'] = line['gid']
 	except Exception as e:
 		print(e)
 		pass
@@ -76,11 +75,10 @@ def index_route():
 def product_route():
 	global repo
 	pid   = request.args.get('pid')
-	brand = request.args.get('brand')
-	head  = request.args.get('head', default=slice(None))
+	brand = request.args.get('brand', default=slice(None))
+	head  = request.args.get('head',  default=slice(None))
 	if pid:   return '<br>'.join(str(repo.id_to_product.get(p, f'{p} [KeyError]')) for p in pid.split(','))
-	if brand: return '<br>'.join(map(str, repo.name_head_to_product_list[brand, head]))
-	return ''
+	else:     return '<br>'.join(map(str, repo.name_head_to_product_list[brand, head]))
 
 @app.route('/article/<path:path>')
 def article_route(path):

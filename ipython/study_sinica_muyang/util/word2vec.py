@@ -18,7 +18,7 @@ if __name__ == '__main__':
 	ver = sys.argv[1]
 
 	data_root    = f'data/{ver}'
-	target       = f'prune_article_ws'
+	target       = f'pruned_article_ws'
 	article_root = f'{data_root}/article/{target}'
 	txt_file     = f'{data_root}/embedding/{target}.txt'
 	emb_file     = f'{data_root}/embedding/{target}.dim300.emb.bin'

@@ -62,7 +62,7 @@
 				<form class="form-inline" method="GET">
 					<a href="?part={{ part }}&aid={{ aid }}&act=prev">Prev</a>
 					<select id="part" name="part" class="selectpicker form-control">
-						{% for p in files.keys() %}
+						{% for p in files %}
 							{% if p == part %}
 								<option value="{{ p }}" selected>{{ p }}</option>
 							{% else %}
@@ -84,6 +84,7 @@
 					<a href="?part={{ part }}&aid={{ aid }}&act=next">Next</a>
 				</form>
 				<a href="/repo/product?brand=sk2" target="_blank">/repo/product?brand=sk2</a>
+				<a href="/repo/product?head=面膜" target="_blank">/repo/product?head=面膜</a>
 				<a href="/repo/product?brand=sk2&head=面膜" target="_blank">/repo/product?brand=sk2&amp;head=面膜</a>
 				<a href="/repo/product?pid=8,11" target="_blank">/repo/product?pid=8,11</a>
 			</center>

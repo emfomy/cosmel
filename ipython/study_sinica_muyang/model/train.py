@@ -35,7 +35,7 @@ if __name__ == '__main__':
 	use_desc   = True
 
 	data_root    = f'data/{ver}'
-	emb_file     = f'{data_root}/embedding/prune_article_ws.dim300.emb.bin'
+	emb_file     = f'{data_root}/embedding/pruned_article_ws.dim300.emb.bin'
 	model_root   = f'{data_root}/model'
 	data_file    = f'{model_root}/data.h5'
 	train_file   = f'{model_root}/train.json'

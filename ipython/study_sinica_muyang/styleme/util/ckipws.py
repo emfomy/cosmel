@@ -17,36 +17,43 @@ from styleme.util.core import *
 class PyWordSeg():
 
 	def __init__(self, lib_file, ini_file):
-		self.lib = ctypes.cdll.LoadLibrary(lib_file)
-		self.lib.WordSeg_InitData.restype = ctypes.c_bool
-		self.lib.WordSeg_ApplyList.restype = ctypes.c_bool
-		self.lib.WordSeg_GetResultBegin.restype = ctypes.c_wchar_p
-		self.lib.WordSeg_GetResultNext.restype = ctypes.c_wchar_p
-		self.obj = self.lib.WordSeg_New()
-		ret = self.lib.WordSeg_InitData(self.obj, ini_file.encode('utf-8'))
+		self.__lib = ctypes.cdll.LoadLibrary(lib_file)
+		self.__obj = self.__lib.WordSeg_New()
+		self.__lib.WordSeg_InitData.restype=ctypes.c_bool
+		self.__lib.WordSeg_ApplyFile.restype=ctypes.c_bool
+		self.__lib.WordSeg_ApplyList.restype=ctypes.c_bool
+		self.__lib.WordSeg_ApplyArticle.restype=ctypes.c_bool
+		self.__lib.WordSeg_GetResultBegin.restype=ctypes.c_wchar_p
+		self.__lib.WordSeg_GetResultNext.restype=ctypes.c_wchar_p
+		self.__lib.WordSeg_GetUWBegin.restype=ctypes.c_wchar_p
+		self.__lib.WordSeg_GetUWNext.restype=ctypes.c_wchar_p
+		ret = self.__lib.WordSeg_InitData(self.__obj, ini_file.encode('utf-8'))
 		if not ret:
 			raise IOError(f'Loading {ini_file} failed.')
 
 	def __del__(self):
-		self.lib.WordSeg_Destroy(self.obj)
+		self.__lib.WordSeg_Destroy(self.__obj)
 
 	def EnableLogger(self):
-		self.lib.WordSeg_EnableConsoleLogger(self.obj)
+		self.__lib.WordSeg_EnableConsoleLogger(self.__obj)
 
-	def ApplyList(self, input_list):
+	def ApplyFile(self, input_file, output_file):
+		self.__lib.WordSeg_ApplyFile(self.__obj, input_file.encode('utf-8'), output_file.encode('utf-8'), None)
+
+	def ApplyArticle(self, input_list):
 		if len(input_list) == 0:
 			return []
 		in_arr = (ctypes.c_wchar_p * len(input_list))()
 		in_arr[:] = input_list
-		ret = self.lib.WordSeg_ApplyList(self.obj, len(input_list), in_arr)
+		ret = self.__lib.WordSeg_ApplyArticle(self.__obj, len(input_list), in_arr)
 		if ret == None:
 			return []
 
 		output_list = []
-		out = self.lib.WordSeg_GetResultBegin(self.obj)
+		out = self.__lib.WordSeg_GetResultBegin(self.__obj)
 		while out != None:
 			output_list.append(out)
-			out = self.lib.WordSeg_GetResultNext(self.obj)
+			out = self.__lib.WordSeg_GetResultNext(self.__obj)
 		return output_list
 
 
@@ -54,10 +61,22 @@ class CkipWsCore():
 	"""The word segmentation driver core."""
 
 	def __init__(self, lib_file, ini_file):
-		self.__data = PyWordSeg(lib_file, ini_file)
+		self.__lib_file = lib_file
+		self.__ini_file = ini_file
+		self.__data = PyWordSeg(self.__lib_file, self.__ini_file)
 
-	def __call__(self, sentences):
-		return self.__data.ApplyList(sentences)
+	def reload(self):
+		del self.__data
+		self.__data = PyWordSeg(self.__lib_file, self.__ini_file)
+
+	def apply_file(self, input_file, output_file):
+		return self.__data.ApplyFile(input_file, output_file)
+
+	def apply_article(self, sentences):
+		return self.__data.ApplyArticle(sentences)
+
+	def enable_logger(self):
+		return self.__data.EnableLogger()
 
 
 class CkipWs():
@@ -95,20 +114,27 @@ class CkipWs():
 
 		self.__ini_file = ini_file
 
-	def ws(self, input_file, output_file):
-		print(f'Processing Word Segment on {input_file} to {output_file}')
-		with open(input_file) as fin, open(output_file, 'w') as fout:
-			fout.write('\n'.join(self.__core(fin.readlines())))
+	def ws_file(self, input_file, output_file, verbose=True):
+		if verbose: print(f'Processing Word Segment on {input_file} to {output_file}')
+		self.__core.apply_file(input_file, output_file)
+		self.__core.reload()
 
-	def ws_line(self, input_file, output_file):
-		print(f'Processing Word Segment on {input_file} to {output_file}')
+	def ws_list(self, input_file, output_file, verbose=True):
+		if verbose: print(f'Processing Word Segment on {input_file} to {output_file}')
+		with open(input_file) as fin, open(output_file, 'w') as fout:
+			fout.write('\n'.join(self.__core.apply_article(fin.readlines())))
+		self.__core.reload()
+
+	def ws_line(self, input_file, output_file, verbose=True):
+		if verbose: print(f'Processing Word Segment on {input_file} to {output_file}')
 		with open(input_file) as fin, open(output_file, 'w') as fout:
 			lines = fin.readlines()
-			n = len(lines)
+			n = str(len(lines))
 			for i, line in enumerate(lines):
-				printr(f'{i}/{n}')
-				fout.write(self.__core([line])[0]+'\n')
-		print()
+				if verbose: printr(f'{i+1:0{len(n)}}/{n}')
+				fout.write('　'.join(self.__core.apply_article([line[i:i+80] for i in range(0, len(line), 80)]))+'\n')
+		if verbose: print()
+		self.__core.reload()
 
 	def replace(self, input_file, output_file, input_encoding=None, output_encoding=None, verbose=True):
 		with open(input_file, encoding=input_encoding) as fin, open(output_file, 'w', encoding=output_encoding) as fout:

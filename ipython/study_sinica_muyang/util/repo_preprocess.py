@@ -251,7 +251,7 @@ def load_csv(csv_path):
 					'測試' in row['品牌'] or '測試' in row['中文品名'] or \
 					'test' in row['品牌'].lower() or 'test' in row['中文品名'].lower() or \
 					not check_contain_chinese(row['中文品名']):
-				printr(f'''Skip product {row['編號']}''')
+				printr(f'Skip product {row["編號"]}')
 				continue
 
 			data.append(RawData(row))
@@ -388,7 +388,7 @@ if __name__ == '__main__':
 				[etc_root+'/compound.txt'])
 		with open(repo_root+'/product.lex') as fin, open(tmp_root+'/product.lex', 'w', encoding=None) as fout:
 			fout.write(re.sub(r'\t.*', '', fin.read().strip()+'\n', flags=re.MULTILINE))
-		ckipws.ws(tmp_root+'/product.lex', tmp_root+'/product.tag')
+		ckipws.ws_file(tmp_root+'/product.lex', tmp_root+'/product.tag')
 		ckipws.replace(tmp_root+'/product.tag', repo_root+'/product.tag')
 
 	if not copied_product_head:
@@ -513,7 +513,7 @@ if __name__ == '__main__':
 
 	# Word-Segment Description
 	if not segmented_descr:
-		ckipws = CkipWs(ckipws_lib, etc_root+'/for_product.ini', \
+		ckipws = CkipWs(ckipws_lib, etc_root+'/for_article.ini', \
 				[repo_root+'/core.lex', repo_root+'/brand.lex', repo_root+'/head.lex', \
 					repo_root+'/infix.lex', repo_root+'/compound.lex'], \
 				[etc_root+'/compound.txt'])
