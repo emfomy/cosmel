@@ -23,7 +23,7 @@ if __name__ == '__main__':
 	ver = sys.argv[1]
 
 	greped_mention   = False
-	written_sentence = False
+	written_sentence = True
 
 	data_root     = f'data/{ver}'
 	target        = f'pruned_article_role'

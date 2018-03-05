@@ -24,7 +24,7 @@ if __name__ == '__main__':
 	assert len(sys.argv) >= 2
 	ver = sys.argv[1]
 
-	target       = f'pruned_article_ws_pid'
+	target       = f'pruned_article_role'
 	data_root    = f'data/{ver}'
 	repo_root    = f'{data_root}/repo'
 	article_root = f'{data_root}/article/pruned_article_ws'
@@ -35,8 +35,7 @@ if __name__ == '__main__':
 	if len(sys.argv) >= 3: parts = list(f'part-{x:05}' for x in range(int(sys.argv[2]), 128, 8))
 
 	# Load StyleMe repository and corpus
-	repo   = Repo(repo_root)
-	corpus = Corpus(article_root, mention_root, repo, parts=parts)
+	corpus = Corpus(article_root, mention_root, parts=parts)
 
 	# Extract html from json
 	n = str(len(corpus.mention_bundle_set))
@@ -48,8 +47,8 @@ if __name__ == '__main__':
 		with open(xml_file, 'w') as fout:
 			for mention in bundle:
 				article[mention.s_id].txts[mention.start_idx] = add_start_xml(article[mention.s_id].txts[mention.start_idx], mention)
-				article[mention.s_id].txts[mention.last_idx]  = add_end_xml(article[mention.s_id].txts[mention.last_idx], mention)
-			fout.write(txtstr(article))
+				article[mention.s_id].roles[mention.last_idx] = add_end_xml(article[mention.s_id].roles[mention.last_idx], mention)
+			fout.write(roledstr(article))
 	print()
 
 	pass

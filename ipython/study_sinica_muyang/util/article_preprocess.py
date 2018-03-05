@@ -24,12 +24,34 @@ class ReplaceVariant():
 		return chars.encode('big5', errors='ignore').decode('big5')
 
 
+class SegmentPunctuation():
+
+	__regexes = [ \
+			(re.compile(r'[^\S\n]+([.,!?。，！？])'), r'\1'), \
+			(re.compile(r'([.,!?。，！？])[^\S\n]+'), r'\1'), \
+			(re.compile(r'([^\u4e00-\u9fff])[.。]'), r'\1'), \
+			(re.compile(r'[.。]([^\u4e00-\u9fff])'), r'\1'), \
+			(re.compile(r'[.]{2,}'), ''), \
+			(re.compile(r'[。]{2,}'), ''), \
+			(re.compile(r'[.,!?。，！？]+'), '\n')]
+
+	def __init__(self):
+		raise Exception
+
+	@classmethod
+	def sub(self, chars):
+		chars = chars.lower()
+		for regex in self.__regexes:
+			chars = regex[0].sub(regex[1], chars)
+		return chars
+
+
 if __name__ == '__main__':
 
 	assert len(sys.argv) >= 2
 	ver = sys.argv[1]
 
-	pruned         = True
+	pruned         = False
 	segmented      = False
 	replaced_brand = False
 	added_role     = False
@@ -72,6 +94,7 @@ if __name__ == '__main__':
 				lines = re_url.sub('', lines)
 				lines = re_script.sub('', lines)
 				# lines = re_variant.sub(lines)
+				lines = SegmentPunctuation.sub(lines)
 				lines = prune_string(lines+'\n')
 				fout.write(lines.strip()+'\n')
 		print()

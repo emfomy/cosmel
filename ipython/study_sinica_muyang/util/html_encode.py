@@ -26,13 +26,15 @@ if __name__ == '__main__':
 	ver = sys.argv[1]
 
 	target       = f'pruned_article_role'
+	target_ver   = f'_pid'
+	target_ver   = f'_exact'
 	data_root    = f'data/{ver}'
 	repo_root    = f'{data_root}/repo'
 	idx_root     = f'{data_root}/html/pruned_article_role_idx'
-	article_root = f'{data_root}/article/pruned_article_role'
-	mention_root = f'{data_root}/mention/{target}'
+	article_root = f'{data_root}/article/{target}'
+	mention_root = f'{data_root}/mention/{target}{target_ver}'
 	html_root    = f'{data_root}/html/html_article'
-	output_root  = f'{data_root}/html/{target}'
+	output_root  = f'{data_root}/html/{target}{target_ver}'
 	parts        = ['']
 	# parts        = list(f'part-{x:05}' for x in range(1))
 	if len(sys.argv) >= 3: parts = list(f'part-{x:05}' for x in range(int(sys.argv[2]), 128, 8))

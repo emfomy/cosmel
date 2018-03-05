@@ -124,7 +124,7 @@ if __name__ == '__main__':
 	if len(sys.argv) >= 3: parts = list(f'part-{x:05}' for x in range(int(sys.argv[2]), 128, 8))
 
 	repo   = Repo(repo_root)
-	corpus = Corpus(article_root, mention_root, repo, parts=parts)
+	corpus = Corpus(article_root, mention_root, parts=parts)
 
 	# Process rules
 	previous_product_rules = set(['exact', '01a', '01b'])
