@@ -21,8 +21,6 @@ Input & Output:
   [i] data/repo                             (repo_preprocess)
   [i] data/article/pruned_article_role      (article_preprocess)
   [o] data/mention/pruned_article_role
-  [o] data/parser/pruned_article_role
-  [o] data/parser/pruned_article_role_idx
 
 - rule:
   [i] data/repo                             (repo_preprocess)
