@@ -69,10 +69,10 @@ if __name__ == '__main__':
 			printr(f'{i+1:0{len(n)}}/{n}\tWriting {os.path.relpath(sentence_file)}')
 			with open(sentence_file, 'w') as fout_sentence, open(idx_file, 'w') as fout_idx:
 				for mention in bundle:
-					for i in range(relu(mention.m_id-max_len_mention), mention.m_id):
-						if mention.sentence.roles[i] == 'Infix' and (mention.sentence.tags[i] == 'VC' or mention.sentence.tags[i] == 'VCL'):
-							mention.sentence.tags[i] = 'VH'
-							mention.sentence.roles[i] = colored('0;96', 'Infix*')
+					# for i in range(relu(mention.m_id-max_len_mention), mention.m_id):
+					# 	if mention.sentence.roles[i] == 'Infix' and (mention.sentence.tags[i] == 'VC' or mention.sentence.tags[i] == 'VCL'):
+					# 		mention.sentence.tags[i] = 'VH'
+					# 		mention.sentence.roles[i] = colored('0;96', 'Infix*')
 					fout_sentence.write(str(mention.sentence)+'\n')
 					fout_idx.write(f'{mention.s_id, mention.m_id}\t{roledstr(mention)}\n')
 		print()
