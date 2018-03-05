@@ -22,6 +22,7 @@ class Repo:
 	def __init__(self, repo_root):
 		self.__head_set                   = HeadSet(repo_root)
 		self.__infix_set                  = InfixSet(repo_root)
+		self.__product_name_set           = ProductNameSet(repo_root)
 
 		self.__brand_set                  = BrandSet(repo_root)
 		self.__name_to_brand              = Name2Brand(self.__brand_set)
@@ -42,6 +43,11 @@ class Repo:
 	def head_set(self):
 		""":class:`.InfixSet`: the head word set."""
 		return self.__head_set
+
+	@property
+	def product_name_set(self):
+		""":class:`.ProductNameSet`: the product name set."""
+		return self.__product_name_set
 
 	@property
 	def brand_set(self):

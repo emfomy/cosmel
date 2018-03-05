@@ -62,7 +62,7 @@ if __name__ == '__main__':
 	article_root = f'{data_root}/article'
 	tmp_root     = f'data/tmp'
 	parts        = ['']
-	# parts        = list(f'part-{x:05}' for x in range(1))
+	parts        = list(f'part-{x:05}' for x in range(1))
 	if len(sys.argv) >= 3: parts = list(f'part-{x:05}' for x in range(int(sys.argv[2]), 128, 8))
 
 	orig_root  = f'{article_root}/original_article'
@@ -103,8 +103,8 @@ if __name__ == '__main__':
 	if not segmented:
 
 		ckipws = CkipWs(ckipws_lib, etc_root+'/for_article.ini', \
-				[repo_root+'/core.lex', repo_root+'/brand.lex', repo_root+'/head.lex', \
-					repo_root+'/infix.lex', repo_root+'/compound.lex'], \
+				[repo_root+'/core.lex', repo_root+'/brand.lex', repo_root+'/product.lex', \
+					repo_root+'/head.lex', repo_root+'/infix.lex', repo_root+'/compound.lex'], \
 				[etc_root+'/compound.txt'])
 
 		prune_files = grep_files(prune_root, parts=parts)
@@ -155,9 +155,10 @@ if __name__ == '__main__':
 			# Replace role article to file
 			for line in article:
 				for m_id, txt in enumerate(line.txts):
-					if   txt in repo.name_to_brand: line.roles[m_id] = 'Brand'
-					elif txt in repo.head_set:      line.roles[m_id] = 'Head'
-					elif txt in repo.infix_set:     line.roles[m_id] = 'Infix'
+					if   txt in repo.product_name_set: line.roles[m_id] = 'ProductName'
+					elif txt in repo.name_to_brand:    line.roles[m_id] = 'Brand'
+					elif txt in repo.head_set:         line.roles[m_id] = 'Head'
+					elif txt in repo.infix_set:        line.roles[m_id] = 'Infix'
 
 			# Write article to file
 			role_file = transform_path(article.path, ws_root, role_root, '.role')
