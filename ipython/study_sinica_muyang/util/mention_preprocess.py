@@ -51,7 +51,7 @@ if __name__ == '__main__':
 			mention_file = transform_path(article.path, article_root, mention_root, '.mention')
 			bundle = MentionBundle(empty_file, article)
 			bundle._MentionBundle__data = [Mention(article, s_id, m_id) \
-					for s_id, line in enumerate(article) for m_id in indices(line.roles, 'Head')]
+					for s_id, line in enumerate(article) for m_id in indices(line.roles, 'Head') + indices(line.roles, 'PName')]
 			bundle.save(mention_file)
 		print()
 
@@ -69,10 +69,10 @@ if __name__ == '__main__':
 			printr(f'{i+1:0{len(n)}}/{n}\tWriting {os.path.relpath(sentence_file)}')
 			with open(sentence_file, 'w') as fout_sentence, open(idx_file, 'w') as fout_idx:
 				for mention in bundle:
-					for i in range(relu(mention.m_id-max_len_mention), mention.m_id):
-						if mention.sentence.roles[i] == 'Infix' and (mention.sentence.tags[i] == 'VC' or mention.sentence.tags[i] == 'VCL'):
-							mention.sentence.tags[i] = 'VH'
-							mention.sentence.roles[i] = colored('0;96', 'Infix*')
+					# for i in range(relu(mention.m_id-max_len_mention), mention.m_id):
+					# 	if mention.sentence.roles[i] == 'Infix' and (mention.sentence.tags[i] == 'VC' or mention.sentence.tags[i] == 'VCL'):
+					# 		mention.sentence.tags[i] = 'VH'
+					# 		mention.sentence.roles[i] = colored('0;96', 'Infix*')
 					fout_sentence.write(str(mention.sentence)+'\n')
 					fout_idx.write(f'{mention.s_id, mention.m_id}\t{roledstr(mention)}\n')
 		print()

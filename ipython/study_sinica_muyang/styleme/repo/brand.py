@@ -77,7 +77,7 @@ class BrandSet(collections.abc.Collection):
 		return '\n'.join(map(repr, self.__data))
 
 
-class Name2Brand(collections.abc.Mapping):
+class Bname2Brand(collections.abc.Mapping):
 	"""The dictionary maps brand name to brand object.
 
 	* Key:  the brand name  (str).

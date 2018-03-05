@@ -132,7 +132,7 @@ if __name__ == '__main__':
 			# Replace role article to file
 			for line in article:
 				for m_id, txt in enumerate(line.txts):
-					if txt in repo.name_to_brand: line.tags[m_id] = 'Nb'
+					if txt in repo.bname_to_brand: line.tags[m_id] = 'Nb'
 
 			# Write article to file
 			ws_file = transform_path(article.path, ws_re_tmp_root, ws_root)
@@ -155,10 +155,10 @@ if __name__ == '__main__':
 			# Replace role article to file
 			for line in article:
 				for m_id, txt in enumerate(line.txts):
-					if   txt in repo.product_name_set: line.roles[m_id] = 'ProductName'
-					elif txt in repo.name_to_brand:    line.roles[m_id] = 'Brand'
-					elif txt in repo.head_set:         line.roles[m_id] = 'Head'
-					elif txt in repo.infix_set:        line.roles[m_id] = 'Infix'
+					if   txt in repo.pname_to_product_list: line.roles[m_id] = 'PName'
+					elif txt in repo.bname_to_brand:        line.roles[m_id] = 'Brand'
+					elif txt in repo.head_set:              line.roles[m_id] = 'Head'
+					elif txt in repo.infix_set:             line.roles[m_id] = 'Infix'
 
 			# Write article to file
 			role_file = transform_path(article.path, ws_root, role_root, '.role')

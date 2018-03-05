@@ -67,15 +67,3 @@ class InfixSet(WordSet):
 	"""
 	def __init__(self, repo_root):
 		super().__init__(f'{repo_root}/infix.txt')
-
-
-class ProductNameSet(WordSet):
-	"""The set of product names.
-
-	* Item: the product name (str).
-
-	Args:
-		repo_root (str): the path to the folder containing data files.
-	"""
-	def __init__(self, repo_root):
-		super().__init__(f'{repo_root}/product.lex')
