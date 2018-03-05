@@ -53,6 +53,7 @@ if __name__ == '__main__':
 				idx_line_list = []
 				for m_id, word in enumerate(line.txts):
 					chars = ''.join(word.replace('□', ''))
+					if chars == '': continue
 					char = chars[0]
 					html_idx = get_html_idx(html_data, html_idx, char)
 					html_idx0 = html_idx
