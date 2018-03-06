@@ -150,14 +150,29 @@ class Mention:
 		return self.__rule
 
 	@property
+	def head_ws(self):
+		""":class:`.WsWords`: the word-segmented head word."""
+		return self.sentence[self.__m_id]
+
+	@property
 	def head(self):
+		"""str: the head word."""
+		return self.head_txt
+
+	@property
+	def head_txt(self):
 		"""str: the head word."""
 		return self.sentence.txts[self.__m_id]
 
 	@property
-	def head_ws(self):
-		""":class:`.WsWords`: the word-segmented head word."""
-		return self.sentence[self.__m_id]
+	def head_tag(self):
+		"""str: the head post-tag."""
+		return self.sentence.tags[self.__m_id]
+
+	@property
+	def head_role(self):
+		"""str: the head role."""
+		return self.sentence.roles[self.__m_id]
 
 	@property
 	def start_xml(self):

@@ -25,16 +25,16 @@ if __name__ == '__main__':
 	greped_mention   = False
 	written_sentence = True
 
+	target        = f'pruned_article'
+	tmp_root      = f'data/tmp'
 	data_root     = f'data/{ver}'
-	target        = f'pruned_article_role'
-	article_root  = f'{data_root}/article/{target}'
+	article_root  = f'{data_root}/article/{target}_role'
 	mention_root  = f'{data_root}/mention/{target}'
 	sentence_root = f'{data_root}/parser/{target}'
 	idx_root      = f'{data_root}/parser/{target}_idx'
 	repo_root     = f'{data_root}/repo'
-	tmp_root      = f'data/tmp'
 	parts         = ['']
-	# parts        = list(f'part-{x:05}' for x in range(1))
+	parts        = list(f'part-{x:05}' for x in range(1))
 	if len(sys.argv) >= 3: parts = list(f'part-{x:05}' for x in range(int(sys.argv[2]), 128, 8))
 
 	empty_file    = tmp_root+'/empty.tmp'

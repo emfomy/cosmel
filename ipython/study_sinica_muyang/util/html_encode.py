@@ -16,33 +16,33 @@ from styleme import *
 from xml_encode import add_start_xml
 from xml_encode import add_end_xml
 
+
 def get_html_idxs(mention):
 	return (int(mention.sentence.tags[mention.start_idx].split(',')[0]), \
 			int(mention.sentence.tags[mention.last_idx].split(',')[1]))
+
 
 if __name__ == '__main__':
 
 	assert len(sys.argv) >= 2
 	ver = sys.argv[1]
 
-	target       = f'pruned_article_role'
+	target       = f'pruned_article'
 	target_ver   = f''
 	# target_ver   = f'_pid'
 	# target_ver   = f'_exact'
 	data_root    = f'data/{ver}'
 	repo_root    = f'{data_root}/repo'
-	idx_root     = f'{data_root}/html/pruned_article_role_idx'
-	article_root = f'{data_root}/article/{target}'
-	mention_root = f'{data_root}/mention/{target}{target_ver}'
+	idx_root     = f'{data_root}/html/{target}_idx'
 	html_root    = f'{data_root}/html/html_article'
+	mention_root = f'{data_root}/mention/{target}{target_ver}'
 	output_root  = f'{data_root}/html/{target}{target_ver}'
 	parts        = ['']
-	# parts        = list(f'part-{x:05}' for x in range(1))
+	parts        = list(f'part-{x:05}' for x in range(1))
 	if len(sys.argv) >= 3: parts = list(f'part-{x:05}' for x in range(int(sys.argv[2]), 128, 8))
 
 	# Load StyleMe repository and corpus
-	corpus     = Corpus(article_root, mention_root, parts=parts)
-	corpus_idx = Corpus(idx_root, mention_root, parts=parts)
+	corpus = Corpus(idx_root, mention_root, parts=parts)
 
 	# Extract html from json
 	html_files = grep_files(html_root, parts)
@@ -57,7 +57,7 @@ if __name__ == '__main__':
 			bundle = corpus.id_to_mention_bundle[Article.path_to_a_id(html_file)]
 
 			for mention in bundle:
-				idx0, idx1 = get_html_idxs(corpus_idx.id_to_mention[mention.ids])
+				idx0, idx1 = get_html_idxs(corpus.id_to_mention[mention.ids])
 				output_data[idx0] = add_start_xml(output_data[idx0], mention)
 				output_data[idx1] = add_end_xml(output_data[idx1], mention)
 

@@ -14,6 +14,7 @@ import sys
 sys.path.insert(0, os.path.abspath('.'))
 from styleme import *
 
+
 class ReplaceVariant():
 	"""The driver of replacing(removing) variants in the article."""
 
@@ -56,22 +57,20 @@ if __name__ == '__main__':
 	replaced_brand = False
 	added_role     = False
 
+	target       = f'pruned_article'
 	etc_root     = f'etc'
+	tmp_root     = f'data/tmp'
 	data_root    = f'data/{ver}'
 	repo_root    = f'{data_root}/repo'
-	article_root = f'{data_root}/article'
-	tmp_root     = f'data/tmp'
+	orig_root    = f'{data_root}/article/original_article'
+	prune_root   = f'{data_root}/article/{target}'
+	ws_orig_root = f'{data_root}/article/{target}_ws_orig'
+	ws_re_root   = f'{data_root}/article/{target}_ws_re'
+	ws_root      = f'{data_root}/article/{target}_ws'
+	role_root    = f'{data_root}/article/{target}_role'
 	parts        = ['']
-	# parts        = list(f'part-{x:05}' for x in range(1))
+	parts        = list(f'part-{x:05}' for x in range(1))
 	if len(sys.argv) >= 3: parts = list(f'part-{x:05}' for x in range(int(sys.argv[2]), 128, 8))
-
-	orig_root  = f'{article_root}/original_article'
-	prune_root = f'{article_root}/pruned_article'
-	ws_root    = f'{article_root}/pruned_article_ws'
-	role_root  = f'{article_root}/pruned_article_role'
-
-	ws_tmp_root    = f'{tmp_root}/pruned_article_ws'
-	ws_re_tmp_root = f'{tmp_root}/pruned_article_ws_re'
 
 	ckipws_lib = 'libWordSeg.so'
 
@@ -110,21 +109,21 @@ if __name__ == '__main__':
 		prune_files = grep_files(prune_root, parts=parts)
 		n = str(len(prune_files))
 		for i, prune_file in enumerate(prune_files):
-			ws_tmp_file    = transform_path(prune_file, prune_root, ws_tmp_root, '.tag')
-			ws_re_tmp_file = transform_path(prune_file, prune_root, ws_re_tmp_root, '.tag')
-			os.makedirs(os.path.dirname(ws_tmp_file),    exist_ok=True)
-			os.makedirs(os.path.dirname(ws_re_tmp_file), exist_ok=True)
-			printr(f'{i+1:0{len(n)}}/{n}\t{ws_re_tmp_file}')
-			# ckipws.ws_file(prune_file, ws_tmp_file, verbose=False)
-			ckipws.ws_line(prune_file, ws_tmp_file, verbose=False)
-			ckipws.replace(ws_tmp_file, ws_re_tmp_file, verbose=False)
+			ws_orig_file = transform_path(prune_file, prune_root, ws_orig_root, '.tag')
+			ws_re_file   = transform_path(prune_file, prune_root, ws_re_root, '.tag')
+			os.makedirs(os.path.dirname(ws_orig_file),     exist_ok=True)
+			os.makedirs(os.path.dirname(ws_re_file), exist_ok=True)
+			printr(f'{i+1:0{len(n)}}/{n}\t{ws_re_file}')
+			# ckipws.ws_file(prune_file, ws_orig_file, verbose=False)
+			ckipws.ws_line(prune_file, ws_orig_file, verbose=False)
+			ckipws.replace(ws_orig_file, ws_re_file, verbose=False)
 		print()
 
 	# Replace Brand
 	if not replaced_brand:
 
 		repo     = Repo(repo_root)
-		articles = ArticleSet(ws_re_tmp_root, parts=parts)
+		articles = ArticleSet(ws_re_root, parts=parts)
 
 		n = str(len(articles))
 		for i, article in enumerate(articles):
@@ -135,7 +134,7 @@ if __name__ == '__main__':
 					if txt in repo.b_name_to_brand: line.tags[m_id] = 'Nb'
 
 			# Write article to file
-			ws_file = transform_path(article.path, ws_re_tmp_root, ws_root)
+			ws_file = transform_path(article.path, ws_re_root, ws_root)
 			os.makedirs(os.path.dirname(ws_file), exist_ok=True)
 			printr(f'{i+1:0{len(n)}}/{n}\t{ws_file}')
 			with open(ws_file, 'w') as fout:
@@ -155,10 +154,10 @@ if __name__ == '__main__':
 			# Replace role article to file
 			for line in article:
 				for m_id, txt in enumerate(line.txts):
-					if   txt in repo.p_name_to_product_list: line.roles[m_id] = 'PName'
-					elif txt in repo.b_name_to_brand:        line.roles[m_id] = 'Brand'
-					elif txt in repo.head_set:              line.roles[m_id] = 'Head'
-					elif txt in repo.infix_set:             line.roles[m_id] = 'Infix'
+					if   txt in repo.b_name_to_brand:        line.roles[m_id] = 'Brand'
+					elif txt in repo.head_set:               line.roles[m_id] = 'Head'
+					elif txt in repo.infix_set:              line.roles[m_id] = 'Infix'
+					elif txt in repo.p_name_to_product_list: line.roles[m_id] = 'PName'
 
 			# Write article to file
 			role_file = transform_path(article.path, ws_root, role_root, '.role')

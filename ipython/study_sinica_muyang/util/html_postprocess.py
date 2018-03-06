@@ -25,13 +25,13 @@ if __name__ == '__main__':
 	ver = sys.argv[1]
 
 
-	target       = f'pruned_article_role'
+	target       = f'pruned_article'
 	data_root    = f'data/{ver}'
-	article_root = f'{data_root}/article/{target}'
+	article_root = f'{data_root}/article/{target}_role'
 	html_root    = f'{data_root}/html/html_article_notag'
 	idx_root     = f'{data_root}/html/{target}_idx'
 	parts        = ['']
-	# parts        = list(f'part-{x:05}' for x in range(1))
+	parts        = list(f'part-{x:05}' for x in range(1))
 	if len(sys.argv) >= 3: parts = list(f'part-{x:05}' for x in range(int(sys.argv[2]), 128, 8))
 
 	# Map word-segmented articles to html articles
@@ -40,8 +40,7 @@ if __name__ == '__main__':
 	for i, html_file in enumerate(html_files):
 		idx_file = transform_path(html_file, html_root, idx_root, '.idx')
 		os.makedirs(os.path.dirname(idx_file), exist_ok=True)
-		# printr(f'{i+1:0{len(n)}}/{n}\t{idx_file}')
-		print(f'{i+1:0{len(n)}}/{n}\t{idx_file}')
+		printr(f'{i+1:0{len(n)}}/{n}\t{idx_file}')
 
 		article_file = transform_path(html_file, html_root, article_root, '.role')
 		article = Article(article_file)
