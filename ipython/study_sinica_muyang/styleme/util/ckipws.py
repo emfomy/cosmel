@@ -19,14 +19,14 @@ class PyWordSeg():
 	def __init__(self, lib_file, ini_file):
 		self.__lib = ctypes.cdll.LoadLibrary(lib_file)
 		self.__obj = self.__lib.WordSeg_New()
-		self.__lib.WordSeg_InitData.restype=ctypes.c_bool
-		self.__lib.WordSeg_ApplyFile.restype=ctypes.c_bool
-		self.__lib.WordSeg_ApplyList.restype=ctypes.c_bool
-		self.__lib.WordSeg_ApplyArticle.restype=ctypes.c_bool
-		self.__lib.WordSeg_GetResultBegin.restype=ctypes.c_wchar_p
-		self.__lib.WordSeg_GetResultNext.restype=ctypes.c_wchar_p
-		self.__lib.WordSeg_GetUWBegin.restype=ctypes.c_wchar_p
-		self.__lib.WordSeg_GetUWNext.restype=ctypes.c_wchar_p
+		self.__lib.WordSeg_InitData.restype       = ctypes.c_bool
+		self.__lib.WordSeg_ApplyFile.restype      = ctypes.c_bool
+		self.__lib.WordSeg_ApplyList.restype      = ctypes.c_bool
+		self.__lib.WordSeg_ApplyArticle.restype   = ctypes.c_bool
+		self.__lib.WordSeg_GetResultBegin.restype = ctypes.c_wchar_p
+		self.__lib.WordSeg_GetResultNext.restype  = ctypes.c_wchar_p
+		self.__lib.WordSeg_GetUWBegin.restype     = ctypes.c_wchar_p
+		self.__lib.WordSeg_GetUWNext.restype      = ctypes.c_wchar_p
 		ret = self.__lib.WordSeg_InitData(self.__obj, ini_file.encode('utf-8'))
 		if not ret:
 			raise IOError(f'Loading {ini_file} failed.')
