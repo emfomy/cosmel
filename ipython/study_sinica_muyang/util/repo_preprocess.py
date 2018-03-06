@@ -31,6 +31,7 @@ class RawData:
 		if self.p_id == '2761':  self.p_name = '水感透顏粉底精華spf30□pa'
 		if self.p_id == '7750':  self.p_name = '巴黎時尚伸展台高級訂製濃翹美睫膏'
 		if self.p_id == '11449': self.p_name = '魚子高效活氧亮白精華液'
+		if self.p_id == '12502': self.p_name = '無瑕娃娃粉餅spf18□pa'
 		if self.p_id == '12877': self.p_name = '愛麗絲完美勾勒眼線膠筆'
 		if self.p_id == '13315': self.p_name = '保濕修復膠囊面膜a'
 		if self.p_id == '13324': self.p_name = '保濕舒緩膠囊面膜b'

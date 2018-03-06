@@ -114,13 +114,14 @@ if __name__ == '__main__':
 	assert len(sys.argv) >= 2
 	ver = sys.argv[1]
 
+	target       = f'pruned_article'
 	data_root    = f'data/{ver}'
 	repo_root    = f'{data_root}/repo'
-	article_root = f'{data_root}/article/pruned_article_ws'
-	mention_root = f'{data_root}/mention/pruned_article_ws'
-	output_root  = f'{data_root}/mention/pruned_article_ws_pid'
+	article_root = f'{data_root}/article/{target}'
+	mention_root = f'{data_root}/mention/{target}'
+	output_root  = f'{data_root}/mention/{target}_pid'
 	parts        = ['']
-	# parts       = list(f'part-{x:05}' for x in range(1))
+	parts        = list(f'part-{x:05}' for x in range(1))
 	if len(sys.argv) >= 3: parts = list(f'part-{x:05}' for x in range(int(sys.argv[2]), 128, 8))
 
 	repo   = Repo(repo_root)

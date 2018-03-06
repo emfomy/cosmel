@@ -24,14 +24,17 @@ if __name__ == '__main__':
 	assert len(sys.argv) >= 2
 	ver = sys.argv[1]
 
-	target       = f'pruned_article_role'
+	target       = f'pruned_article'
+	target_ver   = f''
+	# target_ver   = f'_pid'
+	# target_ver   = f'_exact'
 	data_root    = f'data/{ver}'
 	repo_root    = f'{data_root}/repo'
-	article_root = f'{data_root}/article/pruned_article_ws'
-	mention_root = f'{data_root}/mention/{target}'
-	xml_path     = f'{data_root}/xml/{target}'
+	article_root = f'{data_root}/article/{target}_ws'
+	mention_root = f'{data_root}/mention/{target}{target_ver}'
+	xml_path     = f'{data_root}/xml/{target}{target_ver}'
 	parts         = ['']
-	# parts        = list(f'part-{x:05}' for x in range(1))
+	parts        = list(f'part-{x:05}' for x in range(1))
 	if len(sys.argv) >= 3: parts = list(f'part-{x:05}' for x in range(int(sys.argv[2]), 128, 8))
 
 	# Load StyleMe repository and corpus

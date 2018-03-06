@@ -57,7 +57,6 @@ class PruneString():
 			(re.compile(r'[^0-9a-z\u4e00-\u9fff、\n□]+'), ''), \
 			(re.compile(r'□+($|[0-9\u4e00-\u9fff、\n])'), r'\1'), \
 			(re.compile(r'(\A|[0-9\u4e00-\u9fff、\n])□+'), r'\1'), \
-			(re.compile(r'([0-9]*)pa($|[^a-z])'), r'\1□pa\2'), \
 			(re.compile(r'\n+'), '\n'), \
 			(re.compile(r'□+'), '□')]
 
