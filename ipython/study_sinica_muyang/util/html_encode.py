@@ -30,7 +30,7 @@ if __name__ == '__main__':
 	target       = f'pruned_article'
 	target_ver   = f''
 	# target_ver   = f'_pid'
-	# target_ver   = f'_exact'
+	target_ver   = f'_exact'
 	data_root    = f'data/{ver}'
 	repo_root    = f'{data_root}/repo'
 	idx_root     = f'{data_root}/html/{target}_idx'

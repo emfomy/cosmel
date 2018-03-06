@@ -8,7 +8,6 @@ __copyright__ = 'Copyright 2017-2018'
 
 import os
 import re
-import subprocess
 import sys
 
 sys.path.insert(0, os.path.abspath('.'))
@@ -113,7 +112,7 @@ if __name__ == '__main__':
 			ws_re_file   = transform_path(prune_file, prune_root, ws_re_root, '.tag')
 			os.makedirs(os.path.dirname(ws_orig_file),     exist_ok=True)
 			os.makedirs(os.path.dirname(ws_re_file), exist_ok=True)
-			printr(f'{i+1:0{len(n)}}/{n}\t{ws_re_file}')
+			printr(f'{i+1:0{len(n)}}/{n}\t{ws_orig_file}')
 			# ckipws.ws_file(prune_file, ws_orig_file, verbose=False)
 			ckipws.ws_line(prune_file, ws_orig_file, verbose=False)
 			ckipws.replace(ws_orig_file, ws_re_file, verbose=False)
@@ -154,9 +153,9 @@ if __name__ == '__main__':
 			# Replace role article to file
 			for line in article:
 				for m_id, txt in enumerate(line.txts):
-					if   txt in repo.bname_to_brand: line.roles[m_id] = 'Brand'
-					elif txt in repo.head_set:       line.roles[m_id] = 'Head'
-					elif txt in repo.infix_set:      line.roles[m_id] = 'Infix'
+					if   txt in repo.b_name_to_brand: line.roles[m_id] = 'Brand'
+					elif txt in repo.head_set:        line.roles[m_id] = 'Head'
+					elif txt in repo.infix_set:       line.roles[m_id] = 'Infix'
 
 			# Write article to file
 			role_file = transform_path(article.path, ws_root, role_root, '.role')
