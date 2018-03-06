@@ -32,7 +32,7 @@ if __name__ == '__main__':
 	repo_root    = f'{data_root}/repo'
 	article_root = f'{data_root}/article/{target}_ws'
 	mention_root = f'{data_root}/mention/{target}{target_ver}'
-	xml_path     = f'{data_root}/xml/{target}{target_ver}'
+	xml_root     = f'{data_root}/xml/{target}{target_ver}'
 	parts         = ['']
 	parts        = list(f'part-{x:05}' for x in range(1))
 	if len(sys.argv) >= 3: parts = list(f'part-{x:05}' for x in range(int(sys.argv[2]), 128, 8))
@@ -44,7 +44,7 @@ if __name__ == '__main__':
 	n = str(len(corpus.mention_bundle_set))
 	for i, bundle in enumerate(corpus.mention_bundle_set):
 		article = bundle.article
-		xml_file = transform_path(article.path, article_root, xml_path, '.xml')
+		xml_file = transform_path(article.path, article_root, xml_root, '.xml')
 		os.makedirs(os.path.dirname(xml_file), exist_ok=True)
 		printr(f'{i+1:0{len(n)}}/{n}\t{xml_file}')
 		with open(xml_file, 'w') as fout:
