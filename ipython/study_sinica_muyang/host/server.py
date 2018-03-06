@@ -78,7 +78,7 @@ def product_route():
 	brand = request.args.get('brand', default=slice(None))
 	head  = request.args.get('head',  default=slice(None))
 	if pid:   return '<br>'.join(str(repo.id_to_product.get(p, f'{p} [KeyError]')) for p in pid.split(','))
-	else:     return '<br>'.join(map(str, repo.bname_head_to_product_list[brand, head]))
+	else:     return '<br>'.join(map(str, repo.b_name_head_to_product_list[brand, head]))
 
 @app.route('/article/<path:path>')
 def article_route(path):

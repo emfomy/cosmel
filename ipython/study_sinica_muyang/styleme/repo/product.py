@@ -97,10 +97,10 @@ class ProductSet(collections.abc.Collection):
 
 	Args:
 		repo_root (str): the path to the folder containing data files.
-		bname_to_brand (:class:`.Bname2Brand`): the dictionary maps brand name to brand object.
+		b_name_to_brand (:class:`.BName2Brand`): the dictionary maps brand name to brand object.
 	"""
 
-	def __init__(self, repo_root, bname_to_brand):
+	def __init__(self, repo_root, b_name_to_brand):
 		super().__init__()
 		self.__data = list()
 
@@ -136,7 +136,7 @@ class ProductSet(collections.abc.Collection):
 				assert not line == ''
 				p_id, b_name, name = line.split('\t')
 				descr_ws = descr_dict.get(p_id, '')
-				self.__data.append(Product(p_id, bname_to_brand[b_name], name, head_dict[p_id], tag_dict[name], descr_ws))
+				self.__data.append(Product(p_id, b_name_to_brand[b_name], name, head_dict[p_id], tag_dict[name], descr_ws))
 
 	def __contains__(self, item):
 		return item in self.__data
@@ -154,7 +154,7 @@ class ProductSet(collections.abc.Collection):
 		return '\n'.join(map(repr, self.__data))
 
 
-class Pid2Product(collections.abc.Mapping):
+class Id2Product(collections.abc.Mapping):
 	"""The dictionary maps ID to product.
 
 	* Key:  the product ID.   (str).
@@ -184,7 +184,7 @@ class Pid2Product(collections.abc.Mapping):
 		return len(self.__data)
 
 
-class BrandPname2Product(collections.abc.Mapping):
+class BrandPName2Product(collections.abc.Mapping):
 	"""The dictionary maps brand object and product name to product object.
 
 	* Key:  the tuple of brand object (:class:`.Brand`) and product name (str).
@@ -218,21 +218,21 @@ class BrandPname2Product(collections.abc.Mapping):
 		return (key[0], prune_string(key[1]),)
 
 
-class BnamePname2Product(collections.abc.Sequence):
+class BNamePName2Product(collections.abc.Sequence):
 	"""The dictionary maps brand name and product name to product.
 
 	* Key:  the tuple of brand name (str) and product name (str).
 	* Item: the product object (:class:`.Product`).
 
 	Args:
-		brand_pname_to_product (:class:`.BrandPname2Product`): the dictionary maps brand object and product name to product object.
-		bname_to_brand         (:class:`.Bname2Brand`):        the dictionary maps name and brand.
+		brand_p_name_to_product (:class:`.BrandPName2Product`): the dictionary maps brand object and product name to product object.
+		b_name_to_brand         (:class:`.BName2Brand`):        the dictionary maps name and brand.
 	"""
 
-	def __init__(self, brand_pname_to_product, bname_to_brand):
+	def __init__(self, brand_p_name_to_product, b_name_to_brand):
 		super().__init__()
-		self.__data = brand_pname_to_product
-		self.__key  = bname_to_brand
+		self.__data = brand_p_name_to_product
+		self.__key  = b_name_to_brand
 
 	def __contains__(self, key):
 		return self.__keytransform__(key) in self.__data
@@ -250,7 +250,7 @@ class BnamePname2Product(collections.abc.Sequence):
 		return (self.__key[key[0]], prune_string(key[1]),)
 
 
-class Pname2ProductList(collections.abc.Mapping):
+class PName2ProductList(collections.abc.Mapping):
 	"""The dictionary maps product name to product object list.
 
 	* Key:  the product name (str).
@@ -359,7 +359,7 @@ class BrandHead2ProductList(collections.abc.Mapping):
 		return len(self.__data)
 
 
-class BnameHead2ProductList(collections.abc.Sequence):
+class BNameHead2ProductList(collections.abc.Sequence):
 	"""The dictionary maps brand name and head word to product object list.
 
 	* Key:  tuple of brand name (str) and product head word (str).
@@ -368,14 +368,14 @@ class BnameHead2ProductList(collections.abc.Sequence):
 	Args:
 		brand_head_to_product_list (:class:`.BrandHead2Productlist`):
 			the dictionary maps brand object and head word to product object list.
-		bname_to_brand              (:class:`.Bname2Brand`):
+		b_name_to_brand              (:class:`.BName2Brand`):
 			the dictionary maps name and brand.
 	"""
 
-	def __init__(self, brand_head_to_product_list, bname_to_brand):
+	def __init__(self, brand_head_to_product_list, b_name_to_brand):
 		super().__init__()
 		self.__data = brand_head_to_product_list
-		self.__key  = bname_to_brand
+		self.__key  = b_name_to_brand
 
 	def __contains__(self, key):
 		return self.__keytransform__(key) in self.__data

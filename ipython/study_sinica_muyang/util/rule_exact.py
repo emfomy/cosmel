@@ -23,7 +23,7 @@ def decision_tree(mention, repo):
 	except ValueError:
 		return
 
-	candidates = repo.bname_head_to_product_list[b_name, mention.head]
+	candidates = repo.b_name_head_to_product_list[b_name, mention.head]
 	m_name = ''.join(mention.sentence_pre.txts[b_idx+1:])
 
 	# Exact --- exact match
