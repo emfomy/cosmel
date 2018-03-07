@@ -24,6 +24,10 @@ from styleme import *
 
 app = Flask(__name__)
 
+def root():
+	global ver
+	return ver
+
 @app.route('/')
 def index_route():
 	global files
@@ -62,14 +66,14 @@ def index_route():
 
 	json_data = dict()
 	try:
-		file = f'json/{part}/{aid}.json'
+		file = f'{root()}/json/{part}/{aid}.json'
 		with open(file) as fin:
 			for line in sorted([json.loads(line) for line in fin], key=operator.itemgetter('time')):
 				json_data[f'{line["sid"]}-{line["mid"]}'] = line['gid']
 	except Exception as e:
 		print(e)
 		pass
-	return render_template('index.html', aid=aid, part=part, files=files, json_data=json_data)
+	return render_template('index.html', ver=root(), aid=aid, part=part, files=files, json_data=json_data)
 
 @app.route('/repo/product')
 def product_route():
@@ -77,19 +81,21 @@ def product_route():
 	pid   = request.args.get('pid')
 	brand = request.args.get('brand', default=slice(None))
 	head  = request.args.get('head',  default=slice(None))
-	if pid:   return '<br>'.join(str(repo.id_to_product.get(p, f'{p} [KeyError]')) for p in pid.split(','))
+	def id_to_product_get(pid):
+		return (str(repo.id_to_product.get(pid, f'{pid} [KeyError]')) if pid not in set({'', 'OSP', 'GP', 'NAP'}) else pid)
+	if pid:   return '<br>'.join(id_to_product_get(p) for p in pid.split(','))
 	else:     return '<br>'.join(map(str, repo.b_name_head_to_product_list[brand, head]))
 
 @app.route('/article/<path:path>')
 def article_route(path):
-	file = f'article/{path}.xml.html'
+	file = f'{root()}/article/{path}.xml.html'
 	with open(file) as fin:
 		data = fin.read()
 	return str(data)
 
 @app.route('/json/<path:path>')
 def json_route(path):
-	file = f'json/{path}.json'
+	file = f'{root()}/json/{path}.json'
 	with open(file) as fin:
 		data = fin.read().replace('\n', '<br/>')
 	return str(data)
@@ -105,7 +111,7 @@ def save_route():
 		json_data['time'] = d
 		json_data['date'] = time.strftime('%a %b %d %Y %H:%M:%S GMT%z (%Z)', time.localtime(d))
 		print(aid, json_data)
-		file = f'json/{part}/{aid}.json'
+		file = f'{root()}/json/{part}/{aid}.json'
 		os.makedirs(os.path.dirname(file), exist_ok=True)
 		with open(file, 'a') as fout:
 			fout.write(json.dumps(json_data)+'\n')
@@ -115,14 +121,20 @@ def save_route():
 		return jsonify(message=str(e)), 500
 
 if __name__ == '__main__':
+
+	global ver
+	assert len(sys.argv) >= 3
+	ver  = sys.argv[1]
+	host = sys.argv[2]
+
 	global repo
-	repo  = Repo(f'repo')
+	repo  = Repo(f'{root()}/repo')
 	ext   = '.xml.html'
 
 	global files
-	parts = sorted([part for part in os.listdir(f'article') if os.path.isdir(f'article/{part}')])
+	parts = sorted([part for part in os.listdir(f'{root()}/article') if os.path.isdir(f'{root()}/article/{part}')])
 	files = dict()
 	for part in parts:
-		files[part] = sorted([file.replace(ext, '') for file in os.listdir(f'article/{part}') if file.endswith(ext)])
+		files[part] = sorted([file.replace(ext, '') for file in os.listdir(f'{root()}/article/{part}') if file.endswith(ext)])
 
-	app.run(host='140.109.19.229', port=5000, debug=True)
+	app.run(host=host, port=5000, processes=8, debug=True)

@@ -3,7 +3,9 @@
 	<head>
 		<meta charset="utf-8"/>
 		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+		<script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
 		<script src="https://www.w3schools.com/lib/w3.js"></script>
+		<title>[{{ ver }}] {{ part }}/{{ aid }}</title>
 		<style>
 			img {
 				max-width: 100%;
@@ -117,7 +119,7 @@
 				var e = $('body > article > .counter');
 				e.text($('product:not(.done)').length + '/' + $('product').length);
 				e.click(function() {
-					const top = $('product:not(.done), #bottom').offset().top + window.pageYOffset;
+					const top = $('product:not(.done), #bottom').offset().top;
 					const middle = top - (window.innerHeight / 2);
 					window.scrollTo(0, middle);
 				});
@@ -128,13 +130,19 @@
 					(i, e) => $(e).removeAttr('href')
 				);
 
+				while ($('product product').length > 0) {
+					$('product product').each(
+						(i, e) => $(e).replaceWith('<notproduct>' + $(e).html() + '</notproduct>')
+					);
+				}
+
 				$('product').each(
 					(i, e) => $(e).attr('id', $(e).attr('sid') + '-' + $(e).attr('mid'))
 				);
 
 				{% for k, v in json_data.items() %}
-					$('#{{ k }}').attr('gid', {{ v }});
-					$('#{{ k }}').attr('gid', {{ v }});
+					$('#{{ k }}').attr('gid', '{{ v }}');
+					$('#{{ k }}').attr('gid', '{{ v }}');
 				{% endfor %}
 
 				updateCounter();
@@ -148,48 +156,69 @@
 							const sid  = this.getAttribute('sid');
 							const mid  = this.getAttribute('mid');
 							const rule = this.getAttribute('rule');
-							const hint = this.getAttribute('hint');
+							const hint_orig = this.getAttribute('hint');
+							const hint = hint_orig ? hint_orig : '';
+
+							const pid_gid_hint = pid+','+gid+','+hint;
 
 							res = $.ajax({
-								url: '/repo/product?pid='+hint,
+								url: '/repo/product?pid='+pid_gid_hint,
 								type: 'get',
 								error: customStatusError
-							}).done(hint_products => {
-								const gid_new = prompt(
-									text
-									+'\n'+'pid='+pid
-									+'\n'+'gid='+gid
-									+'\n'+'sid='+sid
-									+'\n'+'mid='+mid
-									+'\n'+'rule='+rule
-									+'\n'+'hint='+hint
-									+'\n'+hint_products.replace(/<br\s*[\/]?>/gi, '\n'),
-									gid
-								);
-								if ( gid_new === null ) {
-									return;
-								}
-								this.setAttribute('gid', gid_new);
-								updateCounter();
+							}).done(pid_gid_hint_name => {
+								pid_gid_hint_list = pid_gid_hint_name.replace(/<br\s*[\/]?>/gi, '\n').split('\n');
+								pid_name  = pid_gid_hint_list[0];
+								gid_name  = pid_gid_hint_list[1];
+								hint_name = pid_gid_hint_list.slice(2).join('\n');
 
-								const data = {
-									pid: pid,
-									gid: gid_new,
-									sid: sid,
-									mid: mid
-								};
-
-								fetch('/save?part={{ part }}&aid={{ aid }}', {
-									method: 'POST',
-									body: JSON.stringify(data)
-								})
-								.then(res => {
-									if (res.ok) {
-										res.json().then(customStatusSuccess);
-									} else {
-										res.json().then(res2 => customStatusError2(res, res2));
+								swal({
+									title: text,
+									text:
+										'pid='+pid_name +'\n'+
+										'gid='+gid_name +'\n'+
+										'sid='+sid +'\n'+
+										'mid='+mid +'\n'+
+										'rule='+rule +'\n'+
+										'hint='+hint +'\n'+hint_name,
+									content: "input",
+									buttons: {
+										OSP: true,
+										GP: true,
+										NAP: true,
+										exit: true
 									}
-								}).catch(customError);
+								}).then((value) => {
+									switch (value) {
+										case 'exit':
+											return;
+										case 'OSP':
+										case 'GP':
+										case 'NAP':
+										default:
+
+											this.setAttribute('gid', value);
+											updateCounter();
+
+											const data = {
+												pid: pid,
+												gid: value,
+												sid: sid,
+												mid: mid
+											};
+
+											fetch('/save?part={{ part }}&aid={{ aid }}', {
+												method: 'POST',
+												body: JSON.stringify(data)
+											})
+											.then(res => {
+												if (res.ok) {
+													res.json().then(customStatusSuccess);
+												} else {
+													res.json().then(res2 => customStatusError2(res, res2));
+												}
+											}).catch(customError);
+									}
+								});
 							});
 
 						} catch(error) {
@@ -208,7 +237,7 @@
 			}
 
 			function customError(message) {
-				alert(message);
+				swal(message, '', 'error');
 				console.error('Error:', message);
 			}
 

@@ -81,9 +81,7 @@ def connect(host, port):
     client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     client.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     # client 建立連線
-    print("hi0")
     client.connect((host, port))
-    print("hi1")
     return client
 
 def communicate(host, port, info, retry):
@@ -105,8 +103,8 @@ def communicate(host, port, info, retry):
 def parse(sentence, uname, pwd, ws=False):
     target_host = "172.16.1.64"
     target_port = 6400
-    # target_host = "192.168.109.32"
-    # target_port = 9998
+    target_host = "192.168.109.32"
+    target_port = 9998
     retry = 3
 
     # Segmentation
