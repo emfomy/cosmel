@@ -1,40 +1,30 @@
-<!DOCTYPE html>
+<!DOCTYPE HTML>
+<!--
+	Stellar by HTML5 UP
+	html5up.net | @ajlkn
+	Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
+-->
 <html>
 	<head>
-		<meta charset="utf-8"/>
-		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-		<script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
-		<script src="https://www.w3schools.com/lib/w3.js"></script>
 		<title>[{{ ver }}] {{ part }}/{{ aid }}</title>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<link rel="stylesheet" href="static/assets/css/main.css" />
 		<style>
 			img {
 				max-width: 100%;
 			}
 
-			nav {
-				font-size: 24px;
-				position: fixed;
-				width: 100%;
-				top: 0%;
-				left: 0%;
-				background: #FFFFFF;
-			}
-
-			body > article {
-				margin: 5%;
-			}
-
-			body > article > .article {
-				margin: 5%;
-				border: 4px solid black;
-			}
-
-			body > article > .counter {
+			#main > article > .counter {
 				font-size: 100px;
 				position: fixed;
-				top: 0%;
-				right: 0%;
+				top: 10%;
+				right: 10%;
 				cursor: pointer;
+			}
+
+			#main > article > .article {
+				margin: 5%;
 			}
 
 			product {
@@ -44,210 +34,251 @@
 			}
 
 			product::before {
+				color: #ffffff;
 				content: "Product!";
 				font-size: 32px;
 				display: block;
 				float: right;
 				width: 0px;
-				margin: -10px;
+				margin: -6%;
 			}
 
 			product.done::before {
+				color: #aaaaaa;
 				content: "Done!";
+			}
+
+			.swal-text {
+				align:;
 			}
 		</style>
 	</head>
-
 	<body>
-		<nav id="top">
-			<center>
-				<form class="form-inline" method="GET">
-					<a href="?part={{ part }}&aid={{ aid }}&act=prev">Prev</a>
-					<select id="part" name="part" class="selectpicker form-control">
-						{% for p in files %}
-							{% if p == part %}
-								<option value="{{ p }}" selected>{{ p }}</option>
-							{% else %}
-								<option value="{{ p }}">{{ p }}</option>
-							{% endif %}
-						{% endfor %}
-					</select>
-					<select id="aid" name="aid" class="selectpicker form-control">
-						<option value=""></option>
-						{% for f in files[part] %}
-							{% if f == aid %}
-								<option value="{{ f }}" selected>{{ f }}</option>
-							{% else %}
-								<option value="{{ f }}">{{ f }}</option>
-							{% endif %}
-						{% endfor %}
-					</select>
-					<input type="submit" value="Load" />
-					<a href="?part={{ part }}&aid={{ aid }}&act=next">Next</a>
-				</form>
-				<a href="/repo/product?brand=sk2" target="_blank">/repo/product?brand=sk2</a>
-				<a href="/repo/product?head=面膜" target="_blank">/repo/product?head=面膜</a>
-				<a href="/repo/product?brand=sk2&head=面膜" target="_blank">/repo/product?brand=sk2&amp;head=面膜</a>
-				<a href="/repo/product?pid=8,11" target="_blank">/repo/product?pid=8,11</a>
-			</center>
-		</nav>
 
-		<article>
-			<span class="counter"></span>
-			<center><div class="json" w3-include-html="/json/{{ part }}/{{ aid }}"></div></center>
-			<div class="article" w3-include-html="/article/{{ part }}/{{ aid }}"></div>
-		</article>
+		<!-- Wrapper -->
+			<div id="wrapper">
 
-		<footer>
-			<center><a id='bottom' href="#top">Top</a></center>
-		</footer>
+				<!-- Header -->
+					<header id="header">
+					</header>
 
+				<!-- Nav -->
+					<nav id="nav">
+						<form class="form-inline" method="GET">
+							<ul>
+								<li><a href="?part={{ part }}&aid={{ aid }}&act=prev">Prev</a></li>
+								<li>
+									<select id="part" name="part" class="selectpicker form-control">
+										{% for p in files %}
+											{% if p == part %}
+												<option value="{{ p }}" selected>{{ p }}</option>
+											{% else %}
+												<option value="{{ p }}">{{ p }}</option>
+											{% endif %}
+										{% endfor %}
+									</select>
+								</li>
+								<li>
+									<select id="aid" name="aid" class="selectpicker form-control">
+										<option value=""></option>
+										{% for f in files[part] %}
+											{% if f == aid %}
+												<option value="{{ f }}" selected>{{ f }}</option>
+											{% else %}
+												<option value="{{ f }}">{{ f }}</option>
+											{% endif %}
+										{% endfor %}
+									</select>
+								</li>
+								<li><a href="?part={{ part }}&aid={{ aid }}&act=next">Next</a></li>
+							</ul>
+							<ul>
+								<li><a href="/repo/product?brand=sk2" target="_blank">?brand=sk2</a></li>
+								<li><a href="/repo/product?head=面膜" target="_blank">?head=面膜</a></li>
+								<li><a href="/repo/product?brand=sk2&head=面膜" target="_blank">?brand=sk2&amp;head=面膜</a></li>
+								<li><a href="/repo/product?pid=8,11" target="_blank">?pid=8,11</a></li>
+							</ul>
+						</form>
+					</nav>
 
-		<script type="text/javascript">
-			$('#part').change(function() { this.form.submit(); });
-			$('#aid').change(function() { this.form.submit(); });
+				<!-- Main -->
+					<div id="main">
 
-			function updateCounter() {
-				$('product').each(
-					(i, e) => $(e).removeClass('done')
-				);
+						<article>
+							<span class="counter"></span>
+							<hr>
+							<center><div class="json" w3-include-html="/json/{{ part }}/{{ aid }}"></div></center>
+							<hr>
+							<div class="article" w3-include-html="/article/{{ part }}/{{ aid }}"></div>
+						</article>
 
-				$('product[gid]:not([gid=""])').each(
-					(i, e) => $(e).addClass('done')
-				);
+					</div>
 
-				var e = $('body > article > .counter');
-				e.text($('product:not(.done)').length + '/' + $('product').length);
-				e.click(function() {
-					const top = $('product:not(.done), #bottom').offset().top;
-					const middle = top - (window.innerHeight / 2);
-					window.scrollTo(0, middle);
-				});
-			}
+				<!-- Footer -->
+					<footer id="footer">
+						<p id="bottom" class="copyright">Copyright © Mu Yang. All rights reserved.</p>
+					</footer>
 
-			w3.includeHTML(function(){
-				$('body > article > .article a').each(
-					(i, e) => $(e).removeAttr('href')
-				);
+			</div>
 
-				while ($('product product').length > 0) {
-					$('product product').each(
-						(i, e) => $(e).replaceWith('<notproduct>' + $(e).html() + '</notproduct>')
+		<!-- Scripts -->
+			<script src="static/assets/js/jquery.min.js"></script>
+			<script src="static/assets/js/jquery.scrollex.min.js"></script>
+			<script src="static/assets/js/jquery.scrolly.min.js"></script>
+			<script src="static/assets/js/skel.min.js"></script>
+			<script src="static/assets/js/util.js"></script>
+			<script src="static/assets/js/main.js"></script>
+
+			<script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+			<script src="https://www.w3schools.com/lib/w3.js"></script>
+
+			<script type="text/javascript">
+				$('#part').change(function() { this.form.submit(); });
+				$('#aid').change(function() { this.form.submit(); });
+
+				function updateCounter() {
+					$('product').each(
+						(i, e) => $(e).removeClass('done')
 					);
+
+					$('product[gid]:not([gid=""])').each(
+						(i, e) => $(e).addClass('done')
+					);
+
+					var e = $('#main > article > .counter');
+					e.text($('product:not(.done)').length + '/' + $('product').length);
+					e.click(function() {
+						const top = $('product:not(.done), #bottom').offset().top;
+						const middle = top - (window.innerHeight / 2);
+						window.scrollTo(0, middle);
+					});
 				}
 
-				$('product').each(
-					(i, e) => $(e).attr('id', $(e).attr('sid') + '-' + $(e).attr('mid'))
-				);
+				w3.includeHTML(function(){
+					$('#main > article > .article a').each(
+						(i, e) => $(e).removeAttr('href')
+					);
 
-				{% for k, v in json_data.items() %}
-					$('#{{ k }}').attr('gid', '{{ v }}');
-					$('#{{ k }}').attr('gid', '{{ v }}');
-				{% endfor %}
+					while ($('product product').length > 0) {
+						$('product product').each(
+							(i, e) => $(e).replaceWith('<notproduct>' + $(e).html() + '</notproduct>')
+						);
+					}
 
-				updateCounter();
+					$('product').each(
+						(i, e) => $(e).attr('id', $(e).attr('sid') + '-' + $(e).attr('mid'))
+					);
 
-				document.querySelectorAll('product').forEach(
-					e => e.addEventListener('click', function() {
-						try {
-							const text = this.innerText;
-							const pid  = this.getAttribute('pid');
-							const gid  = this.getAttribute('gid');
-							const sid  = this.getAttribute('sid');
-							const mid  = this.getAttribute('mid');
-							const rule = this.getAttribute('rule');
-							const hint_orig = this.getAttribute('hint');
-							const hint = hint_orig ? hint_orig : '';
+					{% for k, v in json_data.items() %}
+						$('#{{ k }}').attr('gid', '{{ v }}');
+						$('#{{ k }}').attr('gid', '{{ v }}');
+					{% endfor %}
 
-							const pid_gid_hint = pid+','+gid+','+hint;
+					updateCounter();
 
-							res = $.ajax({
-								url: '/repo/product?pid='+pid_gid_hint,
-								type: 'get',
-								error: customStatusError
-							}).done(pid_gid_hint_name => {
-								pid_gid_hint_list = pid_gid_hint_name.replace(/<br\s*[\/]?>/gi, '\n').split('\n');
-								pid_name  = pid_gid_hint_list[0];
-								gid_name  = pid_gid_hint_list[1];
-								hint_name = pid_gid_hint_list.slice(2).join('\n');
+					document.querySelectorAll('product').forEach(
+						e => e.addEventListener('click', function() {
+							try {
+								const text = this.innerText;
+								const pid  = this.getAttribute('pid');
+								const gid  = this.getAttribute('gid');
+								const sid  = this.getAttribute('sid');
+								const mid  = this.getAttribute('mid');
+								const rule = this.getAttribute('rule');
+								const hint_orig = this.getAttribute('hint');
+								const hint = hint_orig ? hint_orig : '';
 
-								swal({
-									title: text,
-									text:
-										'pid='+pid_name +'\n'+
-										'gid='+gid_name +'\n'+
-										'sid='+sid +'\n'+
-										'mid='+mid +'\n'+
-										'rule='+rule +'\n'+
-										'hint='+hint +'\n'+hint_name,
-									content: "input",
-									buttons: {
-										OSP: true,
-										GP: true,
-										NAP: true,
-										exit: true
-									}
-								}).then((value) => {
-									switch (value) {
-										case 'exit':
+								const pid_gid_hint = pid+','+gid+','+hint;
+
+								res = $.ajax({
+									url: '/repo/product?pid='+pid_gid_hint,
+									type: 'get',
+									error: customStatusError
+								}).done(pid_gid_hint_name => {
+									pid_gid_hint_list = pid_gid_hint_name.replace(/<br\s*[\/]?>/gi, '\n').split('\n');
+									pid_name  = pid_gid_hint_list[0];
+									gid_name  = pid_gid_hint_list[1];
+									hint_name = pid_gid_hint_list.slice(2).join('\n');
+
+									swal({
+										title: text,
+										text:
+											'pid='+pid_name +'\n'+
+											'gid='+gid_name +'\n'+
+											'sid='+sid +'\n'+
+											'mid='+mid +'\n'+
+											'rule='+rule +'\n'+
+											'hint='+hint +'\n'+hint_name,
+										content: "input",
+										buttons: {
+											OSP: true,
+											GP: true,
+											NAP: true,
+											cancel: true
+										}
+									}).then((value) => {
+										if ( value === null) {
 											return;
-										case 'OSP':
-										case 'GP':
-										case 'NAP':
-										default:
+										}
+										switch (value) {
+											case 'OSP':
+											case 'GP':
+											case 'NAP':
+											default:
 
-											this.setAttribute('gid', value);
-											updateCounter();
+												this.setAttribute('gid', value);
+												updateCounter();
 
-											const data = {
-												pid: pid,
-												gid: value,
-												sid: sid,
-												mid: mid
-											};
+												const data = {
+													pid: pid,
+													gid: value,
+													sid: sid,
+													mid: mid
+												};
 
-											fetch('/save?part={{ part }}&aid={{ aid }}', {
-												method: 'POST',
-												body: JSON.stringify(data)
-											})
-											.then(res => {
-												if (res.ok) {
-													res.json().then(customStatusSuccess);
-												} else {
-													res.json().then(res2 => customStatusError2(res, res2));
-												}
-											}).catch(customError);
-									}
+												fetch('/save?part={{ part }}&aid={{ aid }}', {
+													method: 'POST',
+													body: JSON.stringify(data)
+												})
+												.then(res => {
+													if (res.ok) {
+														res.json().then(customStatusSuccess);
+													} else {
+														res.json().then(res2 => customStatusError2(res, res2));
+													}
+												}).catch(customError);
+										}
+									});
 								});
-							});
 
-						} catch(error) {
-							customError(error);
-						}
-					})
-				)
-			});
+							} catch(error) {
+								customError(error);
+							}
+						})
+					)
+				});
 
-			function customSuccess(message) {
-				console.log('Success:', message);
-			}
+				function customSuccess(message) {
+					console.log('Success:', message);
+				}
 
-			function customStatusSuccess(res) {
-				customSuccess(res.message);
-			}
+				function customStatusSuccess(res) {
+					customSuccess(res.message);
+				}
 
-			function customError(message) {
-				swal(message, '', 'error');
-				console.error('Error:', message);
-			}
+				function customError(message) {
+					swal(message, '', 'error');
+					console.error('Error:', message);
+				}
 
-			function customStatusError(res) {
-				customError('[' + res.status + '] ' + res.statusText);
-			}
+				function customStatusError(res) {
+					customError('[' + res.status + '] ' + res.statusText);
+				}
 
-			function customStatusError2(res, res2) {
-				customError('[' + res.status + '] ' + res.statusText + '\n' + res2.message);
-			}
-		</script>
+				function customStatusError2(res, res2) {
+					customError('[' + res.status + '] ' + res.statusText + '\n' + res2.message);
+				}
+			</script>
+
 	</body>
 </html>
