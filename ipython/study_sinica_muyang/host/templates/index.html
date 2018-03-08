@@ -33,8 +33,13 @@
 				cursor: pointer;
 			}
 
+			product.done {
+				background-color: #ddffdd;
+				border-left: 6px solid #43f436;
+			}
+
 			product::after {
-				color: #ffffff;
+				color: #ffdddd;
 				content: "Product!";
 				font-size: 32px;
 				display: block;
@@ -44,7 +49,7 @@
 			}
 
 			product.done::after {
-				color: #aaaaaa;
+				color: #ddffdd;
 				content: "Done!";
 			}
 
@@ -116,7 +121,13 @@
 
 				<!-- Footer -->
 					<footer id="footer">
-						<p id="bottom" class="copyright">Copyright © Mu Yang. All rights reserved.</p>
+						<section>
+							<ul class="icons">
+								<li><a href="?part={{ part }}&aid={{ aid }}&act=prev" class="icon fa-angle-left alt"><span class="label">Prev</span></a></li>
+								<li><a href="?part={{ part }}&aid={{ aid }}&act=next" class="icon fa-angle-right alt"><span class="label">Next</span></a></li>
+							</ul>
+							<p class="copyright">Copyright © Mu Yang. All rights reserved.</p>
+						</section>
 					</footer>
 
 			</div>
@@ -148,7 +159,7 @@
 					var e = $('#main > article > .counter');
 					e.text($('product:not(.done)').length + '/' + $('product').length);
 					e.click(function() {
-						const top = $('product:not(.done), #bottom').offset().top;
+						const top = $('product:not(.done), #footer').offset().top;
 						const middle = top - (window.innerHeight / 2);
 						window.scrollTo(0, middle);
 					});

@@ -2,9 +2,9 @@
 @import "https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400";
 
 /*
-	Stellar by HTML5 UP
-	html5up.net | @ajlkn
-	Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
+	Stellar by Pixelarity
+	pixelarity.com | hello@pixelarity.com
+	License: pixelarity.com/license
 */
 
 /* Reset */
@@ -1826,7 +1826,7 @@
 		text-align: right;
 	}
 
-	/*input, select, textarea {
+	input, select, textarea {
 		color: #ffffff;
 	}
 
@@ -1840,7 +1840,7 @@
 
 	h1, h2, h3, h4, h5, h6 {
 		color: #ffffff;
-	}*/
+	}
 
 	blockquote {
 		border-left-color: rgba(255, 255, 255, 0.35);
@@ -1855,7 +1855,7 @@
 		border-bottom-color: rgba(255, 255, 255, 0.35);
 	}
 
-/* Box *//*
+/* Box */
 
 	.box {
 		border-radius: 8px;
@@ -1878,7 +1878,7 @@
 
 	.box {
 		border-color: rgba(255, 255, 255, 0.35);
-	}*/
+	}
 
 /* Button *//*
 
@@ -2284,7 +2284,7 @@
 		color: rgba(255, 255, 255, 0.5) !important;
 	}*/
 
-/* Icon *//*
+/* Icon */
 
 	.icon {
 		text-decoration: none;
@@ -2412,7 +2412,7 @@
 
 		.icon.alt:active {
 			background-color: rgba(255, 255, 255, 0.2);
-		}*/
+		}
 
 /* Image *//*
 
@@ -2468,7 +2468,7 @@
 				width: 100%;
 			}*/
 
-/* List *//*
+/* List */
 
 	ol {
 		list-style: decimal;
@@ -2657,9 +2657,9 @@
 
 	dl dt {
 		color: #ffffff;
-	}*/
+	}
 
-/* Section/Article *//*
+/* Section/Article */
 
 	section.special, article.special {
 		text-align: center;
@@ -2732,7 +2732,7 @@
 
 	header.major h2:after {
 		background-color: rgba(255, 255, 255, 0.35);
-	}*/
+	}
 
 /* Table *//*
 
@@ -3712,8 +3712,10 @@
 	}
 
 		#footer > * {
-			width: calc(50% - 2em);
+			/*width: calc(50% - 2em);*/
+			width: 100%;
 			margin-left: 2em;
+			text-align: center;
 		}
 
 		#footer .copyright {
@@ -3746,9 +3748,9 @@
 					margin-bottom: 3em;
 				}
 
-				#footer .copyright {
+				/*#footer .copyright {
 					text-align: left;
-				}
+				}*/
 
 		}
 
