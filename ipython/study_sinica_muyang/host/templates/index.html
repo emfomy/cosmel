@@ -9,6 +9,15 @@
 		<title>[{{ ver }}] {{ part }}/{{ aid }}</title>
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<link rel="apple-touch-icon" sizes="180x180" href="/static/favicon/apple-touch-icon.png">
+		<link rel="icon" type="image/png" sizes="32x32" href="/static/favicon/favicon-32x32.png">
+		<link rel="icon" type="image/png" sizes="16x16" href="/static/favicon/favicon-16x16.png">
+		<link rel="manifest" href="/static/favicon/site.webmanifest">
+		<link rel="mask-icon" href="/static/favicon/safari-pinned-tab.svg" color="#5bbad5">
+		<link rel="shortcut icon" href="/static/favicon/favicon.ico">
+		<meta name="msapplication-TileColor" content="#2b5797">
+		<meta name="msapplication-config" content="/static/favicon/browserconfig.xml">
+		<meta name="theme-color" content="#ffffff">
 		<link rel="stylesheet" href="static/assets/css/main.css" />
 		<style>
 			img {
@@ -40,21 +49,22 @@
 
 			product::after {
 				color: #ffdddd;
-				content: "Product!";
+				content: "Here!";
 				font-size: 32px;
-				display: block;
-				float: right;
-				width: 0px;
-				margin-right: -6%;
+				font-weight: bold;
+				position: absolute;
+				right: 0;
 			}
 
 			product.done::after {
 				color: #ddffdd;
-				content: "Done!";
+				content: attr(gid);
 			}
 
-			.swal-text {
-				align:;
+			@media screen and (max-width: 736px) {
+				product::after {
+					display: none;
+				}
 			}
 		</style>
 	</head>
@@ -71,7 +81,7 @@
 					<nav id="nav">
 						<form class="form-inline" method="GET">
 							<ul>
-								<li><a href="?part={{ part }}&aid={{ aid }}&act=prev">Prev</a></li>
+								<li><a href="?part={{ part }}&aid={{ aid }}&act=prev" title="Prev" class="icon fa-angle-double-left"></a></li>
 								<li>
 									<select id="part" name="part" class="selectpicker form-control">
 										{% for p in files %}
@@ -95,7 +105,7 @@
 										{% endfor %}
 									</select>
 								</li>
-								<li><a href="?part={{ part }}&aid={{ aid }}&act=next">Next</a></li>
+								<li><a href="?part={{ part }}&aid={{ aid }}&act=next" title="Next" class="icon fa-angle-double-right"></a></li>
 							</ul>
 							<ul>
 								<li><a href="/repo/product?brand=sk2" target="_blank">?brand=sk2</a></li>
@@ -123,8 +133,8 @@
 					<footer id="footer">
 						<section>
 							<ul class="icons">
-								<li><a href="?part={{ part }}&aid={{ aid }}&act=prev" class="icon fa-angle-left alt"><span class="label">Prev</span></a></li>
-								<li><a href="?part={{ part }}&aid={{ aid }}&act=next" class="icon fa-angle-right alt"><span class="label">Next</span></a></li>
+								<li><a href="?part={{ part }}&aid={{ aid }}&act=prev" class="icon fa-angle-double-left alt"><span class="label">Prev</span></a></li>
+								<li><a href="?part={{ part }}&aid={{ aid }}&act=next" class="icon fa-angle-double-right alt"><span class="label">Next</span></a></li>
 							</ul>
 							<form class="form-inline" method="GET">
 								<select id="part2" name="part" class="selectpicker form-control">
@@ -166,8 +176,7 @@
 			<script src="static/assets/js/skel.min.js"></script>
 			<script src="static/assets/js/util.js"></script>
 			<script src="static/assets/js/main.js"></script>
-
-			<script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+			<script src="static/assets/js/sweetalert.modified.min.js"></script>
 			<script src="https://www.w3schools.com/lib/w3.js"></script>
 
 			<script type="text/javascript">
@@ -254,6 +263,7 @@
 											OSP: true,
 											GP: true,
 											NAP: true,
+											delete: true,
 											cancel: true
 										}
 									}).then((value) => {
@@ -261,6 +271,8 @@
 											return;
 										}
 										switch (value) {
+											case 'delete':
+												value = ''
 											case 'OSP':
 											case 'GP':
 											case 'NAP':

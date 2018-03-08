@@ -81,6 +81,7 @@ def connect(host, port):
     client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     client.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     # client 建立連線
+    client.settimeout(10)
     client.connect((host, port))
     return client
 
