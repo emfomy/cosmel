@@ -1826,7 +1826,7 @@
 		text-align: right;
 	}
 
-	input, select, textarea {
+	/*input, select, textarea {
 		color: #ffffff;
 	}
 
@@ -1853,7 +1853,7 @@
 
 	hr {
 		border-bottom-color: rgba(255, 255, 255, 0.35);
-	}
+	}*/
 
 /* Box */
 

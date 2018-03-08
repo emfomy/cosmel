@@ -126,6 +126,33 @@
 								<li><a href="?part={{ part }}&aid={{ aid }}&act=prev" class="icon fa-angle-left alt"><span class="label">Prev</span></a></li>
 								<li><a href="?part={{ part }}&aid={{ aid }}&act=next" class="icon fa-angle-right alt"><span class="label">Next</span></a></li>
 							</ul>
+							<form class="form-inline" method="GET">
+								<select id="part2" name="part" class="selectpicker form-control">
+									{% for p in files %}
+										{% if p == part %}
+											<option value="{{ p }}" selected>{{ p }}</option>
+										{% else %}
+											<option value="{{ p }}">{{ p }}</option>
+										{% endif %}
+									{% endfor %}
+								</select>
+								<select id="aid2" name="aid" class="selectpicker form-control">
+									<option value=""></option>
+									{% for f in files[part] %}
+										{% if f == aid %}
+											<option value="{{ f }}" selected>{{ f }}</option>
+										{% else %}
+											<option value="{{ f }}">{{ f }}</option>
+										{% endif %}
+									{% endfor %}
+								</select>
+							</form>
+							<p>
+								<a href="/repo/product?brand=sk2" target="_blank">?brand=sk2</a>&emsp;
+								<a href="/repo/product?head=面膜" target="_blank">?head=面膜</a>&emsp;
+								<a href="/repo/product?brand=sk2&head=面膜" target="_blank">?brand=sk2&amp;head=面膜</a>&emsp;
+								<a href="/repo/product?pid=8,11" target="_blank">?pid=8,11</a>
+							</p>
 							<p class="copyright">Copyright © Mu Yang. All rights reserved.</p>
 						</section>
 					</footer>
@@ -146,6 +173,8 @@
 			<script type="text/javascript">
 				$('#part').change(function() { this.form.submit(); });
 				$('#aid').change(function() { this.form.submit(); });
+				$('#part2').change(function() { this.form.submit(); });
+				$('#aid2').change(function() { this.form.submit(); });
 
 				function updateCounter() {
 					$('product').each(
