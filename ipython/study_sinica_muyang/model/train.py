@@ -58,7 +58,7 @@ if __name__ == '__main__':
 	# Get sizes
 	W2V_EMB_SIZE = keyed_vectors.vector_size
 	num_vocab    = len(keyed_vectors.vocab)
-	num_label    = max(data.p_id_code)+1
+	num_label    = max(data.pid_code)+1
 	print(f'num_vocab = {num_vocab}')
 	print(f'num_label = {num_label}')
 
@@ -72,13 +72,13 @@ if __name__ == '__main__':
 	print(f'num_test  = {test_data.size}')
 
 	# Prepare loss weights
-	num_mention = len(train_data.p_id_code)
-	counter     = collections.Counter(train_data.p_id_code)
+	num_mention = len(train_data.pid_code)
+	counter     = collections.Counter(train_data.pid_code)
 	train_data.text_weight = np.full((num_mention,), 1., dtype='float32')
-	train_data.desc_weight = np.asarray([1/counter[i] for i in train_data.p_id_code], dtype='float32')
+	train_data.desc_weight = np.asarray([1/counter[i] for i in train_data.pid_code], dtype='float32')
 
 	# Prepare 1-hot for outputs
-	train_data.p_id_1hot   = keras.utils.to_categorical(train_data.p_id_code, num_classes=num_label)
+	train_data.pid_1hot   = keras.utils.to_categorical(train_data.pid_code, num_classes=num_label)
 
 	# Define model
 	CNN_WIN_SIZE    = 5
@@ -174,9 +174,9 @@ if __name__ == '__main__':
 			'desc_weight': train_data.desc_weight, \
 	}
 	output_data = { \
-			'text': train_data.p_id_1hot, \
-			'name': train_data.p_id_1hot, \
-			'desc': train_data.p_id_1hot, \
+			'text': train_data.pid_1hot, \
+			'name': train_data.pid_1hot, \
+			'desc': train_data.pid_1hot, \
 	}
 	if not use_desc:
 		del input_data['desc_code']

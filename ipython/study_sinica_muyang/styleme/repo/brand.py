@@ -91,9 +91,9 @@ class BName2Brand(collections.abc.Mapping):
 		super().__init__()
 		self.__data = dict()
 		for brand in brand_set:
-			for b_name in brand:
-				assert b_name not in self
-				self.__data[b_name] = brand
+			for bname in brand:
+				assert bname not in self
+				self.__data[bname] = brand
 
 	def __contains__(self, key):
 		return prune_string(key) in self.__data

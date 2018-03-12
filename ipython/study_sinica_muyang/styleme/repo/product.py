@@ -18,7 +18,7 @@ class Product:
 	"""The product object.
 
 	Args:
-		p_id (str):              the ID.
+		pid (str):              the ID.
 		brand (:class:`.Brand`): the brand.
 		name (str):              the name.
 		head (str):              the head word.
@@ -26,8 +26,8 @@ class Product:
 		descr_ws (str):          the segmented description.
 	"""
 
-	def __init__(self, p_id, brand, name, head, name_ws, descr_ws):
-		self.__p_id        = p_id
+	def __init__(self, pid, brand, name, head, name_ws, descr_ws):
+		self.__pid        = pid
 		self.__brand       = brand
 		self.__name        = name
 		self.__head        = head
@@ -36,13 +36,13 @@ class Product:
 		self.__head_idx    = self.name_ws.txts.index(head)
 
 	def __str__(self):
-		return f'{self.__p_id} {self.__brand!s} {self.__name}'
+		return f'{self.__pid} {self.__brand!s} {self.__name}'
 
 	def __repr__(self):
-		return f'{self.__p_id} {self.__brand!r} {self.__name_ws}'
+		return f'{self.__pid} {self.__brand!r} {self.__name_ws}'
 
 	def __hash__(self):
-		return hash(self.p_id)
+		return hash(self.pid)
 
 	@property
 	def brand(self):
@@ -50,9 +50,9 @@ class Product:
 		return self.__brand
 
 	@property
-	def p_id(self):
+	def pid(self):
 		"""str: the ID."""
-		return self.__p_id
+		return self.__pid
 
 	@property
 	def name(self):
@@ -97,10 +97,10 @@ class ProductSet(collections.abc.Collection):
 
 	Args:
 		repo_root (str): the path to the folder containing data files.
-		b_name_to_brand (:class:`.BName2Brand`): the dictionary maps brand name to brand object.
+		bname_to_brand (:class:`.BName2Brand`): the dictionary maps brand name to brand object.
 	"""
 
-	def __init__(self, repo_root, b_name_to_brand):
+	def __init__(self, repo_root, bname_to_brand):
 		super().__init__()
 		self.__data = list()
 
@@ -127,16 +127,16 @@ class ProductSet(collections.abc.Collection):
 			for line in fin_head:
 				line = line.strip()
 				assert not line == ''
-				p_id, head = line.split('\t')
-				head_dict[p_id] = head
+				pid, head = line.split('\t')
+				head_dict[pid] = head
 
 		with open(repo_root+'/product.txt') as fin_txt:
 			for line in fin_txt:
 				line = line.strip()
 				assert not line == ''
-				p_id, b_name, name = line.split('\t')
-				descr_ws = descr_dict.get(p_id, '')
-				self.__data.append(Product(p_id, b_name_to_brand[b_name], name, head_dict[p_id], tag_dict[name], descr_ws))
+				pid, bname, name = line.split('\t')
+				descr_ws = descr_dict.get(pid, '')
+				self.__data.append(Product(pid, bname_to_brand[bname], name, head_dict[pid], tag_dict[name], descr_ws))
 
 	def __contains__(self, item):
 		return item in self.__data
@@ -168,8 +168,8 @@ class Id2Product(collections.abc.Mapping):
 		super().__init__()
 		self.__data = dict()
 		for product in product_set:
-			assert product.p_id not in self.__data
-			self.__data[product.p_id] = product
+			assert product.pid not in self.__data
+			self.__data[product.pid] = product
 
 	def __contains__(self, key):
 		return key in self.__data
@@ -225,14 +225,14 @@ class BNamePName2Product(collections.abc.Sequence):
 	* Item: the product object (:class:`.Product`).
 
 	Args:
-		brand_p_name_to_product (:class:`.BrandPName2Product`): the dictionary maps brand object and product name to product object.
-		b_name_to_brand         (:class:`.BName2Brand`):        the dictionary maps name and brand.
+		brand_pname_to_product (:class:`.BrandPName2Product`): the dictionary maps brand object and product name to product object.
+		bname_to_brand         (:class:`.BName2Brand`):        the dictionary maps name and brand.
 	"""
 
-	def __init__(self, brand_p_name_to_product, b_name_to_brand):
+	def __init__(self, brand_pname_to_product, bname_to_brand):
 		super().__init__()
-		self.__data = brand_p_name_to_product
-		self.__key  = b_name_to_brand
+		self.__data = brand_pname_to_product
+		self.__key  = bname_to_brand
 
 	def __contains__(self, key):
 		return self.__keytransform__(key) in self.__data
@@ -368,14 +368,14 @@ class BNameHead2ProductList(collections.abc.Sequence):
 	Args:
 		brand_head_to_product_list (:class:`.BrandHead2Productlist`):
 			the dictionary maps brand object and head word to product object list.
-		b_name_to_brand              (:class:`.BName2Brand`):
+		bname_to_brand              (:class:`.BName2Brand`):
 			the dictionary maps name and brand.
 	"""
 
-	def __init__(self, brand_head_to_product_list, b_name_to_brand):
+	def __init__(self, brand_head_to_product_list, bname_to_brand):
 		super().__init__()
 		self.__data = brand_head_to_product_list
-		self.__key  = b_name_to_brand
+		self.__key  = bname_to_brand
 
 	def __contains__(self, key):
 		return self.__keytransform__(key) in self.__data

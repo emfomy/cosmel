@@ -20,24 +20,24 @@ from styleme import *
 class RawData:
 
 	def __init__(self, row):
-		self.p_id    = row['編號']
-		self.b_name  = row['品牌']
-		self.p_name  = row['中文品名']
-		self.p_descr = row['中文簡介']
+		self.pid   = row['編號']
+		self.bname = row['品牌']
+		self.pname = row['中文品名']
+		self.descr = row['中文簡介']
 
-		if self.b_name == '80': self.b_name = '080'
-		if self.b_name == 'babaria 西班牙babaria': self.b_name = '西班牙Babaria'
+		if self.bname == '80': self.bname = '080'
+		if self.bname == 'babaria 西班牙babaria': self.bname = '西班牙Babaria'
 
-		if self.p_id == '2761':  self.p_name = '水感透顏粉底精華spf30□pa'
-		if self.p_id == '7750':  self.p_name = '巴黎時尚伸展台高級訂製濃翹美睫膏'
-		if self.p_id == '11449': self.p_name = '魚子高效活氧亮白精華液'
-		if self.p_id == '12502': self.p_name = '無瑕娃娃粉餅spf18□pa'
-		if self.p_id == '12877': self.p_name = '愛麗絲完美勾勒眼線膠筆'
-		if self.p_id == '13315': self.p_name = '保濕修復膠囊面膜a'
-		if self.p_id == '13324': self.p_name = '保濕舒緩膠囊面膜b'
-		if self.p_id == '13336': self.p_name = '緊緻抗皺膠囊面膜e'
-		if self.p_id == '13342': self.p_name = '再生煥膚膠囊面膜d'
-		if self.p_id == '13345': self.p_name = '瞬效亮白膠囊面膜c'
+		if self.pid == '2761':  self.pname = '水感透顏粉底精華spf30□pa'
+		if self.pid == '7750':  self.pname = '巴黎時尚伸展台高級訂製濃翹美睫膏'
+		if self.pid == '11449': self.pname = '魚子高效活氧亮白精華液'
+		if self.pid == '12502': self.pname = '無瑕娃娃粉餅spf18□pa'
+		if self.pid == '12877': self.pname = '愛麗絲完美勾勒眼線膠筆'
+		if self.pid == '13315': self.pname = '保濕修復膠囊面膜a'
+		if self.pid == '13324': self.pname = '保濕舒緩膠囊面膜b'
+		if self.pid == '13336': self.pname = '緊緻抗皺膠囊面膜e'
+		if self.pid == '13342': self.pname = '再生煥膚膠囊面膜d'
+		if self.pid == '13345': self.pname = '瞬效亮白膠囊面膜c'
 
 		self._RawData__raw = row
 
@@ -89,7 +89,7 @@ class RawBrandDict(collections.abc.Mapping):
 	def __init__(self, raw_data):
 		super().__init__()
 		self.__data = dict()
-		for v in set([v.b_name for v in raw_data]):
+		for v in set([v.bname for v in raw_data]):
 			self.update(v)
 
 	def __contains__(self, key):
@@ -155,8 +155,8 @@ class RawProduct:
 	"""The product detail."""
 
 	def __init__(self, data):
-		self.p_id    = data.p_id
-		self.p_descr = prune_string(data.p_descr.replace('\n', ''))
+		self.pid    = data.pid
+		self.descr = prune_string(data.descr.replace('\n', ''))
 
 
 class RawProductDict(collections.abc.Mapping):
@@ -198,21 +198,21 @@ class RawProductDict(collections.abc.Mapping):
 
 	def update(self, data):
 		"""Add ``data`` to the dictionary. Skipped if already exists."""
-		key = (data.b_name, data.p_name)
+		key = (data.bname, data.pname)
 		if key in self:
-			print(colored('0;33', f'Conflicted product ({self[key].p_id:>5} / {data.p_id:>5}) {self.__keytransform__(key)}'))
+			print(colored('0;33', f'Conflicted product ({self[key].pid:>5} / {data.pid:>5}) {self.__keytransform__(key)}'))
 			return
-		if data.p_id in self.__ids:
-			raise Exception(colored('1;31', f'Conflicted product {data.p_id}'))
+		if data.pid in self.__ids:
+			raise Exception(colored('1;31', f'Conflicted product {data.pid}'))
 		self[key] = RawProduct(data)
-		self.__ids.add(data.p_id)
+		self.__ids.add(data.pid)
 
 	def save_txt(self, txt_path):
 		"""Save to text file."""
 		os.makedirs(os.path.dirname(txt_path), exist_ok=True)
 		with open(txt_path, 'w') as fout:
 			for k, v in self.items():
-				fout.write('\t'.join([v.p_id, k[0].list[-1], k[1]]) + '\n')
+				fout.write('\t'.join([v.pid, k[0].list[-1], k[1]]) + '\n')
 			print(f'Saved {len(self)} products into "{txt_path}"')
 
 	def save_lex(self, lex_path):
@@ -228,8 +228,8 @@ class RawProductDict(collections.abc.Mapping):
 		os.makedirs(os.path.dirname(file_path), exist_ok=True)
 		with open(file_path, 'w') as fout:
 			for _, v in self.items():
-				if v.p_descr:
-					fout.write('\t'.join([v.p_id, v.p_descr]) + '\n')
+				if v.descr:
+					fout.write('\t'.join([v.pid, v.descr]) + '\n')
 			print(f'Saved {len(self)} descriptions into "{file_path}"')
 
 
@@ -345,9 +345,9 @@ if __name__ == '__main__':
 	with open(etc_root+'/brand0.txt') as fin:
 		for line in fin:
 			if line.strip() == '': continue
-			b_names = line.strip().split('\t')
-			for b_name in b_names[1:]:
-				brands.update(b_name, key=b_names[0])
+			bnames = line.strip().split('\t')
+			for bname in bnames[1:]:
+				brands.update(bname, key=bnames[0])
 
 	if not saved_brand:
 		brands.save_txt(repo_root+'/brand.txt')
@@ -401,15 +401,15 @@ if __name__ == '__main__':
 	with open(repo_root+'/product.head') as fin:
 		for line in fin:
 			if line.strip() == '': continue
-			p_id, head = line.strip().split('\t')
-			if p_id in product_head:
-				raise Exception(colored('1;31', f'Conflicted product head {p_id} "{head}"'))
-			product_head[p_id] = head
+			pid, head = line.strip().split('\t')
+			if pid in product_head:
+				raise Exception(colored('1;31', f'Conflicted product head {pid} "{head}"'))
+			product_head[pid] = head
 
 	# Check Unexcepted Space
 	with open(repo_root+'/product.txt') as fin_txt, open(repo_root+'/product.tag') as fin_tag:
 		for txt_line, tag_line in zip(fin_txt, fin_tag):
-			p_id = txt_line.strip().split('\t')[0]
+			pid = txt_line.strip().split('\t')[0]
 			sentence = WsWords(tag_line.strip().split('\t')[0])
 			for txt in sentence.txts:
 				if '□' == txt:
@@ -420,29 +420,29 @@ if __name__ == '__main__':
 	# Check Unknown Heads
 	with open(repo_root+'/product.txt') as fin_txt, open(repo_root+'/product.tag') as fin_tag:
 		for txt_line, tag_line in zip(fin_txt, fin_tag):
-			p_id = txt_line.strip().split('\t')[0]
+			pid = txt_line.strip().split('\t')[0]
 			sentence = WsWords(tag_line.strip())
-			if product_head[p_id] not in heads:
-				print(colored('1;31', f'Unknown Head ({product_head[p_id]}): {p_id} "{sentence}"'))
+			if product_head[pid] not in heads:
+				print(colored('1;31', f'Unknown Head ({product_head[pid]}): {pid} "{sentence}"'))
 
 	# Check Product Heads
 	with open(repo_root+'/product.txt') as fin_txt, open(repo_root+'/product.tag') as fin_tag:
 		for txt_line, tag_line in zip(fin_txt, fin_tag):
-			p_id = txt_line.strip().split('\t')[0]
+			pid = txt_line.strip().split('\t')[0]
 			sentence = WsWords(tag_line.strip())
 
-			if p_id not in product_head:
-				print(colored('1;31', f'No Head ({None}): {p_id} "{sentence}"'))
-			elif product_head[p_id] not in sentence.txts:
-				print(colored('1;31', f'No Head ({product_head[p_id]}): {p_id} "{sentence}"'))
+			if pid not in product_head:
+				print(colored('1;31', f'No Head ({None}): {pid} "{sentence}"'))
+			elif product_head[pid] not in sentence.txts:
+				print(colored('1;31', f'No Head ({product_head[pid]}): {pid} "{sentence}"'))
 
 	# Check Unbinded Tags (b)
 	with open(repo_root+'/product.txt') as fin_txt, open(repo_root+'/product.tag') as fin_tag:
 		for text, line in zip(fin_txt, fin_tag):
-			p_id = text.strip().split('\t')[0]
+			pid = text.strip().split('\t')[0]
 			sentence = WsWords(line.strip())
 			if 'b' in sentence.tags:
-				print(colored('1;31', f'Tag (b) ({product_head[p_id]}): {p_id} "{sentence}"'))
+				print(colored('1;31', f'Tag (b) ({product_head[pid]}): {pid} "{sentence}"'))
 
 	# Check Unused words
 	with open(repo_root+'/infix0.lex') as fin_infix, open(repo_root+'/compound.lex') as fin_compound, \

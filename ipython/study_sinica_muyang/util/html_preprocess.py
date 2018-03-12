@@ -63,12 +63,12 @@ if __name__ == '__main__':
 							'</body>',
 						'</html>',
 					])
-					a_id = json_data['author'] + '_' + json_data['article_id']
-					html_file = f'{html_dir}/{a_id}.html'
+					aid = json_data['author'] + '_' + json_data['article_id']
+					html_file = f'{html_dir}/{aid}.html'
 					printr(html_file)
 					with open(html_file, 'w') as fout:
 						soup = BeautifulSoup(html_data, 'lxml')
-						if a_id in ['imsandra_28191442', 'imsandra_28166295', 'imsandra_28209327', 'imsandra_28096303']:
+						if aid in ['imsandra_28191442', 'imsandra_28166295', 'imsandra_28209327', 'imsandra_28096303']:
 							for s in soup('strong'):
 								for ss in s('strong'):
 									ss.unwrap()

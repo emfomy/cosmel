@@ -8,6 +8,7 @@ __copyright__ = 'Copyright 2017-2018'
 
 import collections.abc
 import itertools
+import json
 import os
 
 from styleme.util import *
@@ -19,25 +20,25 @@ class Mention:
 
 	Args:
 		article (:class:`.Article`): the article containing this mention.
-		s_id    (int):               the sentence index in the aritcle.
-		m_id    (int):               the mention index in the sentence.
-		p_id    (str):               the product ID.
-		g_id    (str):               the golden product ID.
+		sid     (int):               the sentence index in the aritcle.
+		mid     (int):               the mention index in the sentence.
+		pid     (str):               the product ID.
+		gid     (str):               the golden product ID.
 		rule    (str):               the rule.
 		idxs    (slice):             the indix slice of this mention.
 	"""
 
-	def __init__(self, article, s_id, m_id, p_id='', g_id='', rule='', start=None, end=None):
+	def __init__(self, article, sid, mid, pid='', gid='', rule='', start=None, end=None, **kwargs):
 		super().__init__()
 
 		self.__article = article
-		self.__s_id    = int(s_id)
-		self.__m_id    = int(m_id)
-		self.__p_id    = p_id
-		self.__g_id    = g_id
+		self.__sid     = int(sid)
+		self.__mid     = int(mid)
+		self.__pid     = pid
+		self.__gid     = gid
 		self.__rule    = rule
-		self.__start   = start if start else self.__m_id
-		self.__end     = end   if end   else self.__m_id+1
+		self.__start   = start if start else self.__mid
+		self.__end     = end   if end   else self.__mid+1
 
 	def __str__(self):
 		return f'{str(self.sentence_pre)}　[{colored("0;95", str(self.mention))}]　{str(self.sentence_post)}'
@@ -62,7 +63,7 @@ class Mention:
 	@property
 	def sentence(self):
 		""":class:`.WsWords`: the sentence containing this mention."""
-		return self.article[self.__s_id]
+		return self.article[self.__sid]
 
 	@property
 	def sentence_pre(self):
@@ -82,22 +83,22 @@ class Mention:
 	@property
 	def ids(self):
 		"""tuple: the tuple of article ID, sentence ID, and mention ID."""
-		return (self.a_id, self.s_id, self.m_id,)
+		return (self.aid, self.sid, self.mid,)
 
 	@property
-	def a_id(self):
+	def aid(self):
 		"""str: the article ID."""
-		return self.__article.a_id
+		return self.__article.aid
 
 	@property
-	def s_id(self):
+	def sid(self):
 		"""int: the sentence ID (the sentence index in the article)."""
-		return self.__s_id
+		return self.__sid
 
 	@property
-	def m_id(self):
+	def mid(self):
 		"""int: the mention ID (the mention index in the sentence)."""
-		return self.__m_id
+		return self.__mid
 
 	@property
 	def start_idx(self):
@@ -115,9 +116,9 @@ class Mention:
 		return self.__end-1
 
 	@property
-	def m_id(self):
+	def mid(self):
 		"""int: the mention ID (the mention index in the sentence)."""
-		return self.__m_id
+		return self.__mid
 
 	@property
 	def slice(self):
@@ -135,14 +136,14 @@ class Mention:
 		return slice(self.__end, None)
 
 	@property
-	def p_id(self):
+	def pid(self):
 		"""str: the product ID."""
-		return self.__p_id
+		return self.__pid
 
 	@property
-	def g_id(self):
+	def gid(self):
 		"""str: the golden product ID."""
-		return self.__g_id
+		return self.__gid
 
 	@property
 	def rule(self):
@@ -152,7 +153,7 @@ class Mention:
 	@property
 	def head_ws(self):
 		""":class:`.WsWords`: the word-segmented head word."""
-		return self.sentence[self.__m_id]
+		return self.sentence[self.__mid]
 
 	@property
 	def head(self):
@@ -162,22 +163,22 @@ class Mention:
 	@property
 	def head_txt(self):
 		"""str: the head word."""
-		return self.sentence.txts[self.__m_id]
+		return self.sentence.txts[self.__mid]
 
 	@property
 	def head_tag(self):
 		"""str: the head post-tag."""
-		return self.sentence.tags[self.__m_id]
+		return self.sentence.tags[self.__mid]
 
 	@property
 	def head_role(self):
 		"""str: the head role."""
-		return self.sentence.roles[self.__m_id]
+		return self.sentence.roles[self.__mid]
 
 	@property
 	def start_xml(self):
 		"""str: the starting XML tag."""
-		return f'<product pid="{self.p_id}" gid="{self.g_id}" sid="{self.s_id}" mid="{self.m_id}" rule="{self.rule}">'
+		return f'<product pid="{self.pid}" gid="{self.gid}" sid="{self.sid}" mid="{self.mid}" rule="{self.rule}">'
 
 	def start_xml_(self, **kwargs):
 		"""str: the starting XML tag with custom tags."""
@@ -189,17 +190,23 @@ class Mention:
 		return f'</product>'
 
 	@property
-	def filestr(self):
-		"""Change to string for file."""
-		return '\t'.join([str(self.__s_id), str(self.__m_id), self.__p_id, self.__g_id, self.__rule])
+	def json(self):
+		"""Conver to json."""
+		return json.dumps({
+			'sid': self.__sid,
+			'mid': self.__mid,
+			'pid': self.__pid,
+			'gid': self.__gid,
+			'rule': self.__rule,
+		})
 
-	def set_p_id(self, p_id):
+	def set_pid(self, pid):
 		"""Sets the product ID."""
-		self.__p_id = p_id
+		self.__pid = pid
 
-	def set_g_id(self, g_id):
+	def set_gid(self, gid):
 		"""Sets the golden product ID."""
-		self.__g_id = g_id
+		self.__gid = gid
 
 	def set_rule(self, rule):
 		"""Sets the rule for the product ID."""
@@ -243,7 +250,7 @@ class MentionBundle(collections.abc.Sequence):
 		super().__init__()
 
 		with open(file_path) as fin:
-			self.__data = [Mention(article, *tuple(line.strip().split('\t'))) for line in fin]
+			self.__data = [Mention(article, **json.loads(line)) for line in fin]
 
 		self.__article = article
 		self.__path    = file_path
@@ -267,7 +274,7 @@ class MentionBundle(collections.abc.Sequence):
 		return str(self.__data)
 
 	def __hash__(self):
-		return hash(self.a_id)
+		return hash(self.aid)
 
 	@property
 	def article(self):
@@ -275,9 +282,9 @@ class MentionBundle(collections.abc.Sequence):
 		return self.__article
 
 	@property
-	def a_id(self):
+	def aid(self):
 		"""str: the article ID (with leading author name and underscore)."""
-		return self.__article.a_id
+		return self.__article.aid
 
 	@property
 	def path(self):
@@ -285,12 +292,12 @@ class MentionBundle(collections.abc.Sequence):
 		return self.__path
 
 	def save(self, file_path):
-		"""Save the mention bundle to file."""
+		"""Save the mention bundle to json file."""
 		os.makedirs(os.path.dirname(file_path), exist_ok=True)
 		printr(f'Writing {os.path.relpath(file_path)}')
 		with open(file_path, 'w') as fout:
 			for mention in self:
-				fout.write(mention.filestr+'\n')
+				fout.write(mention.json+'\n')
 
 
 class MentionBundleSet(collections.abc.Collection):
@@ -313,7 +320,7 @@ class MentionBundleSet(collections.abc.Collection):
 
 	@staticmethod
 	def __mention_bundle(article, article_root, mention_root, i, n):
-		file_path = transform_path(article.path, article_root, mention_root, '.mention')
+		file_path = transform_path(article.path, article_root, mention_root, '.json')
 		printr(f'{i+1:0{len(n)}}/{n}\tReading {file_path}')
 		return MentionBundle(file_path, article)
 

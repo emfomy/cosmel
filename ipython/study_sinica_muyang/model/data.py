@@ -26,7 +26,7 @@ from styleme import *
 
 class Data:
 
-	_attr = ['p_id_code', 'pre_code', 'post_code', 'desc_code', 'a_id', 's_id', 'idx', 'rule', 'p_id']
+	_attr = ['pid_code', 'pre_code', 'post_code', 'desc_code', 'aid', 'sid', 'idx', 'rule', 'pid']
 
 	def __getitem__(self, key):
 		data = Data()
@@ -36,7 +36,7 @@ class Data:
 
 	@property
 	def size(self):
-		return len(self.p_id_code)
+		return len(self.pid_code)
 
 	@staticmethod
 	def load(file):
@@ -64,16 +64,16 @@ class RawData(Data):
 	max_num_sentences = 5
 
 	def __init__(self, repo, mention_list):
-		self.a_id = [mention.a_id for mention in mention_list]
-		self.s_id = [mention.s_id for mention in mention_list]
-		self.m_id = [mention.m_id for mention in mention_list]
+		self.aid = [mention.aid for mention in mention_list]
+		self.sid = [mention.sid for mention in mention_list]
+		self.mid = [mention.mid for mention in mention_list]
 		self.rule = [mention.rule for mention in mention_list]
-		self.p_id = [mention.p_id for mention in mention_list]
+		self.pid = [mention.pid for mention in mention_list]
 
 		self.pre  = [ \
 				' '.join(itertools.chain( \
 						itertools.chain.from_iterable( \
-								s.txts for s in mention.article[max(mention.s_id-RawData.max_num_sentences, 0):mention.s_id] \
+								s.txts for s in mention.article[max(mention.sid-RawData.max_num_sentences, 0):mention.sid] \
 						), \
 						mention.sentence.txts[:mention.end_idx] \
 				)) for mention in mention_list \
@@ -82,14 +82,14 @@ class RawData(Data):
 				' '.join(itertools.chain( \
 						mention.sentence.txts[mention.start_idx:], \
 						itertools.chain.from_iterable( \
-								s.txts for s in mention.article[mention.s_id+1:mention.s_id+1+RawData.max_num_sentences] \
+								s.txts for s in mention.article[mention.sid+1:mention.sid+1+RawData.max_num_sentences] \
 						) \
 				)) for mention in mention_list \
 		]
-		self.desc  = [' '.join(repo.id_to_product[mention.p_id].descr_ws.txts) for mention in mention_list]
+		self.desc  = [' '.join(repo.id_to_product[mention.pid].descr_ws.txts) for mention in mention_list]
 
 	def encode(self, tokenizer, encoder):
-		self.p_id_code  = encoder.transform(self.p_id)
+		self.pid_code  = encoder.transform(self.pid)
 		self.pre_code   = pad_sequences(tokenizer.texts_to_sequences(self.pre),  padding='pre')
 		self.post_code  = pad_sequences(tokenizer.texts_to_sequences(self.post), padding='post')
 		self.desc_code  = pad_sequences(tokenizer.texts_to_sequences(self.desc), padding='post')
@@ -99,15 +99,15 @@ class RawData(Data):
 		os.makedirs(os.path.dirname(file), exist_ok=True)
 		h5f = h5py.File(file, 'w')
 		h5f.create_dataset('comment',   data=comment)
-		h5f.create_dataset('p_id_code', data=self.p_id_code)
+		h5f.create_dataset('pid_code', data=self.pid_code)
 		h5f.create_dataset('pre_code',  data=self.pre_code)
 		h5f.create_dataset('post_code', data=self.post_code)
 		h5f.create_dataset('desc_code', data=self.desc_code)
-		h5f.create_dataset('a_id',      data=[x.encode("ascii") for x in self.a_id])
-		h5f.create_dataset('s_id',      data=self.s_id, dtype='int32')
-		h5f.create_dataset('m_id',      data=self.m_id,  dtype='int32')
+		h5f.create_dataset('aid',      data=[x.encode("ascii") for x in self.aid])
+		h5f.create_dataset('sid',      data=self.sid, dtype='int32')
+		h5f.create_dataset('mid',      data=self.mid,  dtype='int32')
 		h5f.create_dataset('rule',      data=[x.encode("ascii") for x in self.rule])
-		h5f.create_dataset('p_id',      data=[x.encode("ascii") for x in self.p_id])
+		h5f.create_dataset('pid',      data=[x.encode("ascii") for x in self.pid])
 		h5f.create_dataset('classes',   data=[x.encode("ascii") for x in self.classes])
 		h5f.close()
 		print(f'Saved data into "{file}"')
@@ -142,7 +142,7 @@ if __name__ == '__main__':
 	corpus = Corpus(article_root, mention_root, repo, parts=parts)
 
 	# Extract mentions with PID
-	mention_list = [mention for mention in corpus.mention_set if mention.p_id.isdigit()]
+	mention_list = [mention for mention in corpus.mention_set if mention.pid.isdigit()]
 	num_mention = len(mention_list)
 	print(f'num_mention = {num_mention}')
 
@@ -151,7 +151,7 @@ if __name__ == '__main__':
 
 	# Prepare label encoder
 	encoder = LabelEncoder()
-	encoder.fit(data.p_id)
+	encoder.fit(data.pid)
 	num_label = len(encoder.classes_)
 	print(f'num_label = {num_label}')
 
@@ -168,8 +168,8 @@ if __name__ == '__main__':
 
 	# Initialize entity embedding
 	product_init_embedding = np.zeros((num_label, keyed_vectors.vector_size))
-	for idx, p_id in enumerate(encoder.classes_):
-		product = repo.id_to_product[p_id]
+	for idx, pid in enumerate(encoder.classes_):
+		product = repo.id_to_product[pid]
 		product_init_embedding[idx] = np.mean(keyed_vectors.wv[
 			[word for word in itertools.chain(product.brand, product.name_ws.txts) if word in keyed_vectors.wv]
 		], axis=0)

@@ -54,7 +54,7 @@ if __name__ == '__main__':
 
 		with open(html_file) as fin, open(output_file, 'w') as fout:
 			output_data = list(fin.read())
-			bundle = corpus.id_to_mention_bundle[Article.path_to_a_id(html_file)]
+			bundle = corpus.id_to_mention_bundle[Article.path_to_aid(html_file)]
 
 			for mention in bundle:
 				idx0, idx1 = get_html_idxs(corpus.id_to_mention[mention.ids])

@@ -48,9 +48,9 @@ if __name__ == '__main__':
 		with open(html_file) as fin, open(idx_file, 'w') as fout:
 			html_data = fin.read()
 			html_idx = 0
-			for s_id, line in enumerate(article):
+			for sid, line in enumerate(article):
 				idx_line_list = []
-				for m_id, word in enumerate(line.txts):
+				for mid, word in enumerate(line.txts):
 					chars = ''.join(word.replace('□', ''))
 					char = chars[0]
 					html_idx = get_html_idx(html_data, html_idx, char)

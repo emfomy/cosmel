@@ -29,7 +29,7 @@ def decision_tree(mention, repo, previous_products):
 	for i, candidate in enumerate(candidates):
 		if candidate.name == mention.name:
 			mention.set_rule('exact')
-			mention.set_p_id(candidate.p_id)
+			mention.set_pid(candidate.pid)
 			return
 
 	# Rule 1a --- mention's infix is a subset of the candidate's
@@ -37,7 +37,7 @@ def decision_tree(mention, repo, previous_products):
 		for i, candidate in enumerate(candidates):
 			if mention_affix_set <= candidate_affix_sets[i]:
 				mention.set_rule('01a')
-				mention.set_p_id(candidate.p_id)
+				mention.set_pid(candidate.pid)
 				return
 
 	# Rule 1b --- mention's infix is a subset of the candidate's (excluding "的")
@@ -45,7 +45,7 @@ def decision_tree(mention, repo, previous_products):
 		for i, candidate in enumerate(candidates):
 			if mention_affix_no_de_set <= candidate_affix_no_de_sets[i]:
 				mention.set_rule('01b')
-				mention.set_p_id(candidate.p_id)
+				mention.set_pid(candidate.pid)
 				return
 
 	# Rule 2 --- mention has leading "這" in 5 terms
@@ -55,12 +55,12 @@ def decision_tree(mention, repo, previous_products):
 		for i, candidate in enumerate(candidates):
 			if candidate in previous_products:
 				mention.set_rule('02a')
-				mention.set_p_id(candidate.p_id)
+				mention.set_pid(candidate.pid)
 				return
 
 		# Rule 2b
 		mention.set_rule('02b')
-		mention.set_p_id('OSP')
+		mention.set_pid('OSP')
 		return
 
 	# Rule 3 --- mention has leading "一Nf"
@@ -70,42 +70,42 @@ def decision_tree(mention, repo, previous_products):
 		if '另' == mention.sentence.txts[relu(mention.start_idx-3)] or \
 				'另外' in mention.sentence.txts[relu(mention.start_idx-3)]:
 			mention.set_rule('03b')
-			mention.set_p_id('OSP')
+			mention.set_pid('OSP')
 			return
 
 		# Rule 3a
 		for i, candidate in enumerate(candidates):
 			if candidate in previous_products:
 				mention.set_rule('03a')
-				mention.set_p_id(candidate.p_id)
+				mention.set_pid(candidate.pid)
 				return
 
 		# Rule 3b
 		mention.set_rule('03b')
-		mention.set_p_id('OSP')
+		mention.set_pid('OSP')
 		return
 
 	# Rule 51 --- mention has no infix
 	if len(mention_affix_set) == 0:
 		mention.set_rule('50a')
-		mention.set_p_id('GP')
+		mention.set_pid('GP')
 		return
 
 	# Rule 51 --- mention contains "的"
 	if '的' in mention_affix_set:
 		mention.set_rule('51a')
-		mention.set_p_id('GP')
+		mention.set_pid('GP')
 		return
 
 	# Nil --- no candidate
 	if len(candidates) == 0:
 		mention.set_rule('nil')
-		mention.set_p_id('NAP')
+		mention.set_pid('NAP')
 		return
 
 	# Else
 	mention.set_rule('else')
-	mention.set_p_id('NAP')
+	mention.set_pid('NAP')
 	return
 
 
@@ -141,11 +141,11 @@ if __name__ == '__main__':
 
 			# Update previous product
 			if mention.rule in previous_product_rules:
-				previous_products.add(repo.id_to_product[mention.p_id])
+				previous_products.add(repo.id_to_product[mention.pid])
 
 			# Display result
-			# print('\t'.join([mention.p_id, mention.rule, str(mention.sentence)]))
-			# if mention.p_id.isdigit(): print(repr(repo.id_to_product[mention.p_id]))
+			# print('\t'.join([mention.pid, mention.rule, str(mention.sentence)]))
+			# if mention.pid.isdigit(): print(repr(repo.id_to_product[mention.pid]))
 
 	print()
 

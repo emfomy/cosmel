@@ -30,14 +30,14 @@ def model_load(predict_file, weight_file):
 	return predict_model
 
 def model_predict(predict_model, test_data):
-	predict_p_id_code = np.argmax(predict_model.predict({
+	predict_pid_code = np.argmax(predict_model.predict({
 			'pre_code':  test_data.pre_code, \
 			'post_code': test_data.post_code
 	}), axis=1)
-	return predict_p_id_code
+	return predict_pid_code
 
-def model_accuracy(predict_p_id_code, true_p_id_code, mask=slice(None,None), name='all'):
-	correct = (true_p_id_code[mask] == predict_p_id_code[mask])
+def model_accuracy(predict_pid_code, true_pid_code, mask=slice(None,None), name='all'):
+	correct = (true_pid_code[mask] == predict_pid_code[mask])
 	accuracy = correct.sum() / correct.size
 	print(f'accuracy ({name}) = {accuracy} ({correct.sum()}/{correct.size})')
 
@@ -60,12 +60,12 @@ if __name__ == '__main__':
 
 	# Load and apply model
 	predict_model = model_load(predict_file, weight_file)
-	predict_p_id_code = model_predict(predict_model, test_data)
-	model_accuracy(predict_p_id_code, test_data.p_id_code)
-	model_accuracy(predict_p_id_code, test_data.p_id_code, test_data.rule == 'exact', 'exact')
-	model_accuracy(predict_p_id_code, test_data.p_id_code, test_data.rule == '01a', '1a')
-	model_accuracy(predict_p_id_code, test_data.p_id_code, test_data.rule == '01b', '1b')
-	model_accuracy(predict_p_id_code, test_data.p_id_code, test_data.rule == '02a', '2a')
-	model_accuracy(predict_p_id_code, test_data.p_id_code, test_data.rule == '03a', '3a')
+	predict_pid_code = model_predict(predict_model, test_data)
+	model_accuracy(predict_pid_code, test_data.pid_code)
+	model_accuracy(predict_pid_code, test_data.pid_code, test_data.rule == 'exact', 'exact')
+	model_accuracy(predict_pid_code, test_data.pid_code, test_data.rule == '01a', '1a')
+	model_accuracy(predict_pid_code, test_data.pid_code, test_data.rule == '01b', '1b')
+	model_accuracy(predict_pid_code, test_data.pid_code, test_data.rule == '02a', '2a')
+	model_accuracy(predict_pid_code, test_data.pid_code, test_data.rule == '03a', '3a')
 
 	pass

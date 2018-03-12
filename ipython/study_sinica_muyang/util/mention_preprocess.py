@@ -25,16 +25,16 @@ if __name__ == '__main__':
 	greped_mention   = False
 	written_sentence = True
 
-	target        = f'pruned_article'
-	tmp_root      = f'data/tmp'
-	data_root     = f'data/{ver}'
-	article_root  = f'{data_root}/article/{target}_role'
-	mention_root  = f'{data_root}/mention/{target}'
-	sentence_root = f'{data_root}/parser/{target}'
-	idx_root      = f'{data_root}/parser/{target}_idx'
-	repo_root     = f'{data_root}/repo'
-	parts         = ['']
-	parts        = list(f'part-{x:05}' for x in range(1))
+	target       = f'pruned_article'
+	tmp_root     = f'data/tmp'
+	data_root    = f'data/{ver}'
+	article_root = f'{data_root}/article/{target}_role'
+	mention_root = f'{data_root}/mention/{target}'
+	sentence_root= f'{data_root}/parser/{target}'
+	idx_root     = f'{data_root}/parser/{target}_idx'
+	repo_root    = f'{data_root}/repo'
+	parts        = ['']
+	# parts        = list(f'part-{x:05}' for x in range(1))
 	if len(sys.argv) >= 3: parts = list(f'part-{x:05}' for x in range(int(sys.argv[2]), 128, 8))
 
 	articles = ArticleSet(article_root, parts=parts)
@@ -47,10 +47,10 @@ if __name__ == '__main__':
 	# Grep mentions
 	if not greped_mention:
 		for article in articles:
-			mention_file = transform_path(article.path, article_root, mention_root, '.mention')
+			mention_file = transform_path(article.path, article_root, mention_root, '.json')
 			bundle = MentionBundle(empty_file, article)
-			bundle._MentionBundle__data = [Mention(article, s_id, m_id) \
-					for s_id, line in enumerate(article) for m_id in indices(line.roles, 'Head') + indices(line.roles, 'PName')]
+			bundle._MentionBundle__data = [Mention(article, sid, mid) \
+					for sid, line in enumerate(article) for mid in indices(line.roles, 'Head') + indices(line.roles, 'PName')]
 			bundle.save(mention_file)
 		print()
 
@@ -69,7 +69,7 @@ if __name__ == '__main__':
 			with open(sentence_file, 'w') as fout_sentence, open(idx_file, 'w') as fout_idx:
 				for mention in bundle:
 					fout_sentence.write(str(mention.sentence)+'\n')
-					fout_idx.write(f'{mention.s_id, mention.m_id}\t{roledstr(mention)}\n')
+					fout_idx.write(f'{mention.sid, mention.mid}\t{roledstr(mention)}\n')
 		print()
 
 	pass

@@ -18,22 +18,22 @@ from styleme import *
 def decision_tree(mention, repo):
 
 	if mention.head_role != 'PName': return
-	if mention.m_id == 0: return
+	if mention.mid == 0: return
 
-	b_idx = mention.m_id-1
+	b_idx = mention.mid-1
 	if mention.sentence.roles[b_idx] != 'Brand': return
 
-	b_name = mention.sentence.txts[b_idx]
+	bname = mention.sentence.txts[b_idx]
 	m_name = mention.head
 	try:
-		candidate = repo.b_name_p_name_to_product[b_name, m_name]
+		candidate = repo.bname_pname_to_product[bname, m_name]
 	except KeyError:
 		return
 
 	# Exact --- exact match
 	if m_name == candidate.name:
 		mention.set_rule('exact')
-		mention.set_p_id(candidate.p_id)
+		mention.set_pid(candidate.pid)
 		return
 
 
@@ -67,7 +67,7 @@ if __name__ == '__main__':
 			decision_tree(mention, repo)
 
 			# Display result
-			# if mention.p_id: print('\t'.join([str(mention.ids), mention.rule, str(mention.sentence)]))
+			# if mention.pid: print('\t'.join([str(mention.ids), mention.rule, str(mention.sentence)]))
 
 	print()
 

@@ -55,7 +55,7 @@ if __name__ == '__main__':
 		with open(html_file) as fin:
 			output_data = list(fin.read())
 			try:
-				bundle = corpus.id_to_mention_bundle[Article.path_to_a_id(html_file)]
+				bundle = corpus.id_to_mention_bundle[Article.path_to_aid(html_file)]
 			except Exception as e:
 				print()
 				print(colored('1;31', e))

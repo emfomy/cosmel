@@ -84,7 +84,7 @@ def product_route():
 	def id_to_product_get(pid):
 		return (str(repo.id_to_product.get(pid, f'{pid} [KeyError]')) if pid not in set({'', 'OSP', 'GP', 'NAP'}) else pid)
 	if pid:   return '<br>'.join(id_to_product_get(p) for p in pid.split(','))
-	else:     return '<br>'.join(map(str, repo.b_name_head_to_product_list[brand, head]))
+	else:     return '<br>'.join(map(str, repo.bname_head_to_product_list[brand, head]))
 
 @app.route('/article/<path:path>')
 def article_route(path):

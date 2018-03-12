@@ -17,7 +17,7 @@ def grep_mention(article, sid, mid, txt):
 	pid  = txt.split('pid="')[1].split('"')[0]
 	gid  = txt.split('gid="')[1].split('"')[0]
 	rule = txt.split('rule="')[1].split('"')[0]
-	return Mention(article, sid, mid, p_id=pid, g_id=gid, rule=rule)
+	return Mention(article, sid, mid, pid=pid, gid=gid, rule=rule)
 
 if __name__ == '__main__':
 
@@ -49,7 +49,7 @@ if __name__ == '__main__':
 
 	if not get_mention:
 		for xml in xmls:
-			mention_file = transform_path(xml.path.replace('.label', ''), xml_root, mention_root, '.mention')
+			mention_file = transform_path(xml.path.replace('.label', ''), xml_root, mention_root, '.json')
 			bundle = MentionBundle(empty_file, xml)
 			bundle._MentionBundle__data = [grep_mention(xml, sid, mid, txt) \
 					for sid, line in enumerate(xml) for mid, txt in enumerate(line.txts) if '<' in txt]
@@ -66,10 +66,10 @@ if __name__ == '__main__':
 					if '<' in txt:
 						line.txts[mid] = txt.split('>')[1]
 						line.roles[mid] = ''
-					if   txt in repo.b_name_to_brand:        line.roles[mid] = 'Brand'
+					if   txt in repo.bname_to_brand:        line.roles[mid] = 'Brand'
 					elif txt in repo.head_set:               line.roles[mid] = 'Head'
 					elif txt in repo.infix_set:              line.roles[mid] = 'Infix'
-					elif txt in repo.p_name_to_product_list: line.roles[mid] = 'PName'
+					elif txt in repo.pname_to_product_list: line.roles[mid] = 'PName'
 
 			# Write xml to file
 			article_file = transform_path(xml.path.replace('.label', ''), xml_root, article_root, '.role')
