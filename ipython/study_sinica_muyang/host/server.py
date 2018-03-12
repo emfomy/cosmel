@@ -103,7 +103,7 @@ def json_route(path):
 @app.route('/save', methods=['POST'])
 def save_route():
 	try:
-		data = request.data;
+		data = request.data
 		part = request.args.get('part')
 		aid = request.args.get('aid')
 		json_data = json.loads(data)

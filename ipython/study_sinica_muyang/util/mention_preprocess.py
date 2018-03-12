@@ -37,12 +37,11 @@ if __name__ == '__main__':
 	parts        = list(f'part-{x:05}' for x in range(1))
 	if len(sys.argv) >= 3: parts = list(f'part-{x:05}' for x in range(int(sys.argv[2]), 128, 8))
 
-	empty_file    = tmp_root+'/empty.tmp'
-
 	articles = ArticleSet(article_root, parts=parts)
 
 	max_len_mention = 10
 
+	empty_file    = tmp_root+'/empty.tmp'
 	with open(empty_file, 'w'): pass
 
 	# Grep mentions

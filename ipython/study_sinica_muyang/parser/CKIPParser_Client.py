@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 #-*- encoding: UTF-8 -*-
 
-from nltk.tree import *
-from nltk.draw.tree import TreeView
+# from nltk.tree import *
+# from nltk.draw.tree import TreeView
 import socket
 import json
 import time
@@ -96,7 +96,8 @@ def communicate(host, port, info, retry):
             data = client.receive()
             client.close()
             break
-        except:
+        except Exception as e:
+            print(e)
             time.sleep(5 * (i + 1))
 
     return data
