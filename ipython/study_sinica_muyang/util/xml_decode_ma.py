@@ -67,8 +67,8 @@ if __name__ == '__main__':
 						line.txts[mid] = txt.split('>')[1]
 						line.roles[mid] = ''
 					if   txt in repo.bname_to_brand:        line.roles[mid] = 'Brand'
-					elif txt in repo.head_set:               line.roles[mid] = 'Head'
-					elif txt in repo.infix_set:              line.roles[mid] = 'Infix'
+					elif txt in repo.head_set:              line.roles[mid] = 'Head'
+					elif txt in repo.infix_set:             line.roles[mid] = 'Infix'
 					elif txt in repo.pname_to_product_list: line.roles[mid] = 'PName'
 
 			# Write xml to file
@@ -77,5 +77,6 @@ if __name__ == '__main__':
 			printr(f'{i+1:0{len(n)}}/{n}\t{article_file}')
 			with open(article_file, 'w') as fout:
 				fout.write(roledstr(xml)+'\n')
+		print()
 
 	pass

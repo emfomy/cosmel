@@ -30,7 +30,7 @@ if __name__ == '__main__':
 	# target_ver   = f'_exact'
 	data_root    = f'data/{ver}'
 	repo_root    = f'{data_root}/repo'
-	article_root = f'{data_root}/article/{target}_ws'
+	article_root = f'{data_root}/article/{target}_role'
 	mention_root = f'{data_root}/mention/{target}{target_ver}'
 	xml_root     = f'{data_root}/xml/{target}{target_ver}'
 	parts         = ['']
@@ -44,6 +44,10 @@ if __name__ == '__main__':
 	n = str(len(corpus.mention_bundle_set))
 	for i, bundle in enumerate(corpus.mention_bundle_set):
 		article = bundle.article
+		for sentence in article:
+			for wid, _ in enumerate(sentence):
+				sentence.roles[wid] = ''
+
 		xml_file = transform_path(article.path, article_root, xml_root, '.xml')
 		os.makedirs(os.path.dirname(xml_file), exist_ok=True)
 		printr(f'{i+1:0{len(n)}}/{n}\t{xml_file}')
