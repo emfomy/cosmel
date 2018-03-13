@@ -49,10 +49,10 @@ if __name__ == '__main__':
 		for i, article in enumerate(articles):
 			parsed_file = transform_path(article.path, ws_root, parsed_root, '.parse')
 			os.makedirs(os.path.dirname(parsed_file), exist_ok=True)
-			# printr(f'{i+1:0{len(n)}}/{n}\t{parsed_file}')
+			printr(f'{i+1:0{len(n)}}/{n}\t{parsed_file}')
 			with open(parsed_file, 'w') as fout:
 				for ii, line in enumerate(article):
-					# printr(f'{i+1:0{len(n)}}/{n}\t{parsed_file}\t{ii}')
+					printr(f'{i+1:0{len(n)}}/{n}\t{parsed_file}\t{ii}')
 					fout.write('\t'.join(parse(line))+'\n')
 		print()
 

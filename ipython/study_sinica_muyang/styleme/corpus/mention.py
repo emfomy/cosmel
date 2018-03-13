@@ -39,6 +39,7 @@ class Mention:
 		self.__rule    = rule
 		self.__start   = start if start else self.__mid
 		self.__end     = end   if end   else self.__mid+1
+		self.__kwargs  = kwargs
 
 	def __str__(self):
 		return f'{str(self.sentence_pre)}　[{colored("0;95", str(self.mention))}]　{str(self.sentence_post)}'
@@ -176,13 +177,20 @@ class Mention:
 		return self.sentence.roles[self.__mid]
 
 	@property
+	def attrs(self):
+		"""The xml attributes."""
+		return dict(self.__kwargs, 'sid': self.__sid, 'mid': self.__mid, 'pid': self.__pid, 'gid': self.__gid, 'rule': self.__rule)
+
+	@property
 	def start_xml(self):
 		"""str: the starting XML tag."""
-		return f'<product pid="{self.pid}" gid="{self.gid}" sid="{self.sid}" mid="{self.mid}" rule="{self.rule}">'
+		return f'<product ' + ' '.join(f'{k}="{v}"' for k, v in self.attrs) + '>'
 
 	def start_xml_(self, **kwargs):
 		"""str: the starting XML tag with custom tags."""
-		return ' '.join([self.start_xml[:-1]] + [f'{key}="{kwargs[key]}"' for key in kwargs]) + '>'
+		attrs = self.attrs
+		attrs.update(kwargs)
+		return f'<product ' + ' '.join(f'{k}="{v}"' for k, v in attrs) + '>'
 
 	@property
 	def end_xml(self):
@@ -192,13 +200,7 @@ class Mention:
 	@property
 	def json(self):
 		"""Conver to json."""
-		return json.dumps({
-			'sid': self.__sid,
-			'mid': self.__mid,
-			'pid': self.__pid,
-			'gid': self.__gid,
-			'rule': self.__rule,
-		})
+		return json.dumps(self.attrs)
 
 	def set_pid(self, pid):
 		"""Sets the product ID."""

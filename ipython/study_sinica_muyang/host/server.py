@@ -83,7 +83,7 @@ def product_route():
 	head  = request.args.get('head',  default=slice(None))
 	def id_to_product_get(pid):
 		return (str(repo.id_to_product.get(pid, f'{pid} [KeyError]')) if pid not in set({'', 'OSP', 'GP', 'NAP'}) else pid)
-	if pid:   return '<br>'.join(id_to_product_get(p) for p in pid.split(','))
+	if pid:   return '<hr>'.join('<br>'.join(id_to_product_get(p) for p in pp.split(',')) for pp in pid.split(';'))
 	else:     return '<br>'.join(map(str, repo.bname_head_to_product_list[brand, head]))
 
 @app.route('/article/<path:path>')
@@ -97,7 +97,7 @@ def article_route(path):
 def json_route(path):
 	file = f'{root()}/json/{path}.json'
 	with open(file) as fin:
-		data = fin.read().replace('\n', '<br/>')
+		data = fin.read().replace('\n', '<br>')
 	return str(data)
 
 @app.route('/save', methods=['POST'])

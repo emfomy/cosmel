@@ -48,23 +48,16 @@
 			}
 
 			product::after {
-				color: #ffdddd;
+				color: #aa0000;
 				content: "Here!";
 				font-size: 32px;
 				font-weight: bold;
 				position: absolute;
-				right: 0;
 			}
 
 			product.done::after {
-				color: #ddffdd;
+				color: #00aa00;
 				content: attr(gid);
-			}
-
-			@media screen and (max-width: 736px) {
-				product::after {
-					display: none;
-				}
 			}
 		</style>
 	</head>
@@ -237,17 +230,30 @@
 								const hint_orig = this.getAttribute('hint');
 								const hint = hint_orig ? hint_orig : '';
 
-								const pid_gid_hint = pid+','+gid+','+hint;
+								const pgh = pid+';'+gid+';'+hint;
 
 								res = $.ajax({
-									url: '/repo/product?pid='+pid_gid_hint,
+									url: '/repo/product?pid='+pgh,
 									type: 'get',
 									error: customStatusError
-								}).done(pid_gid_hint_name => {
-									pid_gid_hint_list = pid_gid_hint_name.replace(/<br\s*[\/]?>/gi, '\n').split('\n');
-									pid_name  = pid_gid_hint_list[0];
-									gid_name  = pid_gid_hint_list[1];
-									hint_name = pid_gid_hint_list.slice(2).join('\n');
+								}).done(pgh_name => {
+									pgh_list  = pgh_name.split('<hr>');
+									pid_name  = pgh_list[0].replace('<br>', '\n');
+									gid_name  = pgh_list[1].replace('<br>', '\n');
+									hint_name = pgh_list[2].replace('<br>', '\n');
+
+									var buttons = {
+										OSP: true,
+										GP: true,
+										NAP: true,
+										delete: true,
+										cancel: true
+									}
+									if ( hint ) {
+										for ( var h of hint.split(',') ) {
+											buttons[h] = true;
+										}
+									}
 
 									swal({
 										title: text,
@@ -259,13 +265,7 @@
 											'rule='+rule +'\n'+
 											'hint='+hint +'\n'+hint_name,
 										content: "input",
-										buttons: {
-											OSP: true,
-											GP: true,
-											NAP: true,
-											delete: true,
-											cancel: true
-										}
+										buttons: buttons
 									}).then((value) => {
 										if ( value === null) {
 											return;
@@ -301,6 +301,8 @@
 												}).catch(customError);
 										}
 									});
+									$('button.swal-button--cancel').parent().before('<hr>')
+									$('button.swal-button--OSP').parent().before('<hr>')
 								});
 
 							} catch(error) {
