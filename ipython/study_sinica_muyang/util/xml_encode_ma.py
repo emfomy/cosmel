@@ -25,9 +25,11 @@ if __name__ == '__main__':
 	ver = sys.argv[1]
 
 	target       = f'pruned_article'
+	target       = f'pixnet_article'
 	target_ver   = f''
 	# target_ver   = f'_pid'
 	# target_ver   = f'_exact'
+	target_ver   = f'_gid'
 	data_root    = f'data/{ver}'
 	repo_root    = f'{data_root}/repo'
 	article_root = f'{data_root}/article/{target}_role'
@@ -37,13 +39,13 @@ if __name__ == '__main__':
 	parts        = list(f'part-{x:05}' for x in range(1))
 	if len(sys.argv) >= 3: parts = list(f'part-{x:05}' for x in range(int(sys.argv[2]), 128, 8))
 
-	# Load StyleMe repository and corpus
-	corpus = Corpus(article_root, mention_root, parts=parts)
-
 	# Extract html from json
-	n = str(len(corpus.mention_bundle_set))
-	for i, bundle in enumerate(corpus.mention_bundle_set):
-		article = bundle.article
+	mention_files = grep_files(mention_root, parts)
+	n = str(len(mention_files))
+	for i, mention_file in enumerate(mention_files):
+		article_file = transform_path(mention_file, mention_root, article_root, '.role')
+		article = Article(article_file)
+		bundle = MentionBundle(mention_file, article)
 		xml_file = transform_path(article.path, article_root, xml_root, '.xml')
 
 		os.makedirs(os.path.dirname(xml_file), exist_ok=True)
@@ -53,6 +55,7 @@ if __name__ == '__main__':
 			article[mention.sid].txts[mention.start_idx] = add_start_xml(article[mention.sid].txts[mention.start_idx], mention)
 			article[mention.sid].txts[mention.last_idx]  = add_end_xml(article[mention.sid].txts[mention.last_idx],    mention)
 
+		# del article._Article__data[0]
 		article.save(xml_file, txtstr)
 	print()
 

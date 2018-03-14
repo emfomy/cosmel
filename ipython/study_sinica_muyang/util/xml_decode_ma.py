@@ -6,35 +6,47 @@
 	 Mu Yang <emfomy@gmail.com>
 """
 
+import itertools
 import os
+import re
 import sys
+
+from bs4 import BeautifulSoup
 
 os.chdir(os.path.join(os.path.dirname(__file__), '..'))
 sys.path.insert(0, os.path.abspath('.'))
 from styleme import *
 
+def get_xml_idx(xml_data, word, start_idx):
+	return xml_data[(start_idx+1):].index(word)+(start_idx+1)
+
 def grep_mention(article, sid, mid, txt):
-	pid  = txt.split('pid="')[1].split('"')[0]
-	gid  = txt.split('gid="')[1].split('"')[0]
-	rule = txt.split('rule="')[1].split('"')[0]
-	return Mention(article, sid, mid, pid=pid, gid=gid, rule=rule)
+	soup = BeautifulSoup(txt.split('>', 1)[0]+'>', 'lxml')
+	attrs = soup.product.attrs
+	del attrs['sid']
+	del attrs['mid']
+	return Mention(article, sid, mid, **attrs)
 
 if __name__ == '__main__':
 
 	assert len(sys.argv) >= 2
 	ver = sys.argv[1]
 
+	textualized = False
 	get_mention = False
-	get_article = False
 
-	target        = f'pruned_article_ma'
+	target        = f'pruned_article'
+	target_parse  = f'parsed_article'
+	target_parse  = f'pixnet_article'
 	target_ver    = f''
 	target_ver    = f'_pid'
 	# target_ver   = f'_exact'
+	target_ver    = f'_gid'
 	tmp_root      = f'data/tmp'
 	data_root     = f'data/{ver}'
 	repo_root     = f'{data_root}/repo'
-	xml_root      = f'{data_root}/xml/{target}{target_ver}'
+	ws_xml_root   = f'{data_root}/xml/{target_parse}_ws{target_ver}'
+	xml_root      = f'{data_root}/xml/{target_parse}{target_ver}'
 	article_root  = f'{data_root}/article/{target}_role'
 	mention_root  = f'{data_root}/mention/{target}{target_ver}'
 	parts         = ['']
@@ -45,38 +57,71 @@ if __name__ == '__main__':
 	with open(empty_file, 'w'): pass
 
 	repo = Repo(repo_root)
-	xmls = ArticleSet(xml_root, parts=parts)
 
-	if not get_mention:
-		for xml in xmls:
-			mention_file = transform_path(xml.path.replace('.label', ''), xml_root, mention_root, '.json')
-			bundle = MentionBundle(empty_file, xml)
-			bundle._MentionBundle__data = [grep_mention(xml, sid, mid, txt) \
-					for sid, line in enumerate(xml) for mid, txt in enumerate(line.txts) if '<' in txt]
-			bundle.save(mention_file)
+	# Textualize
+	if not textualized:
+		ws_xmls = ArticleSet(ws_xml_root, parts=parts)
+		n = str(len(ws_xmls))
+		for i, ws_xml in enumerate(ws_xmls):
+			xml_file = transform_path(ws_xml.path, ws_xml_root, xml_root, '.xml')
+			os.makedirs(os.path.dirname(xml_file), exist_ok=True)
+			printr(f'{i+1:0{len(n)}}/{n}\t{xml_file}')
+			ws_xml.save(xml_file, roledtxtstr)
 		print()
 
-	if not get_article:
-		n = str(len(xmls))
-		for i, xml in enumerate(xmls):
+	# Grep mention
+	if not get_mention:
 
-			# Replace role xml to file
-			for line in xml:
-				for mid, txt in enumerate(line.txts):
-					if '<' in txt:
-						line.txts[mid] = txt.split('>')[1]
-						line.roles[mid] = ''
-					if   txt in repo.bname_to_brand:        line.roles[mid] = 'Brand'
-					elif txt in repo.head_set:              line.roles[mid] = 'Head'
-					elif txt in repo.infix_set:             line.roles[mid] = 'Infix'
-					elif txt in repo.pname_to_product_list: line.roles[mid] = 'PName'
+		def repl(m): return '□' * len(m.group())
+		regex = re.compile('<[^<>]*?>')
 
-			# Write xml to file
-			article_file = transform_path(xml.path.replace('.label', ''), xml_root, article_root, '.role')
-			os.makedirs(os.path.dirname(article_file), exist_ok=True)
-			printr(f'{i+1:0{len(n)}}/{n}\t{article_file}')
-			with open(article_file, 'w') as fout:
-				fout.write(roledstr(xml)+'\n')
+		xml_files = grep_files(xml_root, parts)
+		n = str(len(xml_files))
+		for i, xml_file in enumerate(xml_files):
+			article_file = transform_path(xml_file, xml_root, article_root, '.role')
+			mention_file = transform_path(xml_file, xml_root, mention_root, '.json')
+			article = Article(article_file)
+			bundle = MentionBundle(empty_file, article)
+			printr(f'{i+1:0{len(n)}}/{n}\t{mention_file}')
+
+			with open(xml_file) as fin:
+				for sid, (line, xml_line) in enumerate(zip(article, fin)):
+
+					xml_line = xml_line.strip()
+					xml_line_re = regex.sub(repl, xml_line)
+
+					# Map Index
+					xml_idx = -1
+					txt_list = ['*']  * len(xml_line)
+					start_mid_list = [len(line)-1] * len(xml_line)
+					end_mid_list   = [-1] * len(xml_line)
+					for mid, word in enumerate(line.txts):
+						chars = ''.join(word.replace('□', ''))
+						for char in chars:
+							try:
+								xml_idx0 = xml_idx
+								xml_idx  = get_xml_idx(xml_line_re, char, xml_idx0)
+							except ValueError:
+								pass
+							else:
+								txt_list[xml_idx] = char
+								for idx in range(xml_idx0+1, xml_idx+1):  start_mid_list[idx] = mid
+								for idx in range(xml_idx, len(xml_line)): end_mid_list[idx]   = mid
+
+					# Grep XML Tag
+					end_idx = 0
+					while '<product ' in xml_line[(end_idx+1):]:
+						start_idx = get_xml_idx(xml_line, '<product ', end_idx)
+						end_idx   = get_xml_idx(xml_line, '</product', start_idx)
+						start_mid = start_mid_list[start_idx]
+						end_mid   = end_mid_list[end_idx]
+
+						if start_mid != end_mid:
+							print(colored('1;31', f'\nSkip mention at {xml_file}:{sid}:{start_idx}-{end_idx}'))
+							continue
+						bundle._MentionBundle__data.append(grep_mention(article, sid, start_mid, xml_line[start_idx:end_idx+1]))
+
+			bundle.save(mention_file)
 		print()
 
 	pass

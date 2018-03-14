@@ -13,11 +13,11 @@ import sys
 sys.path.insert(0, os.path.abspath('.'))
 from styleme import *
 
-def get_html_idx(html_data, html_idx, word):
+def get_html_idx(html_data, word, start_idx):
 	try:
-		return html_data[(html_idx+1):].index(word)+(html_idx+1)
+		return html_data[(start_idx+1):].index(word)+(start_idx+1)
 	except ValueError:
-		return html_idx
+		return start_idx
 
 if __name__ == '__main__':
 
@@ -47,16 +47,16 @@ if __name__ == '__main__':
 
 		with open(html_file) as fin, open(idx_file, 'w') as fout:
 			html_data = fin.read()
-			html_idx = 0
+			html_idx = -1
 			for sid, line in enumerate(article):
 				idx_line_list = []
 				for mid, word in enumerate(line.txts):
 					chars = ''.join(word.replace('□', ''))
 					char = chars[0]
-					html_idx = get_html_idx(html_data, html_idx, char)
+					html_idx = get_html_idx(html_data, char, html_idx)
 					html_idx0 = html_idx
 					for char in chars[1:]:
-						html_idx = get_html_idx(html_data, html_idx, char)
+						html_idx = get_html_idx(html_data, char, html_idx)
 					idx_line_list.append(f'{word}({html_idx0},{html_idx})')
 				fout.write('　'.join(idx_line_list)+'\n')
 	print()

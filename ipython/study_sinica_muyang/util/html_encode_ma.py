@@ -27,7 +27,7 @@ if __name__ == '__main__':
 	assert len(sys.argv) >= 2
 	ver = sys.argv[1]
 
-	target       = f'pruned_article_ma'
+	target       = f'parsed_article'
 	target_ver   = f''
 	target_ver   = f'_pid'
 	# target_ver   = f'_exact'

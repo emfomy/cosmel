@@ -32,27 +32,27 @@ if __name__ == '__main__':
 	target       = f'pruned_article'
 	target_parse = f'parsed_article'
 	data_root    = f'data/{ver}'
-	ws_root      = f'{data_root}/article/{target}_ws'
-	parsed_root  = f'{data_root}/article/{target_parse}'
+	ws_re2_root  = f'{data_root}/article/{target}_ws_re2'
+	parse_root   = f'{data_root}/article/{target_parse}_parse'
 	parts        = ['']
 	parts        = list(f'part-{x:05}' for x in range(1))
 	if len(sys.argv) >= 3: parts = list(f'part-{x:05}' for x in range(int(sys.argv[2]), 128, 8))
 
 	ckipws_lib = 'libWordSeg.so'
 
-	articles = ArticleSet(ws_root, parts=parts)
+	articles = ArticleSet(ws_re2_root, parts=parts)
 
 	# Prune Articles
 	if not parsed:
 
 		n = str(len(articles))
 		for i, article in enumerate(articles):
-			parsed_file = transform_path(article.path, ws_root, parsed_root, '.parse')
-			os.makedirs(os.path.dirname(parsed_file), exist_ok=True)
-			printr(f'{i+1:0{len(n)}}/{n}\t{parsed_file}')
-			with open(parsed_file, 'w') as fout:
+			parse_file = transform_path(article.path, ws_re2_root, parse_root, '.parse')
+			os.makedirs(os.path.dirname(parse_file), exist_ok=True)
+			printr(f'{i+1:0{len(n)}}/{n}\t{parse_file}')
+			with open(parse_file, 'w') as fout:
 				for ii, line in enumerate(article):
-					printr(f'{i+1:0{len(n)}}/{n}\t{parsed_file}\t{ii}')
+					printr(f'{i+1:0{len(n)}}/{n}\t{parse_file}\t{ii}')
 					fout.write('\t'.join(parse(line))+'\n')
 		print()
 

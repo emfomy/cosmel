@@ -21,7 +21,7 @@ if __name__ == '__main__':
 	greped_mention   = False
 	written_sentence = True
 
-	target       = f'pruned_article_ma'
+	target       = f'parsed_article'
 	target_ver   = f''
 	target_ver   = f'_ckip_gid'
 	tmp_root     = f'data/tmp'

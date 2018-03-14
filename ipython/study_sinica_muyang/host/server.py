@@ -14,7 +14,6 @@ from flask import render_template
 from flask import request
 from flask import url_for
 
-import glob
 import json
 import os
 import time
@@ -39,23 +38,24 @@ def index_route():
 
 	if 'part' not in request.args or part not in files:
 		part = list(files.keys())[0]
+		aid  = None
+		act  = None
 		do_redirect = True
 
+	if aid == 'None':
+		aid = None
 	if 'aid' in request.args and aid not in files[part]:
-		aid  = None
+		aid = None
+		act = None
 		do_redirect = True
 
 	if 'act' in request.args:
-		try:
-			idx = files[part].index(aid)
-			if act == 'prev': idx -= 1
-			if act == 'next': idx += 1
-		except ValueError:
-			idx = 0
-		finally:
-			aid = files[part][idx] if 0 <= idx < len(files[part]) else None
-			act = None
-			do_redirect = True
+		idx = files[part].index(aid)
+		if act == 'prev': idx -= 1
+		if act == 'next': idx += 1
+		aid = files[part][idx % len(files[part])]
+		act = None
+		do_redirect = True
 
 	if do_redirect:
 		args = dict()
@@ -64,16 +64,33 @@ def index_route():
 		if act:  args['act']  = act
 		return redirect(url_for('index_route', **args), code=302)
 
+	mention_data = dict()
+	try:
+		file = f'{root()}/mention/{part}/{aid}.json'
+		with open(file) as fin:
+			json_list = [json.loads(line) for line in fin]
+			for json_line in json_list:
+				if 'time' not in json_line:
+					json_line['time'] = 0
+			for json_line in sorted(json_list, key=operator.itemgetter('time')):
+				mention_data[f'{json_line["sid"]}-{json_line["mid"]}'] = json_line
+	except Exception as e:
+		print(colored('1;31', str(e)))
+
 	json_data = dict()
 	try:
 		file = f'{root()}/json/{part}/{aid}.json'
 		with open(file) as fin:
-			for line in sorted([json.loads(line) for line in fin], key=operator.itemgetter('time')):
-				json_data[f'{line["sid"]}-{line["mid"]}'] = line['gid']
+			json_list = [json.loads(line) for line in fin]
+			for json_line in json_list:
+				if 'time' not in json_line:
+					json_line['time'] = 0
+			for json_line in sorted(json_list, key=operator.itemgetter('time')):
+				json_data[f'{json_line["sid"]}-{json_line["mid"]}'] = json_line
 	except Exception as e:
-		print(e)
-		pass
-	return render_template('index.html', ver=root(), aid=aid, part=part, files=files, json_data=json_data)
+		print(colored('1;31', str(e)))
+
+	return render_template('index.html', ver=root(), aid=aid, part=part, files=files, mention_data=mention_data, json_data=json_data)
 
 @app.route('/repo/product')
 def product_route():
@@ -82,7 +99,11 @@ def product_route():
 	brand = request.args.get('brand', default=slice(None))
 	head  = request.args.get('head',  default=slice(None))
 	def id_to_product_get(pid):
-		return (str(repo.id_to_product.get(pid, f'{pid} [KeyError]')) if pid not in set({'', 'OSP', 'GP', 'NAP'}) else pid)
+		if pid == '':      return ''
+		elif pid == 'OSP': return 'OSP [Other-Specific-Product]'
+		elif pid == 'GP':  return 'GP [Genreal-Product]'
+		elif pid == 'NAP': return 'NAP [Not-A-Product]'
+		else:              return str(repo.id_to_product.get(pid, f'{pid} [KeyError]'))
 	if pid:   return '<hr>'.join('<br>'.join(id_to_product_get(p) for p in pp.split(',')) for pp in pid.split(';'))
 	else:     return '<br>'.join(map(str, repo.bname_head_to_product_list[brand, head]))
 
@@ -95,10 +116,25 @@ def article_route(path):
 
 @app.route('/json/<path:path>')
 def json_route(path):
+	data = ''
+
+	file = f'{root()}/mention/{path}.json'
+	try:
+		with open(file) as fin:
+			data += fin.read().replace('\n', '<br>')
+	except:
+		pass
+
+	data += '<hr>'
+
 	file = f'{root()}/json/{path}.json'
-	with open(file) as fin:
-		data = fin.read().replace('\n', '<br>')
-	return str(data)
+	try:
+		with open(file) as fin:
+			data += fin.read().replace('\n', '<br>')
+	except:
+		pass
+
+	return data
 
 @app.route('/save', methods=['POST'])
 def save_route():
@@ -117,7 +153,7 @@ def save_route():
 			fout.write(json.dumps(json_data)+'\n')
 		return jsonify(message='')
 	except Exception as e:
-		print(f'"/save" failed: {e}')
+		print(colored('1;31', f'"/save" failed: {e}'))
 		return jsonify(message=str(e)), 500
 
 if __name__ == '__main__':
@@ -135,6 +171,7 @@ if __name__ == '__main__':
 	parts = sorted([part for part in os.listdir(f'{root()}/article') if os.path.isdir(f'{root()}/article/{part}')])
 	files = dict()
 	for part in parts:
-		files[part] = sorted([file.replace(ext, '') for file in os.listdir(f'{root()}/article/{part}') if file.endswith(ext)])
+		files[part] = [None] + \
+				sorted([file.replace(ext, '') for file in os.listdir(f'{root()}/article/{part}') if file.endswith(ext)])
 
 	app.run(host=host, port=5000, processes=8, debug=True)

@@ -22,16 +22,11 @@ if __name__ == '__main__':
 	assert len(sys.argv) >= 2
 	ver = sys.argv[1]
 
-	greped_mention   = False
-	written_sentence = True
-
 	target       = f'pruned_article'
 	tmp_root     = f'data/tmp'
 	data_root    = f'data/{ver}'
 	article_root = f'{data_root}/article/{target}_role'
 	mention_root = f'{data_root}/mention/{target}'
-	sentence_root= f'{data_root}/parser/{target}'
-	idx_root     = f'{data_root}/parser/{target}_idx'
 	repo_root    = f'{data_root}/repo'
 	parts        = ['']
 	# parts        = list(f'part-{x:05}' for x in range(1))
@@ -41,35 +36,18 @@ if __name__ == '__main__':
 
 	max_len_mention = 10
 
-	empty_file    = tmp_root+'/empty.tmp'
+	empty_file = tmp_root+'/empty.tmp'
 	with open(empty_file, 'w'): pass
 
 	# Grep mentions
-	if not greped_mention:
-		for article in articles:
-			mention_file = transform_path(article.path, article_root, mention_root, '.json')
-			bundle = MentionBundle(empty_file, article)
-			bundle._MentionBundle__data = [Mention(article, sid, mid) \
-					for sid, line in enumerate(article) for mid in indices(line.roles, 'Head') + indices(line.roles, 'PName')]
-			bundle.save(mention_file)
-		print()
-
-	if not written_sentence:
-
-		bundles = MentionBundleSet(article_root, mention_root, articles)
-
-		# Writhe mention sentences to file
-		n = str(len(bundles))
-		for i, bundle in enumerate(bundles):
-			sentence_file = transform_path(bundle.path, mention_root, sentence_root, '.sentence')
-			idx_file      = transform_path(sentence_file, sentence_root, idx_root) +'.idx'
-			os.makedirs(os.path.dirname(sentence_file), exist_ok=True)
-			os.makedirs(os.path.dirname(idx_file), exist_ok=True)
-			printr(f'{i+1:0{len(n)}}/{n}\tWriting {os.path.relpath(sentence_file)}')
-			with open(sentence_file, 'w') as fout_sentence, open(idx_file, 'w') as fout_idx:
-				for mention in bundle:
-					fout_sentence.write(str(mention.sentence)+'\n')
-					fout_idx.write(f'{mention.sid, mention.mid}\t{roledstr(mention)}\n')
-		print()
+	n = str(len(articles))
+	for i, article in enumerate(articles):
+		mention_file = transform_path(article.path, article_root, mention_root, '.json')
+		printr(f'{i+1:0{len(n)}}/{n}\t{mention_file}')
+		bundle = MentionBundle(empty_file, article)
+		bundle._MentionBundle__data = [Mention(article, sid, mid) \
+				for sid, line in enumerate(article) for mid in indices(line.roles, 'Head')]
+		bundle.save(mention_file)
+	print()
 
 	pass

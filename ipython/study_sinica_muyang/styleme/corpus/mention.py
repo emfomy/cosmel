@@ -179,18 +179,18 @@ class Mention:
 	@property
 	def attrs(self):
 		"""The xml attributes."""
-		return dict(self.__kwargs, 'sid': self.__sid, 'mid': self.__mid, 'pid': self.__pid, 'gid': self.__gid, 'rule': self.__rule)
+		return dict(self.__kwargs, sid=self.__sid, mid=self.__mid, pid=self.__pid, gid=self.__gid, rule=self.__rule)
 
 	@property
 	def start_xml(self):
 		"""str: the starting XML tag."""
-		return f'<product ' + ' '.join(f'{k}="{v}"' for k, v in self.attrs) + '>'
+		return f'<product ' + ' '.join(f'{k}="{v}"' for k, v in self.attrs.items()) + '>'
 
 	def start_xml_(self, **kwargs):
 		"""str: the starting XML tag with custom tags."""
 		attrs = self.attrs
 		attrs.update(kwargs)
-		return f'<product ' + ' '.join(f'{k}="{v}"' for k, v in attrs) + '>'
+		return f'<product ' + ' '.join(f'{k}="{v}"' for k, v in attrs.items()) + '>'
 
 	@property
 	def end_xml(self):
@@ -270,10 +270,16 @@ class MentionBundle(collections.abc.Sequence):
 		return len(self.__data)
 
 	def __str__(self):
-		return str(list(str(item) for item in self.__data))
+		return '\n'.join(map(str, self.__data))
 
 	def __repr__(self):
-		return str(self.__data)
+		return '\n'.join(map(repr, self.__data))
+
+	def __txtstr__(self):
+		return '\n'.join(map(txtstr, self.__data))
+
+	def __roledstr__(self):
+		return '\n'.join(map(roledstr, self.__data))
 
 	def __hash__(self):
 		return hash(self.aid)
@@ -296,7 +302,6 @@ class MentionBundle(collections.abc.Sequence):
 	def save(self, file_path):
 		"""Save the mention bundle to json file."""
 		os.makedirs(os.path.dirname(file_path), exist_ok=True)
-		printr(f'Writing {os.path.relpath(file_path)}')
 		with open(file_path, 'w') as fout:
 			for mention in self:
 				fout.write(mention.json+'\n')
@@ -337,8 +342,10 @@ class MentionBundleSet(collections.abc.Collection):
 
 	def save(self, output_root):
 		"""Save all mention bundles to files."""
-		for bundle in self:
+		n = str(len(self))
+		for i, bundle in enumerate(self):
 			file_path = bundle.path.replace(self.__path, output_root)
+			printr(f'{i+1:0{len(n)}}/{n}\t{file_path}')
 			bundle.save(file_path)
 		print()
 

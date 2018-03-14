@@ -13,11 +13,11 @@ import sys
 sys.path.insert(0, os.path.abspath('.'))
 from styleme import *
 
-def get_html_idx(html_data, html_idx, word):
+def get_html_idx(html_data, word, start_idx, end_idx):
 	try:
-		return html_data[(html_idx+1):].index(word)+(html_idx+1)
+		return html_data[(start_idx+1):end_idx+1].index(word)+(start_idx+1)
 	except ValueError:
-		return html_idx
+		return start_idx
 
 if __name__ == '__main__':
 
@@ -25,10 +25,11 @@ if __name__ == '__main__':
 	ver = sys.argv[1]
 
 
-	target       = f'pruned_article_ma'
+	target       = f'parsed_article'
 	data_root    = f'data/{ver}'
 	article_root = f'{data_root}/article/{target}_role'
 	html_root    = f'{data_root}/html/html_article_notag'
+	prune_root   = f'{data_root}/html/pruned_article_idx'
 	idx_root     = f'{data_root}/html/{target}_idx'
 	parts        = ['']
 	parts        = list(f'part-{x:05}' for x in range(1))
@@ -45,6 +46,9 @@ if __name__ == '__main__':
 		try:
 			article_file = transform_path(html_file, html_root, article_root, '.role')
 			article = Article(article_file)
+
+			prune_idx_file = transform_path(html_file, html_root, prune_root, '.idx')
+			prune_idx = Article(prune_idx_file)
 		except Exception as e:
 			print()
 			print(colored('1;31', e))
@@ -52,17 +56,18 @@ if __name__ == '__main__':
 
 		with open(html_file) as fin, open(idx_file, 'w') as fout:
 			html_data = fin.read()
-			html_idx = 0
-			for sid, line in enumerate(article):
+			html_idx = -1
+			for sid, (line, prune_idx_line) in enumerate(zip(article, prune_idx)):
 				idx_line_list = []
+				end_idx = int(prune_idx_line.tags[-1].split(',')[-1])
 				for mid, word in enumerate(line.txts):
 					chars = ''.join(word.replace('□', ''))
 					if chars == '': continue
 					char = chars[0]
-					html_idx = get_html_idx(html_data, html_idx, char)
+					html_idx = get_html_idx(html_data, char, html_idx, end_idx)
 					html_idx0 = html_idx
 					for char in chars[1:]:
-						html_idx = get_html_idx(html_data, html_idx, char)
+						html_idx = get_html_idx(html_data, char, html_idx, end_idx)
 					idx_line_list.append(f'{word}({html_idx0},{html_idx})')
 				fout.write('　'.join(idx_line_list)+'\n')
 	print()

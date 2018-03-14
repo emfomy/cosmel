@@ -47,12 +47,26 @@
 				border-left: 6px solid #43f436;
 			}
 
+			product::before, product::after {
+				font-size: 24px;
+				font-weight: bold;
+				position: relative;
+				top: 10pt;
+			}
+
 			product::after {
 				color: #aa0000;
 				content: "Here!";
-				font-size: 32px;
-				font-weight: bold;
-				position: absolute;
+			}
+
+			product::before {
+				color: #0000aa;
+				content: attr(hint);
+			}
+
+			product[bad]::before {
+				color: #aa0000;
+				content: attr(hint);
 			}
 
 			product.done::after {
@@ -90,7 +104,8 @@
 									<select id="aid" name="aid" class="selectpicker form-control">
 										<option value=""></option>
 										{% for f in files[part] %}
-											{% if f == aid %}
+											{% if f == None %}
+											{% elif f == aid %}
 												<option value="{{ f }}" selected>{{ f }}</option>
 											{% else %}
 												<option value="{{ f }}">{{ f }}</option>
@@ -114,10 +129,11 @@
 
 						<article>
 							<span class="counter"></span>
+							<br>
+							<div class="article" w3-include-html="/article/{{ part }}/{{ aid }}"></div>
 							<hr>
 							<center><div class="json" w3-include-html="/json/{{ part }}/{{ aid }}"></div></center>
-							<hr>
-							<div class="article" w3-include-html="/article/{{ part }}/{{ aid }}"></div>
+							<br>
 						</article>
 
 					</div>
@@ -201,20 +217,49 @@
 						(i, e) => $(e).removeAttr('href')
 					);
 
-					while ($('product product').length > 0) {
-						$('product product').each(
-							(i, e) => $(e).replaceWith('<notproduct>' + $(e).html() + '</notproduct>')
-						);
-					}
-
 					$('product').each(
 						(i, e) => $(e).attr('id', $(e).attr('sid') + '-' + $(e).attr('mid'))
 					);
 
-					{% for k, v in json_data.items() %}
-						$('#{{ k }}').attr('gid', '{{ v }}');
-						$('#{{ k }}').attr('gid', '{{ v }}');
+					{% for k, attrs in mention_data.items() %}
+						var e = $('product#{{ k }}');
+						if ( e.length ) {
+							{% for a, v in attrs.items() %}
+								$('product#{{ k }}').attr('{{ a }}', '{{ v }}');
+							{% endfor %}
+						} else {
+							alert('No "product#{{k}}"!');
+						}
 					{% endfor %}
+
+					{% for k, attrs in json_data.items() %}
+						var e = $('product#{{ k }}');
+						if ( e.length ) {
+							{% for a, v in attrs.items() %}
+								$('product#{{ k }}').attr('{{ a }}', '{{ v }}');
+							{% endfor %}
+						} else {
+							alert('No "product#{{k}}"!');
+						}
+					{% endfor %}
+
+					while ($('product product').length > 0) {
+						$('product product').each(
+							(i, e) => {
+								// alert('Remove "product#' + $(e)[0].id + '"!');
+								$(e).replaceWith('<notproduct>' + $(e).html() + '</notproduct>');
+							}
+						);
+					}
+
+					// $('product').each(
+					// 	(i, e) => {
+					// 		if ( !$(e).attr('gid') && !$(e).attr('hint') ) {
+					// 			alert('Set "product#' + $(e)[0].id + '" as "~"!')
+					// 			$(e).attr('gid', '~');
+					// 		}
+					// 	}
+					// )
 
 					updateCounter();
 
@@ -238,19 +283,20 @@
 									error: customStatusError
 								}).done(pgh_name => {
 									pgh_list  = pgh_name.split('<hr>');
-									pid_name  = pgh_list[0].replace('<br>', '\n');
-									gid_name  = pgh_list[1].replace('<br>', '\n');
-									hint_name = pgh_list[2].replace('<br>', '\n');
+									pid_name  = pgh_list[0].replace(/<br>/g, '\n');
+									gid_name  = pgh_list[1].replace(/<br>/g, '\n');
+									hint_name = pgh_list[2].replace(/<br>/g, '\n');
 
 									var buttons = {
+										'~': true,
 										OSP: true,
 										GP: true,
 										NAP: true,
 										delete: true,
 										cancel: true
 									}
-									if ( hint ) {
-										for ( var h of hint.split(',') ) {
+									for ( var h of hint.split(',') ) {
+										if ( h && h != '~' ) {
 											buttons[h] = true;
 										}
 									}

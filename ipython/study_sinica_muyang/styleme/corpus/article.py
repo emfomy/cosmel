@@ -59,6 +59,9 @@ class Article(collections.abc.Sequence):
 	def __roledstr__(self):
 		return '\n'.join(map(roledstr, self.__data))
 
+	def __roledtxtstr__(self):
+		return '\n'.join(map(roledtxtstr, self.__data))
+
 	def __hash__(self):
 		return hash(self.aid)
 
@@ -71,6 +74,12 @@ class Article(collections.abc.Sequence):
 	def path(self):
 		"""str: the related file path."""
 		return self.__path
+
+	def save(self, file_path, method):
+		"""Save the article to file."""
+		os.makedirs(os.path.dirname(file_path), exist_ok=True)
+		with open(file_path, 'w') as fout:
+			fout.write(method(self)+'\n')
 
 
 class ArticleSet(collections.abc.Collection):

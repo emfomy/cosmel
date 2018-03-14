@@ -68,6 +68,9 @@ class WsWords(collections.abc.Sequence):
 	def __roledstr__(self):
 		return '　'.join([f'{txt}({tag}){role}' for txt, tag, role in self.zip3])
 
+	def __roledtxtstr__(self):
+		return ''.join([f'{txt}{role}' for txt, _, role in self.zip3])
+
 	@property
 	def txts(self):
 		""":class:`list` -- the texts."""
@@ -105,3 +108,7 @@ def txtstr(obj):
 def roledstr(obj):
 	"""str -- return the string with role (obj.roles)"""
 	return obj.__roledstr__()
+
+def roledtxtstr(obj):
+	"""str -- return the string with texts and role (obj.txts, obj.roles)"""
+	return obj.__roledtxtstr__()
