@@ -42,7 +42,7 @@
 				cursor: pointer;
 			}
 
-			product.done {
+			product[gid]:not([gid=""]) {
 				background-color: #ddffdd;
 				border-left: 6px solid #43f436;
 			}
@@ -59,17 +59,7 @@
 				content: "Here!";
 			}
 
-			product::before {
-				color: #0000aa;
-				content: attr(hint);
-			}
-
-			product[bad]::before {
-				color: #aa0000;
-				content: attr(hint);
-			}
-
-			product.done::after {
+			product[gid]:not([gid=""])::after {
 				color: #00aa00;
 				content: attr(gid);
 			}
@@ -158,7 +148,8 @@
 								<select id="aid2" name="aid" class="selectpicker form-control">
 									<option value=""></option>
 									{% for f in files[part] %}
-										{% if f == aid %}
+										{% if f == None %}
+										{% elif f == aid %}
 											<option value="{{ f }}" selected>{{ f }}</option>
 										{% else %}
 											<option value="{{ f }}">{{ f }}</option>
@@ -195,18 +186,10 @@
 				$('#aid2').change(function() { this.form.submit(); });
 
 				function updateCounter() {
-					$('product').each(
-						(i, e) => $(e).removeClass('done')
-					);
-
-					$('product[gid]:not([gid=""])').each(
-						(i, e) => $(e).addClass('done')
-					);
-
 					var e = $('#main > article > .counter');
-					e.text($('product:not(.done)').length + '/' + $('product').length);
+					e.text($('product:not([gid]:not([gid=""]))').length + '/' + $('product').length);
 					e.click(function() {
-						const top = $('product:not(.done), #footer').offset().top;
+						const top = $('product:not([gid]:not([gid=""])), #footer').offset().top;
 						const middle = top - (window.innerHeight / 2);
 						window.scrollTo(0, middle);
 					});
@@ -246,33 +229,24 @@
 					while ($('product product').length > 0) {
 						$('product product').each(
 							(i, e) => {
-								// alert('Remove "product#' + $(e)[0].id + '"!');
+								alert('Remove "product#' + $(e)[0].id + '"!');
 								$(e).replaceWith('<notproduct>' + $(e).html() + '</notproduct>');
 							}
 						);
 					}
 
-					// $('product').each(
-					// 	(i, e) => {
-					// 		if ( !$(e).attr('gid') && !$(e).attr('hint') ) {
-					// 			alert('Set "product#' + $(e)[0].id + '" as "~"!')
-					// 			$(e).attr('gid', '~');
-					// 		}
-					// 	}
-					// )
-
 					updateCounter();
 
 					document.querySelectorAll('product').forEach(
-						e => e.addEventListener('click', function() {
+						e => $(e).click(function() {
 							try {
 								const text = this.innerText;
-								const pid  = this.getAttribute('pid');
-								const gid  = this.getAttribute('gid');
-								const sid  = this.getAttribute('sid');
-								const mid  = this.getAttribute('mid');
-								const rule = this.getAttribute('rule');
-								const hint_orig = this.getAttribute('hint');
+								const pid  = $(this).attr('pid');
+								const gid  = $(this).attr('gid');
+								const sid  = $(this).attr('sid');
+								const mid  = $(this).attr('mid');
+								const rule = $(this).attr('rule');
+								const hint_orig = $(this).attr('hint');
 								const hint = hint_orig ? hint_orig : '';
 
 								const pgh = pid+';'+gid+';'+hint;
@@ -295,7 +269,7 @@
 										delete: true,
 										cancel: true
 									}
-									for ( var h of hint.split(',') ) {
+									for ( var h of (pid+','+gid+','+hint).split(',') ) {
 										if ( h && h != '~' ) {
 											buttons[h] = true;
 										}
@@ -313,7 +287,7 @@
 										content: "input",
 										buttons: buttons
 									}).then((value) => {
-										if ( value === null) {
+										if ( value === null ) {
 											return;
 										}
 										switch (value) {
@@ -324,7 +298,7 @@
 											case 'NAP':
 											default:
 
-												this.setAttribute('gid', value);
+												$(this).attr('gid', value);
 												updateCounter();
 
 												const data = {

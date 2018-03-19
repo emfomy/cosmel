@@ -75,7 +75,7 @@ def index_route():
 			for json_line in sorted(json_list, key=operator.itemgetter('time')):
 				mention_data[f'{json_line["sid"]}-{json_line["mid"]}'] = json_line
 	except Exception as e:
-		print(colored('1;31', str(e)))
+		print(colored('1;31', e))
 
 	json_data = dict()
 	try:
@@ -88,9 +88,10 @@ def index_route():
 			for json_line in sorted(json_list, key=operator.itemgetter('time')):
 				json_data[f'{json_line["sid"]}-{json_line["mid"]}'] = json_line
 	except Exception as e:
-		print(colored('1;31', str(e)))
+		print(colored('1;31', e))
 
-	return render_template('index.html', ver=root(), aid=aid, part=part, files=files, mention_data=mention_data, json_data=json_data)
+	return render_template('index.html', ver=root(), aid=aid, part=part, files=files, \
+			mention_data=mention_data, json_data=json_data)
 
 @app.route('/repo/product')
 def product_route():
@@ -109,10 +110,14 @@ def product_route():
 
 @app.route('/article/<path:path>')
 def article_route(path):
-	file = f'{root()}/article/{path}.xml.html'
-	with open(file) as fin:
-		data = fin.read()
-	return str(data)
+	try:
+		file = f'{root()}/article/{path}.xml.html'
+		with open(file) as fin:
+			data = fin.read()
+		return str(data)
+	except Exception as e:
+		print(colored('1;31', e))
+		return ''
 
 @app.route('/json/<path:path>')
 def json_route(path):
@@ -122,8 +127,8 @@ def json_route(path):
 	try:
 		with open(file) as fin:
 			data += fin.read().replace('\n', '<br>')
-	except:
-		pass
+	except Exception as e:
+		print(colored('1;31', e))
 
 	data += '<hr>'
 
@@ -131,8 +136,8 @@ def json_route(path):
 	try:
 		with open(file) as fin:
 			data += fin.read().replace('\n', '<br>')
-	except:
-		pass
+	except Exception as e:
+		print(colored('1;31', e))
 
 	return data
 
@@ -153,7 +158,7 @@ def save_route():
 			fout.write(json.dumps(json_data)+'\n')
 		return jsonify(message='')
 	except Exception as e:
-		print(colored('1;31', f'"/save" failed: {e}'))
+		print(colored('1;31', e))
 		return jsonify(message=str(e)), 500
 
 if __name__ == '__main__':
@@ -172,6 +177,7 @@ if __name__ == '__main__':
 	files = dict()
 	for part in parts:
 		files[part] = [None] + \
-				sorted([file.replace(ext, '') for file in os.listdir(f'{root()}/article/{part}') if file.endswith(ext)])
+				sorted([file.replace(ext, '') for file in os.listdir(f'{root()}/article/{part}') if file.endswith(ext)], \
+					key=lambda v: v.upper())
 
 	app.run(host=host, port=5000, processes=8, debug=True)

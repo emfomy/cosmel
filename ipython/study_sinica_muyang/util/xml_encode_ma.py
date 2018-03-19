@@ -55,7 +55,6 @@ if __name__ == '__main__':
 			article[mention.sid].txts[mention.start_idx] = add_start_xml(article[mention.sid].txts[mention.start_idx], mention)
 			article[mention.sid].txts[mention.last_idx]  = add_end_xml(article[mention.sid].txts[mention.last_idx],    mention)
 
-		# del article._Article__data[0]
 		article.save(xml_file, txtstr)
 	print()
 
