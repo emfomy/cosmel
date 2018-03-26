@@ -54,6 +54,17 @@
 				top: 10pt;
 			}
 
+			product::before {
+				content: "😱　";
+				position: absolute;
+				right: 0;
+				top: unset;
+			}
+
+			product[gid]:not([gid=""])::before {
+				content: "　😍";
+			}
+
 			product::after {
 				color: #aa0000;
 				content: "Here!";

@@ -75,9 +75,9 @@ if __name__ == '__main__':
 			# for line in article:
 			for sid, line in enumerate(article):
 				for mid, txt in enumerate(line.txts):
-					if   txt in repo.bname_to_brand:        line.roles[mid] = 'Brand'
-					elif txt in repo.head_set:              line.roles[mid] = 'Head'
-					elif txt in repo.infix_set:             line.roles[mid] = 'Infix'
+					if   txt in repo.bname_to_brand: line.roles[mid] = 'Brand'
+					elif txt in repo.head_set:       line.roles[mid] = 'Head'
+					elif txt in repo.infix_set:      line.roles[mid] = 'Infix'
 
 			# Write article to file
 			role_file = transform_path(article.path, ws_root, role_root, '.role')

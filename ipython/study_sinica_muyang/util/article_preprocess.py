@@ -108,11 +108,11 @@ if __name__ == '__main__':
 		for i, prune_file in enumerate(prune_files):
 			ws_re0_file = transform_path(prune_file, prune_root, ws_re0_root, '.tag')
 			ws_re1_file   = transform_path(prune_file, prune_root, ws_re1_root, '.tag')
-			os.makedirs(os.path.dirname(ws_re0_file),     exist_ok=True)
+			os.makedirs(os.path.dirname(ws_re0_file), exist_ok=True)
 			os.makedirs(os.path.dirname(ws_re1_file), exist_ok=True)
 			printr(f'{i+1:0{len(n)}}/{n}\t{ws_re0_file}')
 			# ckipws.ws_file(prune_file, ws_re0_file, verbose=False)
-			ckipws.ws_line(prune_file, ws_re0_file, verbose=False)
+			ckipws.ws_line(prune_file,  ws_re0_file, verbose=False)
 			ckipws.replace(ws_re0_file, ws_re1_file, verbose=False)
 		print()
 

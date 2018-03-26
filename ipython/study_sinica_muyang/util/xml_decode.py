@@ -25,6 +25,8 @@ def grep_mention(article, sid, mid, txt):
 	attrs = soup.product.attrs
 	del attrs['sid']
 	del attrs['mid']
+	attrs = dict((attr, value,) for attr, value in attrs.items() if value)
+
 	return Mention(article, sid, mid, **attrs)
 
 if __name__ == '__main__':
@@ -32,16 +34,15 @@ if __name__ == '__main__':
 	assert len(sys.argv) >= 2
 	ver = sys.argv[1]
 
-	textualized = False
+	textualized = True
 	get_mention = False
 
 	target        = f'pruned_article'
-	target_parse  = f'parsed_article'
-	target_parse  = f'pixnet_article'
+	target_parse  = target
 	target_ver    = f''
-	target_ver    = f'_pid'
-	# target_ver   = f'_exact'
-	target_ver    = f'_gid'
+	# target_ver    = f'_pid'
+	# target_ver    = f'_gid'
+	target_ver    = f'_gid_6.1'
 	tmp_root      = f'data/tmp'
 	data_root     = f'data/{ver}'
 	repo_root     = f'{data_root}/repo'
@@ -116,9 +117,13 @@ if __name__ == '__main__':
 						start_mid = start_mid_list[start_idx]
 						end_mid   = end_mid_list[end_idx]
 
-						if start_mid != end_mid:
-							print(colored('1;31', f'\nSkip mention at {xml_file}:{sid}:{start_idx}-{end_idx}'))
+						if start_mid != end_mid or line.roles[start_mid] != 'Head':
+							print(colored('1;31', f'Skip mention at {xml_file}:{sid}:{start_idx}-{end_idx}'))
+							print(f'{xml_line[:start_idx]}{colored("0;95", xml_line[start_idx:end_idx])}{xml_line[end_idx:]}')
+							print(f'{line[:start_mid]}　[{colored("0;95", line[start_mid:end_mid+1])}]　{line[end_mid+1:]}')
+							print()
 							continue
+
 						bundle._MentionBundle__data.append(grep_mention(article, sid, start_mid, xml_line[start_idx:end_idx+1]))
 
 			bundle.save(mention_file)

@@ -68,11 +68,7 @@ def index_route():
 	try:
 		file = f'{root()}/mention/{part}/{aid}.json'
 		with open(file) as fin:
-			json_list = [json.loads(line) for line in fin]
-			for json_line in json_list:
-				if 'time' not in json_line:
-					json_line['time'] = 0
-			for json_line in sorted(json_list, key=operator.itemgetter('time')):
+			for json_line in [json.loads(line) for line in fin]:
 				mention_data[f'{json_line["sid"]}-{json_line["mid"]}'] = json_line
 	except Exception as e:
 		print(colored('1;31', e))
@@ -81,14 +77,13 @@ def index_route():
 	try:
 		file = f'{root()}/json/{part}/{aid}.json'
 		with open(file) as fin:
-			json_list = [json.loads(line) for line in fin]
-			for json_line in json_list:
-				if 'time' not in json_line:
-					json_line['time'] = 0
-			for json_line in sorted(json_list, key=operator.itemgetter('time')):
+			for json_line in [json.loads(line) for line in fin]:
 				json_data[f'{json_line["sid"]}-{json_line["mid"]}'] = json_line
 	except Exception as e:
 		print(colored('1;31', e))
+
+	print(mention_data)
+	print(json_data)
 
 	return render_template('index.html', ver=root(), aid=aid, part=part, files=files, \
 			mention_data=mention_data, json_data=json_data)
@@ -164,9 +159,9 @@ def save_route():
 if __name__ == '__main__':
 
 	global ver
-	assert len(sys.argv) >= 3
+	assert len(sys.argv) >= 2
 	ver  = sys.argv[1]
-	host = sys.argv[2]
+	host = '0.0.0.0'
 
 	global repo
 	repo  = Repo(f'{root()}/repo')

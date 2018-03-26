@@ -17,7 +17,8 @@ Input & Output:
   [o] data/article/pruned_article_ws_re#
 
 - parse:
-  ???
+  [i] data/article/pruned_article_ws_re#    (article_preprocess)
+  [o] data/article/parsed_article_parse
 
 - article_postprocess:
   [i] data/repo                             (repo_preprocess)
@@ -29,12 +30,6 @@ Input & Output:
   [i] data/repo                             (repo_preprocess)
   [i] data/article/pruned_article_role      (article_preprocess)
   [o] data/mention/pruned_article
-
-- rule:
-  [i] data/repo                             (repo_preprocess)
-  [i] data/article/pruned_article_role      (article_preprocess)
-  [i] data/mention/pruned_article           (mention_preprocess)
-  [o] data/mention/pruned_article_pid
 
 - html_postprocess:
   [i] data/html/html_article_notag          (html_preprocess)

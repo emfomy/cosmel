@@ -25,6 +25,8 @@ class RawData:
 		self.pname = row['中文品名']
 		self.descr = row['中文簡介']
 
+################################################################################################################################
+
 		if self.bname == '80': self.bname = '080'
 		if self.bname == 'babaria 西班牙babaria': self.bname = '西班牙Babaria'
 
@@ -39,7 +41,39 @@ class RawData:
 		if self.pid == '13342': self.pname = '再生煥膚膠囊面膜d'
 		if self.pid == '13345': self.pname = '瞬效亮白膠囊面膜c'
 
-		self._RawData__raw = row
+		# 瑰珀翠 巴黎夢幻花戀
+		if self.pid == '3544' : self.pname += '香水'
+
+		# 倩碧 蜜糖啾啾馬卡龍
+		if self.pid == '8359':  self.pname += '護唇膏'
+
+		# diptyque 多米諾堤之水
+		if self.pid == '16489': self.pname += '香水'
+
+		# jomalonelondon
+		if self.pid == '5554' : self.pname += '香水'
+		if self.pid == '5557' : self.pname += '香水'
+		if self.pid == '5560' : self.pname += '香水'
+		if self.pid == '6085' : self.pname += '香水'
+		if self.pid == '7918' : self.pname += '香水'
+		if self.pid == '7921' : self.pname += '香水'
+		if self.pid == '8203' : self.pname += '香水'
+		if self.pid == '16834': self.pname += '香水'
+		if self.pid == '18097': self.pname += '香水'
+		if self.pid == '18100': self.pname += '香水'
+		if self.pid == '18103': self.pname += '香水'
+		if self.pid == '18106': self.pname += '香水'
+		if self.pid == '18109': self.pname += '香水'
+		if self.pid == '18157': self.pname += '香水'
+		if self.pid == '18160': self.pname += '香水'
+		if self.pid == '18163': self.pname += '香水'
+		if self.pid == '18166': self.pname += '香水'
+		if self.pid == '18169': self.pname += '香水'
+		if self.pid == '18172': self.pname += '香水'
+
+################################################################################################################################
+
+		self.raw = row
 
 
 class RawBrand(collections.abc.Collection):
@@ -155,7 +189,7 @@ class RawProduct:
 	"""The product detail."""
 
 	def __init__(self, data):
-		self.pid    = data.pid
+		self.pid   = data.pid
 		self.descr = prune_string(data.descr.replace('\n', ''))
 
 
@@ -165,7 +199,7 @@ class RawProductDict(collections.abc.Mapping):
 
 	def __init__(self, raw_data, brands):
 		super().__init__()
-		self.__brand_set = brands
+		self.__brand_dict = brands
 		self.__data = dict()
 		self.__ids = set()
 		for v in raw_data:
@@ -187,7 +221,7 @@ class RawProductDict(collections.abc.Mapping):
 		return len(self.__data)
 
 	def __keytransform__(self, key):
-		brand = key[0] if type(key[0]) == RawBrand else self.__brand_set[key[0]]
+		brand = key[0] if type(key[0]) == RawBrand else self.__brand_dict[key[0]]
 		name = prune_string(key[1])
 		for v in brand.list:
 			name = re.sub(rf'\A{v}', '', name).strip().strip('□')
@@ -362,8 +396,8 @@ if __name__ == '__main__':
 	# Save CSV file
 	if not saved_csv:
 		with open(csv_path_new, 'w') as csvfile:
-			rows = [d._RawData__raw for d in data if d._RawData__raw['編號'] in products._RawProductDict__ids]
-			writer = csv.DictWriter(csvfile, fieldnames=data[0]._RawData__raw.keys())
+			rows = [d.raw for d in data if d.raw['編號'] in products._RawProductDict__ids]
+			writer = csv.DictWriter(csvfile, fieldnames=data[0].raw.keys())
 			writer.writeheader()
 			writer.writerows(rows)
 			print(f'Saved {len(rows)} products into "{csv_path_new}"')

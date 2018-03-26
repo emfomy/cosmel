@@ -27,8 +27,6 @@ if __name__ == '__main__':
 	assert len(sys.argv) >= 2
 	ver = sys.argv[1]
 
-	parsed         = False
-
 	target       = f'pruned_article'
 	target_parse = f'parsed_article'
 	data_root    = f'data/{ver}'
@@ -36,24 +34,20 @@ if __name__ == '__main__':
 	parse_root   = f'{data_root}/article/{target_parse}_parse'
 	parts        = ['']
 	parts        = list(f'part-{x:05}' for x in range(1))
-	if len(sys.argv) >= 3: parts = list(f'part-{x:05}' for x in range(int(sys.argv[2]), 128, 8))
-
-	ckipws_lib = 'libWordSeg.so'
+	if len(sys.argv) >= 3: parts = list(f'part-{x:05}' for x in range(int(sys.argv[2], 16), 128, 16))
 
 	articles = ArticleSet(ws_re2_root, parts=parts)
 
 	# Prune Articles
-	if not parsed:
-
-		n = str(len(articles))
-		for i, article in enumerate(articles):
-			parse_file = transform_path(article.path, ws_re2_root, parse_root, '.parse')
-			os.makedirs(os.path.dirname(parse_file), exist_ok=True)
-			printr(f'{i+1:0{len(n)}}/{n}\t{parse_file}')
-			with open(parse_file, 'w') as fout:
-				for ii, line in enumerate(article):
-					printr(f'{i+1:0{len(n)}}/{n}\t{parse_file}\t{ii}')
-					fout.write('\t'.join(parse(line))+'\n')
-		print()
+	n = str(len(articles))
+	for i, article in enumerate(articles):
+		parse_file = transform_path(article.path, ws_re2_root, parse_root, '.parse')
+		os.makedirs(os.path.dirname(parse_file), exist_ok=True)
+		printr(f'{i+1:0{len(n)}}/{n}\t{parse_file}')
+		with open(parse_file, 'w') as fout:
+			for ii, line in enumerate(article):
+				printr(f'{i+1:0{len(n)}}/{n}\t{parse_file}\t{ii}')
+				fout.write('\t'.join(parse(line))+'\n')
+	print()
 
 	pass

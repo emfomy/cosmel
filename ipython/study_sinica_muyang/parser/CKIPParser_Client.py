@@ -81,13 +81,14 @@ def connect(host, port):
     client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     client.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     # client 建立連線
-    client.settimeout(10)
+    client.settimeout(5)
     client.connect((host, port))
     return client
 
 def communicate(host, port, info, retry):
     data = None
 
+    err = None
     for i in range(retry):
         try:
             client = connect(host, port)
@@ -97,16 +98,18 @@ def communicate(host, port, info, retry):
             client.close()
             break
         except Exception as e:
-            print(e)
+            err = e
             time.sleep(5 * (i + 1))
+    else:
+        print(err)
 
     return data
 
 def parse(sentence, uname, pwd, ws=False):
     target_host = "172.16.1.64"
     target_port = 6400
-    target_host = "192.168.109.32"
-    target_port = 9998
+    # target_host = "192.168.109.32"
+    # target_port = 9998
     retry = 3
 
     # Segmentation
@@ -143,6 +146,8 @@ def demo():
     pwd = 'tester'
     #Sent = '我喜歡吃麥當勞的薯條，弟弟則喜歡吃肯德基的炸雞。'
     Sent = '我(Nh)　喜歡(VK)　吃(VC)　麥當當勞(Nc)　的(DE)　美味薯條(Na)　，(COMMACATEGORY)'
+    Sent = '　'.join([str(i+1)+'(FW)' for i in range(80)])
+    print(Sent)
 
     start = time.time()
     ResultList = parse(Sent, uname, pwd, True)

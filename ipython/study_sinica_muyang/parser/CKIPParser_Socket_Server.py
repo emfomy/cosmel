@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python
 #-*- encoding: UTF-8 -*-
 
 import socket
@@ -106,7 +106,7 @@ def loadINI(ini_file):
         parserini[option]=value
 
 def initial(pyWrap_dll, ini_file, ws_main_dll, ws_py_dll, ws_ini):
-    global ws
+    # global ws
     global wrap
     global parser
     global parserini
@@ -184,39 +184,39 @@ def initial(pyWrap_dll, ini_file, ws_main_dll, ws_py_dll, ws_ini):
     #開始剖析
     wrap.ParserCommand("ParsingIni".encode('utf-8'), byref(parser)) #必要
 
-def parsing(Sent):
-    global ws
-    global wrap
-    global parser
+# def parsing(Sent):
+#     global ws
+#     global wrap
+#     global parser
 
-    Sent = Sent.strip()
-    # Preprocessing
-    token = [u'，', u',',u'；',u';', u'。', u':', u'：', u'？', u'?', u'!', u'！']
-    for tok in token:
-        Sent = Sent.replace(tok, tok + u'\n')
-    Sent = Sent.strip()
+#     Sent = Sent.strip()
+#     # Preprocessing
+#     token = [u'，', u',',u'；',u';', u'。', u':', u'：', u'？', u'?', u'!', u'！']
+#     for tok in token:
+#         Sent = Sent.replace(tok, tok + u'\n')
+#     Sent = Sent.strip()
 
-    parser_result = ''
-    try:
-        #Segmentation
-        ws_cresult = ws.Segment(Sent)
-        ws_cresult = cast(ws_cresult,c_wchar_p)
-        ws_result = ws_cresult.value
-        ws_result = ws_result.replace(u'\n(FW)　', u'\n')
-        #print(ws_result)
-        #Parsing
-        cmd=(u"Parsing\t" + ws_result).encode('big5', errors='ignore')
-        parser.result = bytes()
-        wrap.ParserCommand(cmd, byref(parser))
-        parser_result = parser.result.decode('big5', errors='ignore')
-    except:
-        pass
-    finally:
-        return parser_result
+#     parser_result = ''
+#     try:
+#         #Segmentation
+#         ws_cresult = ws.Segment(Sent)
+#         ws_cresult = cast(ws_cresult,c_wchar_p)
+#         ws_result = ws_cresult.value
+#         ws_result = ws_result.replace(u'\n(FW)　', u'\n')
+#         #print(ws_result)
+#         #Parsing
+#         cmd=(u"Parsing\t" + ws_result).encode('big5', errors='ignore')
+#         parser.result = bytes()
+#         wrap.ParserCommand(cmd, byref(parser))
+#         parser_result = parser.result.decode('big5', errors='ignore')
+#     except:
+#         pass
+#     finally:
+#         return parser_result
 
 # handling text that has already been segmented
 def parsing_ws(ws_result):
-    global ws
+    # global ws
     global wrap
     global parser
     parser_result = ''
@@ -232,20 +232,19 @@ def parsing_ws(ws_result):
     finally:
         return parser_result
 
-def check(_user, _pwd):
-    return True
-    # global con
-    # cur = con.cursor()
-    # rows = cur.execute('SELECT * FROM Account;')
+# def check(_user, _pwd):
+#     global con
+#     cur = con.cursor()
+#     rows = cur.execute('SELECT * FROM Account;')
 
-    # for row in rows:
-    #     vtime = row[2]
-    #     user = row[3]
-    #     pwd = row[4]
-    #     if vtime is not None and vtime!='0' and user==_user and pwd==_pwd:
-    #         return True
+#     for row in rows:
+#         vtime = row[2]
+#         user = row[3]
+#         pwd = row[4]
+#         if vtime is not None and vtime!='0' and user==_user and pwd==_pwd:
+#             return True
 
-    # return False
+#     return False
 
 def handle_client(client):
     global pool
@@ -268,20 +267,21 @@ def handle_client(client):
         if uname is not None and pwd is not None:
 
             # check function <- you need to implement by yourself
-            valid = check(uname, pwd)
+            # valid = check(uname, pwd)
 
-            if not valid:
-                result = u'Account Error'
-            else:
-                # Parsing
-                if info.get(u'text') is not None:
-                    Sent = info[u'text']
-                    res = None
-                    if info.get(u'ws')=='True':
-                        res = pool.apply_async(parsing_ws, (Sent,))
-                    else:
-                        res = pool.apply_async(parsing, (Sent,))
-                    result = res.get()
+            # if not valid:
+            #     result = u'Account Error'
+            # else:
+            # Parsing
+            if info.get(u'text') is not None:
+                Sent = info[u'text']
+                res = None
+                # print(Sent[:50]+'...')
+                # if info.get(u'ws')=='True':
+                res = pool.apply_async(parsing_ws, (Sent,))
+                # else:
+                    # res = pool.apply_async(parsing, (Sent,))
+                result = res.get()
         else:
             result = u'Account Error'
     except:
@@ -293,7 +293,7 @@ def handle_client(client):
 
 if __name__=="__main__":
 
-    bind_ip = "172.16.1.64"
+    bind_ip = "0.0.0.0"
     bind_port = 6400
 
     ws_main_dll = 'CKIPWS.dll'
@@ -304,18 +304,19 @@ if __name__=="__main__":
     parser_ini = 'parser.ini'
 
     #Processes Number can be modified
-    pool = Pool(processes = 10, initializer=initial, initargs=(parser_pyWrap_dll,parser_ini,ws_main_dll,ws_py_dll,ws_ini), maxtasksperchild=1000)
+    pool = Pool(processes = 16, initializer=initial, initargs=(parser_pyWrap_dll,parser_ini,ws_main_dll,ws_py_dll,ws_ini), \
+        maxtasksperchild=1000)
 
     #Server Start
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server.bind((bind_ip, bind_port))
-    server.listen(10)
+    server.listen(16)
 
     print ("[*] Listening on %s:%d" % (bind_ip, bind_port))
 
     #Watiing Client
     while True :
         client, addr = server.accept()
-        #print ("[*] Acepted connection from: %s:%d" % (addr[0],addr[1]))
+        print ("[*] Acepted connection from: %s:%d" % (addr[0],addr[1]))
         client_handler = threading.Thread(target=handle_client, args=(client,))
         client_handler.start()
