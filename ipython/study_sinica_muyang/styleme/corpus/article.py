@@ -67,7 +67,7 @@ class Article(collections.abc.Sequence):
 
 	@property
 	def aid(self):
-		"""str: the article ID (with leading author name and underscore)."""
+		"""str: the article ID (containg folder and author name)."""
 		return self.__aid
 
 	@property
@@ -75,8 +75,18 @@ class Article(collections.abc.Sequence):
 		"""str: the related file path."""
 		return self.__path
 
+	@property
+	def bundle(self):
+		""":class:`.MentionBundle`: the bundle of mentions in this article."""
+		return self.__bundle
+
 	def save(self, file_path, method):
-		"""Save the article to file."""
+		"""Save the article to file.
+
+			Args:
+				method: one of :function:`str`, :function:`txtstr`, :function:`roledstr`, :function:`roledtxtstr`.
+
+		"""
 		os.makedirs(os.path.dirname(file_path), exist_ok=True)
 		with open(file_path, 'w') as fout:
 			fout.write(method(self)+'\n')

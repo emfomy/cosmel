@@ -82,6 +82,11 @@ class Mention:
 		return self.sentence[self.slice]
 
 	@property
+	def bundle(self):
+		""":class:`.MentionBundle`: the mention bundle containing this mention."""
+		return self.__article.bundle
+
+	@property
 	def ids(self):
 		"""tuple: the tuple of article ID, sentence ID, and mention ID."""
 		return (self.aid, self.sid, self.mid,)
@@ -199,7 +204,7 @@ class Mention:
 
 	@property
 	def json(self):
-		"""Conver to json."""
+		"""Convert to json."""
 		return json.dumps(self.attrs)
 
 	def set_pid(self, pid):
@@ -286,7 +291,7 @@ class MentionBundle(collections.abc.Sequence):
 
 	@property
 	def article(self):
-		""":class:`.Article`: the article containing this mention."""
+		""":class:`.Article`: the article of this bundle."""
 		return self.__article
 
 	@property
@@ -329,7 +334,9 @@ class MentionBundleSet(collections.abc.Collection):
 	def __mention_bundle(article, article_root, mention_root, i, n):
 		file_path = transform_path(article.path, article_root, mention_root, '.json')
 		printr(f'{i+1:0{len(n)}}/{n}\tReading {file_path}')
-		return MentionBundle(file_path, article)
+		bundle = MentionBundle(file_path, article)
+		article._Article__bundle = bundle
+		return bundle
 
 	def __contains__(self, item):
 		return item in self.__data

@@ -24,10 +24,13 @@ if __name__ == '__main__':
 	target       = f'pruned_article'
 	target_ver   = f''
 	target_ver   = f'_gid'
+	# target_ver   = f'_gid_orio'
 	tmp_root     = f'data/tmp'
 	data_root    = f'data/{ver}'
 	input_root   = f'host/{ver}/json'
+	# input_root   = f'host/{ver}/mention'
 	base_root    = f'{data_root}/mention/{target}'
+	base_root    = f'{data_root}/mention/{target}_gid_orio'
 	output_root  = f'{data_root}/mention/{target}{target_ver}'
 	parts        = ['']
 	parts        = list(f'part-{x:05}' for x in range(1))
@@ -55,6 +58,9 @@ if __name__ == '__main__':
 					key = (int(data['sid']), int(data['mid']),)
 					del data['sid']
 					del data['mid']
+
+					del data['hint']
+					del data['hint_orio']
 
 					data = dict((attr, value,) for attr, value in data.items() if value)
 

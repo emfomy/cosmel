@@ -106,7 +106,7 @@ def txtstr(obj):
 	return obj.__txtstr__()
 
 def roledstr(obj):
-	"""str -- return the string with role (obj.roles)"""
+	"""str -- return the string with role (obj.txts, obj.tags, obj.roles)"""
 	return obj.__roledstr__()
 
 def roledtxtstr(obj):

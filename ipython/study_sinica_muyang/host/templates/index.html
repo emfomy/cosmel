@@ -313,10 +313,12 @@
 												updateCounter();
 
 												const data = {
-													pid: pid,
-													gid: value,
-													sid: sid,
-													mid: mid
+													pid:  pid,
+													gid:  value,
+													sid:  sid,
+													mid:  mid,
+													rule: rule,
+													hint: hint
 												};
 
 												fetch('/save?part={{ part }}&aid={{ aid }}', {

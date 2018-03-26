@@ -26,7 +26,7 @@ from styleme import *
 
 class Data:
 
-	_attr = ['pid_code', 'pre_code', 'post_code', 'desc_code', 'aid', 'sid', 'idx', 'rule', 'pid']
+	_attr = ['pid_code', 'pre_code', 'post_code', 'desc_code', 'aid', 'sid', 'mid', 'rule', 'pid']
 
 	def __getitem__(self, key):
 		data = Data()
@@ -64,23 +64,23 @@ class RawData(Data):
 	max_num_sentences = 5
 
 	def __init__(self, repo, mention_list):
-		self.aid = [mention.aid for mention in mention_list]
-		self.sid = [mention.sid for mention in mention_list]
-		self.mid = [mention.mid for mention in mention_list]
+		self.aid  = [mention.aid for mention in mention_list]
+		self.sid  = [mention.sid for mention in mention_list]
+		self.mid  = [mention.mid for mention in mention_list]
 		self.rule = [mention.rule for mention in mention_list]
-		self.pid = [mention.pid for mention in mention_list]
+		self.pid  = [mention.pid for mention in mention_list]
 
 		self.pre  = [ \
 				' '.join(itertools.chain( \
 						itertools.chain.from_iterable( \
 								s.txts for s in mention.article[max(mention.sid-RawData.max_num_sentences, 0):mention.sid] \
 						), \
-						mention.sentence.txts[:mention.end_idx] \
+						mention.sentence_pre.txts \
 				)) for mention in mention_list \
 		]
 		self.post = [ \
 				' '.join(itertools.chain( \
-						mention.sentence.txts[mention.start_idx:], \
+						mention.sentence_post.txts, \
 						itertools.chain.from_iterable( \
 								s.txts for s in mention.article[mention.sid+1:mention.sid+1+RawData.max_num_sentences] \
 						) \
@@ -88,12 +88,18 @@ class RawData(Data):
 		]
 		self.desc  = [' '.join(repo.id_to_product[mention.pid].descr_ws.txts) for mention in mention_list]
 
+		self.bag_of_pid   = [set(m.pid for m in mention.bundle if m.rule == 'P_rule1') for mention in mention_list]
+		self.bag_of_brand = [ \
+				set(repo.bname_to_brand[t[0]] for t in itertools.chain.from_iterable(sentence.zip3 for sentence in mention.article) \
+				if t[2] == 'Brand') for mention in mention_list \
+		]
+
 	def encode(self, tokenizer, encoder):
 		self.pid_code  = encoder.transform(self.pid)
-		self.pre_code   = pad_sequences(tokenizer.texts_to_sequences(self.pre),  padding='pre')
-		self.post_code  = pad_sequences(tokenizer.texts_to_sequences(self.post), padding='post')
-		self.desc_code  = pad_sequences(tokenizer.texts_to_sequences(self.desc), padding='post')
-		self.classes    = encoder.classes_
+		self.pre_code  = pad_sequences(tokenizer.texts_to_sequences(self.pre),  padding='pre')
+		self.post_code = pad_sequences(tokenizer.texts_to_sequences(self.post), padding='post')
+		self.desc_code = pad_sequences(tokenizer.texts_to_sequences(self.desc), padding='post')
+		self.classes   = encoder.classes_
 
 	def save(self, file, comment=''):
 		os.makedirs(os.path.dirname(file), exist_ok=True)
@@ -114,19 +120,22 @@ class RawData(Data):
 
 if __name__ == '__main__':
 
+	use_gid      = True
+
 	assert len(sys.argv) == 2
 	ver = sys.argv[1]
 
+	target_ver   = f''
+	target_ver   = f'_gid_6.1'
 	data_root    = f'data/{ver}'
 	repo_root    = f'{data_root}/repo'
-	article_root = f'{data_root}/article/pruned_article_ws'
-	mention_root = f'{data_root}/mention/pruned_article_ws_pid'
+	article_root = f'{data_root}/article/pruned_article_role'
+	mention_root = f'{data_root}/mention/pruned_article{target_ver}'
 	model_root   = f'{data_root}/model'
 	parts        = ['']
-	# parts        = list(f'part-{x:05}' for x in range(1))
-	emb_file     = f'{data_root}/embedding/pruned_article_ws.dim300.emb.bin'
-	data_file    = f'{model_root}/data.h5'
-	init_file    = f'{model_root}/init.h5'
+	parts        = list(f'part-{x:05}' for x in range(1))
+	emb_file     = f'{data_root}/embedding/pruned_article.dim300.emb.bin'
+	data_file    = f'{model_root}/data{target_ver}.h5'
 
 	# Load word vectors
 	keyed_vectors = KeyedVectors.load_word2vec_format(emb_file, binary=True)
@@ -139,7 +148,12 @@ if __name__ == '__main__':
 
 	# Load StyleMe repository and corpus
 	repo   = Repo(repo_root)
-	corpus = Corpus(article_root, mention_root, repo, parts=parts)
+	corpus = Corpus(article_root, mention_root, parts=parts)
+
+	if use_gid:
+		for mention in corpus.mention_set:
+			if mention.gid:
+				mention.set_pid(mention.gid)
 
 	# Extract mentions with PID
 	mention_list = [mention for mention in corpus.mention_set if mention.pid.isdigit()]
@@ -165,19 +179,5 @@ if __name__ == '__main__':
 			f'emb_file={emb_file}\n' \
 			f'max_num_sentences={RawData.max_num_sentences}'
 	data.save(data_file, comment)
-
-	# Initialize entity embedding
-	product_init_embedding = np.zeros((num_label, keyed_vectors.vector_size))
-	for idx, pid in enumerate(encoder.classes_):
-		product = repo.id_to_product[pid]
-		product_init_embedding[idx] = np.mean(keyed_vectors.wv[
-			[word for word in itertools.chain(product.brand, product.name_ws.txts) if word in keyed_vectors.wv]
-		], axis=0)
-	product_init_embedding = product_init_embedding.T
-
-	h5f = h5py.File(init_file, 'w')
-	h5f.create_dataset('product_init_embedding', data=product_init_embedding)
-	h5f.close()
-	print(f'Saved initial embedding into "{init_file}"')
 
 	pass
