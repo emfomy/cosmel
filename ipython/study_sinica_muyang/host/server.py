@@ -159,7 +159,7 @@ def save_route():
 if __name__ == '__main__':
 
 	global ver
-	assert len(sys.argv) >= 2
+	assert len(sys.argv) > 1
 	ver  = sys.argv[1]
 	host = '0.0.0.0'
 

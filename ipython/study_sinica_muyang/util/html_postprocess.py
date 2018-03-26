@@ -21,7 +21,7 @@ def get_html_idx(html_data, word, start_idx):
 
 if __name__ == '__main__':
 
-	assert len(sys.argv) >= 2
+	assert len(sys.argv) > 1
 	ver = sys.argv[1]
 
 
@@ -32,7 +32,7 @@ if __name__ == '__main__':
 	idx_root     = f'{data_root}/html/{target}_idx'
 	parts        = ['']
 	parts        = list(f'part-{x:05}' for x in range(1))
-	if len(sys.argv) >= 3: parts = list(f'part-{x:05}' for x in range(int(sys.argv[2]), 128, 8))
+	if len(sys.argv) > 2: parts = list(f'part-{x:05}' for x in range(int(sys.argv[2]), 128, 8))
 
 	# Map word-segmented articles to html articles
 	html_files = grep_files(html_root, parts=parts)

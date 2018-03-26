@@ -14,7 +14,7 @@ from styleme import *
 
 if __name__ == '__main__':
 
-	assert len(sys.argv) >= 2
+	assert len(sys.argv) > 1
 	ver = sys.argv[1]
 
 	data_root    = f'data/{ver}'

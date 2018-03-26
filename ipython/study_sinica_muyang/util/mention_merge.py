@@ -15,7 +15,7 @@ from styleme import *
 
 if __name__ == '__main__':
 
-	assert len(sys.argv) >= 2
+	assert len(sys.argv) > 1
 	ver = sys.argv[1]
 
 	greped_mention   = False
@@ -34,7 +34,7 @@ if __name__ == '__main__':
 	output_root  = f'{data_root}/mention/{target}{target_ver}'
 	parts        = ['']
 	parts        = list(f'part-{x:05}' for x in range(1))
-	if len(sys.argv) >= 3: parts = list(f'part-{x:05}' for x in range(int(sys.argv[2]), 128, 8))
+	if len(sys.argv) > 2: parts = list(f'part-{x:05}' for x in range(int(sys.argv[2]), 128, 8))
 
 	# Embed input mention
 	base_files = grep_files(base_root, parts)

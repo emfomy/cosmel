@@ -28,29 +28,23 @@ from data import Data
 
 if __name__ == '__main__':
 
-	assert len(sys.argv) == 2
+	assert len(sys.argv) > 1
 	ver = sys.argv[1]
 
-	use_model3 = False
-	use_desc   = True
+	use_desc     = True
 
+	target_ver   = f''
+	if len(sys.argv) > 2: target_ver = f'_{sys.argv[2]}'
 	data_root    = f'data/{ver}'
-	emb_file     = f'{data_root}/embedding/pruned_article_ws.dim300.emb.bin'
+	emb_file     = f'{data_root}/embedding/pruned_article.dim300.emb.bin'
 	model_root   = f'{data_root}/model'
-	data_file    = f'{model_root}/data.h5'
-	train_file   = f'{model_root}/train.json'
-	predict_file = f'{model_root}/predict.json'
-	weight_file  = f'{model_root}/weight.h5'
+	data_file    = f'{model_root}/data{target_ver}.h5'
+	train_file   = f'{model_root}/train{target_ver}.json'
+	predict_file = f'{model_root}/predict{target_ver}.json'
+	weight_file  = f'{model_root}/weight{target_ver}.h5'
 
 	# Load data
 	data = Data.load(data_file)
-
-	# Load initial product embedding
-	if use_model3:
-		init_file = f'{model_root}/init.h5'
-		h5f = h5py.File(init_file, 'r')
-		product_init_embedding = h5f['product_init_embedding'][:]
-		h5f.close()
 
 	# Load word vectors
 	keyed_vectors = KeyedVectors.load_word2vec_format(emb_file, binary=True)
@@ -58,9 +52,11 @@ if __name__ == '__main__':
 	# Get sizes
 	W2V_EMB_SIZE = keyed_vectors.vector_size
 	num_vocab    = len(keyed_vectors.vocab)
-	num_label    = max(data.pid_code)+1
+	num_label    = data.pid_bag.shape[1]
+	num_brand    = data.brand_bag.shape[1]
 	print(f'num_vocab = {num_vocab}')
 	print(f'num_label = {num_label}')
+	print(f'num_brand = {num_brand}')
 
 	# Prepare embeddings
 	vocab_embedding = keyed_vectors.wv[keyed_vectors.index2word]
@@ -83,16 +79,20 @@ if __name__ == '__main__':
 	# Define model
 	CNN_WIN_SIZE    = 5
 	print(f'cnn_win_size    = {CNN_WIN_SIZE}')
-	CNN_EMB_SIZE    = 200
+	CNN_EMB_SIZE    = 100
 	print(f'cnn_emb_size    = {CNN_EMB_SIZE}')
-	LSTM_EMB_SIZE   = 200
+	LSTM_EMB_SIZE   = 100
 	print(f'lstm_emb_size   = {LSTM_EMB_SIZE}')
 	ENTITY_EMB_SIZE = W2V_EMB_SIZE
 	print(f'entity_emb_size = {ENTITY_EMB_SIZE}')
 
-	pre_code  = keras.layers.Input(shape=(None,), dtype='int32', name='pre_code')
-	post_code = keras.layers.Input(shape=(None,), dtype='int32', name='post_code')
-	desc_code = keras.layers.Input(shape=(None,), dtype='int32', name='desc_code')
+	title_code = keras.layers.Input(shape=(None,), dtype='int32', name='title_code')
+	pre_code   = keras.layers.Input(shape=(None,), dtype='int32', name='pre_code')
+	post_code  = keras.layers.Input(shape=(None,), dtype='int32', name='post_code')
+	desc_code  = keras.layers.Input(shape=(None,), dtype='int32', name='desc_code')
+
+	pid_bag    = keras.layers.Input(shape=(num_label,), dtype='float32', name='pid_bag')
+	brand_bag  = keras.layers.Input(shape=(num_brand,), dtype='float32', name='brand_bag')
 
 	text_weight = keras.layers.Input(shape=(1,), dtype='float32', name='text_weight')
 	desc_weight = keras.layers.Input(shape=(1,), dtype='float32', name='desc_weight')
@@ -100,25 +100,30 @@ if __name__ == '__main__':
 	word_emb_layer = keras.layers.Embedding(num_vocab, W2V_EMB_SIZE, weights=[vocab_embedding], trainable=False, \
 			name='word_emb')
 
-	pre_code_emb  = word_emb_layer(pre_code)
-	post_code_emb = word_emb_layer(post_code)
-	desc_code_emb = word_emb_layer(desc_code)
+	title_code_emb = word_emb_layer(title_code)
+	pre_code_emb   = word_emb_layer(pre_code)
+	post_code_emb  = word_emb_layer(post_code)
+	desc_code_emb  = word_emb_layer(desc_code)
 
-	pre_lstm    = keras.layers.LSTM(LSTM_EMB_SIZE, go_backwards=False, name='pre_lstm')(pre_code_emb)
-	post_lstm   = keras.layers.LSTM(LSTM_EMB_SIZE, go_backwards=True,  name='post_lstm')(post_code_emb)
-	text_concat = keras.layers.concatenate([pre_lstm, post_lstm], name='text_concat')
-	text_emb    = keras.layers.Dense(ENTITY_EMB_SIZE, activation='tanh', name='text_emb')(text_concat)
+	title_lstm   = keras.layers.LSTM(LSTM_EMB_SIZE,   go_backwards=False, name='title_lstm')(pre_code_emb)
+	pre_lstm     = keras.layers.LSTM(LSTM_EMB_SIZE,   go_backwards=False, name='pre_lstm')(pre_code_emb)
+	post_lstm    = keras.layers.LSTM(LSTM_EMB_SIZE,   go_backwards=True,  name='post_lstm')(post_code_emb)
+
+	local_concat = keras.layers.concatenate([title_lstm, pre_lstm, post_lstm], name='local_concat')
+	local_emb    = keras.layers.Dense(ENTITY_EMB_SIZE, activation='relu', name='local_emb')(local_concat)
+
+	doc_concat   = keras.layers.concatenate([pid_bag, brand_bag], name='doc_concat')
+	doc_emb      = keras.layers.Dense(ENTITY_EMB_SIZE, activation='relu', name='doc_emb')(doc_concat)
+
+	text_concat  = keras.layers.concatenate([local_emb, doc_emb], name='text_concat')
+	text_emb     = keras.layers.Dense(ENTITY_EMB_SIZE, activation='relu', name='text_emb')(text_concat)
 
 	desc_cnn  = keras.layers.Conv1D(CNN_EMB_SIZE, CNN_WIN_SIZE, name='desc_cnn')(desc_code_emb)
 	desc_pool = keras.layers.GlobalMaxPooling1D(name='desc_pool')(desc_cnn)
-	desc_emb  = keras.layers.Dense(ENTITY_EMB_SIZE, activation='tanh', name='desc_emb')(desc_pool)
+	desc_emb  = keras.layers.Dense(ENTITY_EMB_SIZE, activation='relu', name='desc_emb')(desc_pool)
 
-	if not use_model3:
-		entity_emb_layer = keras.layers.Dense(num_label, activation='softmax', use_bias=False, input_shape=(ENTITY_EMB_SIZE,), \
-				name='entity_emb')
-	else:
-		entity_emb_layer = keras.layers.Dense(num_label, activation='softmax', use_bias=False, input_shape=(ENTITY_EMB_SIZE,), \
-				weights=[product_init_embedding], name='entity_emb')
+	entity_emb_layer = keras.layers.Dense(num_label, activation='softmax', use_bias=False, input_shape=(ENTITY_EMB_SIZE,), \
+			name='entity_emb')
 
 	text_softmax = entity_emb_layer(text_emb)
 	text_target  = keras.layers.concatenate([text_softmax, text_weight], name='text')
@@ -129,9 +134,12 @@ if __name__ == '__main__':
 	if use_desc:
 		model = keras.models.Model( \
 				inputs=[ \
+						title_code, \
 						pre_code, \
 						post_code, \
 						desc_code, \
+						pid_bag, \
+						brand_bag, \
 						text_weight, \
 						desc_weight, \
 				], \
@@ -142,8 +150,12 @@ if __name__ == '__main__':
 	else:
 		model = keras.models.Model( \
 				inputs=[ \
+						title_code, \
 						pre_code, \
 						post_code, \
+						desc_code, \
+						pid_bag, \
+						brand_bag, \
 						text_weight, \
 				], \
 				outputs=[ \
@@ -155,7 +167,7 @@ if __name__ == '__main__':
 
 	# Define predicting model
 	predict_model = keras.models.Model(
-			inputs=[pre_code, post_code], \
+			inputs=[title_code, pre_code, post_code, pid_bag, brand_bag], \
 			outputs=[text_softmax] \
 	)
 
@@ -167,9 +179,12 @@ if __name__ == '__main__':
 
 	# Train the model
 	input_data = { \
+			'title_code':  train_data.title_code, \
 			'pre_code':    train_data.pre_code, \
 			'post_code':   train_data.post_code, \
 			'desc_code':   train_data.desc_code, \
+			'pid_bag':     train_data.pid_bag, \
+			'brand_bag':   train_data.brand_bag, \
 			'text_weight': train_data.text_weight, \
 			'desc_weight': train_data.desc_weight, \
 	}

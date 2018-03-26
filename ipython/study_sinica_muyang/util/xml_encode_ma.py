@@ -21,7 +21,7 @@ def add_end_xml(end, mention):
 
 if __name__ == '__main__':
 
-	assert len(sys.argv) >= 2
+	assert len(sys.argv) > 1
 	ver = sys.argv[1]
 
 	target       = f'pruned_article'
@@ -37,7 +37,7 @@ if __name__ == '__main__':
 	xml_root     = f'{data_root}/xml/{target}{target_ver}'
 	parts         = ['']
 	parts        = list(f'part-{x:05}' for x in range(1))
-	if len(sys.argv) >= 3: parts = list(f'part-{x:05}' for x in range(int(sys.argv[2]), 128, 8))
+	if len(sys.argv) > 2: parts = list(f'part-{x:05}' for x in range(int(sys.argv[2]), 128, 8))
 
 	# Extract html from json
 	mention_files = grep_files(mention_root, parts)

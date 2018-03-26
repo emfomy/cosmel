@@ -15,7 +15,7 @@ from styleme import *
 
 if __name__ == '__main__':
 
-	assert len(sys.argv) >= 2
+	assert len(sys.argv) > 1
 	ver = sys.argv[1]
 
 	replaced_pname = False
@@ -29,7 +29,7 @@ if __name__ == '__main__':
 	role_root    = f'{data_root}/article/{target}_role'
 	parts        = ['']
 	parts        = list(f'part-{x:05}' for x in range(1))
-	if len(sys.argv) >= 3: parts = list(f'part-{x:05}' for x in range(int(sys.argv[2]), 128, 8))
+	if len(sys.argv) > 2: parts = list(f'part-{x:05}' for x in range(int(sys.argv[2]), 128, 8))
 
 	repo = Repo(repo_root)
 

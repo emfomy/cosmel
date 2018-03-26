@@ -17,6 +17,7 @@ from keras.preprocessing.text import Tokenizer
 from keras.preprocessing.sequence import pad_sequences
 
 from sklearn.preprocessing import LabelEncoder
+from sklearn.preprocessing import LabelBinarizer
 import sklearn.model_selection
 
 from gensim.models.keyedvectors import KeyedVectors
@@ -26,7 +27,8 @@ from styleme import *
 
 class Data:
 
-	_attr = ['pid_code', 'pre_code', 'post_code', 'desc_code', 'aid', 'sid', 'mid', 'rule', 'pid']
+	_attr = ['pid_code', 'title_code', 'pre_code', 'post_code', 'desc_code', 'pid_bag', 'brand_bag', \
+			'aid', 'sid', 'mid', 'rule', 'pid']
 
 	def __getitem__(self, key):
 		data = Data()
@@ -64,12 +66,15 @@ class RawData(Data):
 	max_num_sentences = 5
 
 	def __init__(self, repo, mention_list):
-		self.aid  = [mention.aid for mention in mention_list]
-		self.sid  = [mention.sid for mention in mention_list]
-		self.mid  = [mention.mid for mention in mention_list]
+		self.aid  = [mention.aid  for mention in mention_list]
+		self.sid  = [mention.sid  for mention in mention_list]
+		self.mid  = [mention.mid  for mention in mention_list]
 		self.rule = [mention.rule for mention in mention_list]
-		self.pid  = [mention.pid for mention in mention_list]
+		self.pid  = [mention.pid  for mention in mention_list]
 
+		self.title = [ \
+				' '.join(mention.article[0].txts) for mention in mention_list \
+		]
 		self.pre  = [ \
 				' '.join(itertools.chain( \
 						itertools.chain.from_iterable( \
@@ -88,33 +93,58 @@ class RawData(Data):
 		]
 		self.desc  = [' '.join(repo.id_to_product[mention.pid].descr_ws.txts) for mention in mention_list]
 
-		self.bag_of_pid   = [set(m.pid for m in mention.bundle if m.rule == 'P_rule1') for mention in mention_list]
-		self.bag_of_brand = [ \
-				set(repo.bname_to_brand[t[0]] for t in itertools.chain.from_iterable(sentence.zip3 for sentence in mention.article) \
-				if t[2] == 'Brand') for mention in mention_list \
+
+		self.pid_doc   = [list(set(m.pid for m in mention.bundle if m.rule == 'P_rule1')) for mention in mention_list]
+		self.brand_doc = [ \
+				list(set(repo.bname_to_brand[t[0]][0] \
+						for t in itertools.chain.from_iterable(sentence.zip3 for sentence in mention.article) if t[2] == 'Brand' \
+				)) for mention in mention_list \
 		]
 
-	def encode(self, tokenizer, encoder):
-		self.pid_code  = encoder.transform(self.pid)
-		self.pre_code  = pad_sequences(tokenizer.texts_to_sequences(self.pre),  padding='pre')
-		self.post_code = pad_sequences(tokenizer.texts_to_sequences(self.post), padding='post')
-		self.desc_code = pad_sequences(tokenizer.texts_to_sequences(self.desc), padding='post')
-		self.classes   = encoder.classes_
+	def encode(self, tokenizer, p_encoder, p_binarizer, b_binarizer):
+		self.pid_code   = p_encoder.transform(self.pid)
+		self.title_code = pad_sequences(tokenizer.texts_to_sequences(self.title), padding='post')
+		self.pre_code   = pad_sequences(tokenizer.texts_to_sequences(self.pre),   padding='pre')
+		self.post_code  = pad_sequences(tokenizer.texts_to_sequences(self.post),  padding='post')
+		self.desc_code  = pad_sequences(tokenizer.texts_to_sequences(self.desc),  padding='post')
+
+		self.pid_bag = []
+		for l in self.pid_doc:
+			if len(l):
+				self.pid_bag.append(np.sum(p_binarizer.transform(l), axis=0))
+			else:
+				self.pid_bag.append(np.zeros(len(p_binarizer.classes_)))
+		self.pid_bag = np.asarray(self.pid_bag)
+
+		self.brand_bag = []
+		for l in self.brand_doc:
+			if len(l):
+				self.brand_bag.append(np.sum(b_binarizer.transform(l), axis=0))
+			else:
+				self.brand_bag.append(np.zeros(len(b_binarizer.classes_)))
+		self.brand_bag = np.asarray(self.brand_bag)
+
+		self.p_classes  = p_binarizer.classes_
+		self.b_classes  = b_binarizer.classes_
 
 	def save(self, file, comment=''):
 		os.makedirs(os.path.dirname(file), exist_ok=True)
 		h5f = h5py.File(file, 'w')
-		h5f.create_dataset('comment',   data=comment)
-		h5f.create_dataset('pid_code', data=self.pid_code)
-		h5f.create_dataset('pre_code',  data=self.pre_code)
-		h5f.create_dataset('post_code', data=self.post_code)
-		h5f.create_dataset('desc_code', data=self.desc_code)
-		h5f.create_dataset('aid',      data=[x.encode("ascii") for x in self.aid])
-		h5f.create_dataset('sid',      data=self.sid, dtype='int32')
-		h5f.create_dataset('mid',      data=self.mid,  dtype='int32')
-		h5f.create_dataset('rule',      data=[x.encode("ascii") for x in self.rule])
-		h5f.create_dataset('pid',      data=[x.encode("ascii") for x in self.pid])
-		h5f.create_dataset('classes',   data=[x.encode("ascii") for x in self.classes])
+		h5f.create_dataset('comment',    data=comment)
+		h5f.create_dataset('pid_code',   data=self.pid_code)
+		h5f.create_dataset('title_code', data=self.title_code)
+		h5f.create_dataset('pre_code',   data=self.pre_code)
+		h5f.create_dataset('post_code',  data=self.post_code)
+		h5f.create_dataset('desc_code',  data=self.desc_code)
+		h5f.create_dataset('pid_bag',    data=self.pid_bag)
+		h5f.create_dataset('brand_bag',  data=self.brand_bag)
+		h5f.create_dataset('aid',        data=[x.encode("ascii") for x in self.aid])
+		h5f.create_dataset('sid',        data=self.sid, dtype='int32')
+		h5f.create_dataset('mid',        data=self.mid, dtype='int32')
+		h5f.create_dataset('rule',       data=[x.encode("ascii") for x in self.rule])
+		h5f.create_dataset('pid',        data=[x.encode("ascii") for x in self.pid])
+		h5f.create_dataset('p_classes',  data=[x.encode("ascii") for x in self.p_classes])
+		h5f.create_dataset('b_classes',  data=[x.encode("ascii") for x in self.b_classes])
 		h5f.close()
 		print(f'Saved data into "{file}"')
 
@@ -122,11 +152,11 @@ if __name__ == '__main__':
 
 	use_gid      = True
 
-	assert len(sys.argv) == 2
+	assert len(sys.argv) > 1
 	ver = sys.argv[1]
 
 	target_ver   = f''
-	target_ver   = f'_gid_6.1'
+	if len(sys.argv) > 2: target_ver = f'_{sys.argv[2]}'
 	data_root    = f'data/{ver}'
 	repo_root    = f'{data_root}/repo'
 	article_root = f'{data_root}/article/pruned_article_role'
@@ -154,6 +184,9 @@ if __name__ == '__main__':
 		for mention in corpus.mention_set:
 			if mention.gid:
 				mention.set_pid(mention.gid)
+			else:
+				mention.set_pid('')
+				mention.set_rule('')
 
 	# Extract mentions with PID
 	mention_list = [mention for mention in corpus.mention_set if mention.pid.isdigit()]
@@ -163,14 +196,25 @@ if __name__ == '__main__':
 	# Extract mention data
 	data = RawData(repo, mention_list)
 
-	# Prepare label encoder
-	encoder = LabelEncoder()
-	encoder.fit(data.pid)
-	num_label = len(encoder.classes_)
-	print(f'num_label = {num_label}')
+	# Prepare product encoder
+	p_encoder = LabelEncoder()
+	p_encoder.fit(data.pid)
+	num_label = len(p_encoder.classes_)
+	print(f'num_label   = {num_label}')
 
-	# Integer encode the documents and the labels
-	data.encode(tokenizer, encoder)
+	# Prepare branp binarizer
+	p_binarizer = LabelBinarizer()
+	p_binarizer.fit(data.pid)
+	assert((p_encoder.classes_ == p_binarizer.classes_).all())
+
+	# Prepare brand binarizer
+	b_binarizer = LabelBinarizer()
+	b_binarizer.fit([b for l in data.brand_doc for b in l])
+	num_brand = len(b_binarizer.classes_)
+	print(f'num_brand   = {num_brand}')
+
+	# Integer encode the docments and the labels
+	data.encode(tokenizer, p_encoder, p_binarizer, b_binarizer)
 
 	# Save data
 	comment = \

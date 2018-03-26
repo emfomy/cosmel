@@ -24,7 +24,7 @@ def parse(line):
 
 if __name__ == '__main__':
 
-	assert len(sys.argv) >= 2
+	assert len(sys.argv) > 1
 	ver = sys.argv[1]
 
 	target       = f'pruned_article'
@@ -34,7 +34,7 @@ if __name__ == '__main__':
 	parse_root   = f'{data_root}/article/{target_parse}_parse'
 	parts        = ['']
 	parts        = list(f'part-{x:05}' for x in range(1))
-	if len(sys.argv) >= 3: parts = list(f'part-{x:05}' for x in range(int(sys.argv[2], 16), 128, 16))
+	if len(sys.argv) > 2: parts = list(f'part-{x:05}' for x in range(int(sys.argv[2], 16), 128, 16))
 
 	articles = ArticleSet(ws_re2_root, parts=parts)
 

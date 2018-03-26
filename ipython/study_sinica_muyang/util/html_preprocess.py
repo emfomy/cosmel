@@ -29,7 +29,7 @@ if __name__ == '__main__':
 	replaced  = False
 	parsed    = False
 
-	assert len(sys.argv) >= 2
+	assert len(sys.argv) > 1
 	ver = sys.argv[1]
 
 	etc_root     = f'etc'
@@ -40,7 +40,7 @@ if __name__ == '__main__':
 	notag_root   = f'{data_root}/html/html_article_notag'
 	parts        = ['']
 	parts        = list(f'part-{x:05}' for x in range(1))
-	if len(sys.argv) >= 3: parts = list(f'part-{x:05}' for x in range(int(sys.argv[2]), 128, 8))
+	if len(sys.argv) > 2: parts = list(f'part-{x:05}' for x in range(int(sys.argv[2]), 128, 8))
 
 	# Extract html from json
 	if not extracted:

@@ -19,7 +19,7 @@ def indices(lst, ele, start=0, end=None):
 
 if __name__ == '__main__':
 
-	assert len(sys.argv) >= 2
+	assert len(sys.argv) > 1
 	ver = sys.argv[1]
 
 	target       = f'pruned_article'
@@ -30,7 +30,7 @@ if __name__ == '__main__':
 	repo_root    = f'{data_root}/repo'
 	parts        = ['']
 	# parts        = list(f'part-{x:05}' for x in range(1))
-	if len(sys.argv) >= 3: parts = list(f'part-{x:05}' for x in range(int(sys.argv[2]), 128, 8))
+	if len(sys.argv) > 2: parts = list(f'part-{x:05}' for x in range(int(sys.argv[2]), 128, 8))
 
 	articles = ArticleSet(article_root, parts=parts)
 
