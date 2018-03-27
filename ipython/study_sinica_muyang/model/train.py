@@ -71,10 +71,10 @@ if __name__ == '__main__':
 	num_mention = len(train_data.pid_code)
 	counter     = collections.Counter(train_data.pid_code)
 	train_data.text_weight = np.full((num_mention,), 1., dtype='float32')
-	train_data.desc_weight = np.asarray([1/counter[i] for i in train_data.pid_code], dtype='float32')
+	train_data.desc_weight = np.asarray([1.0/counter[i] for i in train_data.pid_code], dtype='float32')
 
 	# Prepare 1-hot for outputs
-	train_data.pid_1hot   = keras.utils.to_categorical(train_data.pid_code, num_classes=num_label)
+	train_data.pid_1hot = keras.utils.to_categorical(train_data.pid_code, num_classes=num_label)
 
 	# Define model
 	CNN_WIN_SIZE    = 5

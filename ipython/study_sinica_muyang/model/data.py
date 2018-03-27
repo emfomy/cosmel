@@ -10,7 +10,6 @@ import h5py
 import itertools
 import os
 import sys
-import unittest
 
 import numpy as np
 
@@ -93,7 +92,6 @@ class RawData(Data):
 				)) for mention in mention_list \
 		]
 		self.desc  = [' '.join(repo.id_to_product[mention.pid].descr_ws.txts) for mention in mention_list]
-
 
 		self.pid_doc   = [set(m.pid for m in mention.bundle if m.rule == 'P_rule1') for mention in mention_list]
 		self.brand_doc = [ \
