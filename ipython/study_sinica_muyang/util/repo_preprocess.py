@@ -479,8 +479,14 @@ if __name__ == '__main__':
 				print(colored('1;31', f'Tag (b) ({product_head[pid]}): {pid} "{sentence}"'))
 
 	# Check Unused words
-	with open(repo_root+'/infix0.lex') as fin_infix, open(repo_root+'/compound.lex') as fin_compound, \
-			open(tmp_root+'/product.tag') as fin_tag:
+	with open(etc_root+'/head.txt') as fin_head, open(repo_root+'/infix0.lex') as fin_infix, \
+			open(repo_root+'/compound.lex') as fin_compound, \
+			open(tmp_root+'/product.tag') as fin_product_tag, open(repo_root+'/product.head') as fin_product_head:
+
+		head_set = set()
+		for line in fin_head:
+			if line.strip() == '': continue
+			head_set.add(line.strip())
 
 		infix_set = set()
 		for line in fin_infix:
@@ -492,12 +498,17 @@ if __name__ == '__main__':
 			if line.strip() == '': continue
 			compound_set.add(line.strip().split('\t')[0])
 
-		for line in fin_tag:
+		for line in fin_product_tag:
 			sentence = WsWords(line.strip())
 			txt_set = set(sentence.txts)
 			infix_set -= txt_set
 			compound_set -= txt_set
 
+		for line in fin_product_head:
+			head_set.discard(line.strip().split('\t')[1])
+
+		for txt in head_set:
+			print(colored('1;31', f'Unused head ({txt})'))
 		for txt in infix_set:
 			print(colored('1;31', f'Unused infix ({txt})'))
 		for txt in compound_set:

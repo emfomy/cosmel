@@ -80,12 +80,12 @@ class RawData(Data):
 						itertools.chain.from_iterable( \
 								s.txts for s in mention.article[max(mention.sid-RawData.max_num_sentences, 0):mention.sid] \
 						), \
-						mention.sentence_pre.txts \
+						mention.sentence_pre.txts, mention.mention.txts \
 				)) for mention in mention_list \
 		]
 		self.post = [ \
 				' '.join(itertools.chain( \
-						mention.sentence_post.txts, \
+						mention.mention.txts, mention.sentence_post.txts, \
 						itertools.chain.from_iterable( \
 								s.txts for s in mention.article[mention.sid+1:mention.sid+1+RawData.max_num_sentences] \
 						) \

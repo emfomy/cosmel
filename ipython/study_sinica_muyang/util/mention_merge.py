@@ -51,11 +51,11 @@ if __name__ == '__main__':
 				for line in fin:
 					data = json.loads(line)
 					key = (int(data['sid']), int(data['mid']),)
-					# data.pop('sid', None)
-					# data.pop('mid', None)
+					# data.discard('sid')
+					# data.discard('mid')
 
-					# data.pop('hint', None)
-					# data.pop('hint_orio', None)
+					# data.discard('hint')
+					# data.discard('hint_orio')
 
 					if 'gid' not in data:
 						print(colored('1;33', f'\n[No PID] Remove {input_file}:{key[0]}:{key[1]}\n'))
