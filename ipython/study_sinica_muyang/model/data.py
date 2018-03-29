@@ -27,8 +27,8 @@ from styleme import *
 
 class Data:
 
-	_attr = ['pid_code', 'title_code', 'pre_code', 'post_code', 'desc_code', 'pid_bag', 'brand_bag', \
-			'aid', 'sid', 'mid', 'rule', 'pid']
+	_attr = ['gid_code', 'title_code', 'pre_code', 'post_code', 'desc_code', 'pid_bag', 'brand_bag', \
+			'aid', 'sid', 'mid', 'rule', 'gid']
 
 	def __getitem__(self, key):
 		data = Data()
@@ -38,7 +38,7 @@ class Data:
 
 	@property
 	def size(self):
-		return len(self.pid_code)
+		return len(self.gid_code)
 
 	@staticmethod
 	def load(file):
@@ -70,7 +70,7 @@ class RawData(Data):
 		self.sid  = [mention.sid  for mention in mention_list]
 		self.mid  = [mention.mid  for mention in mention_list]
 		self.rule = [mention.rule for mention in mention_list]
-		self.pid  = [mention.pid  for mention in mention_list]
+		self.gid  = [mention.gid  for mention in mention_list]
 
 		self.title = [ \
 				' '.join(mention.article[0].txts) for mention in mention_list \
@@ -91,7 +91,7 @@ class RawData(Data):
 						) \
 				)) for mention in mention_list \
 		]
-		self.desc  = [' '.join(repo.id_to_product[mention.pid].descr_ws.txts) for mention in mention_list]
+		self.desc  = [' '.join(repo.id_to_product[mention.gid].descr_ws.txts) for mention in mention_list]
 
 		self.pid_doc   = [set(m.pid for m in mention.bundle if m.rule == 'P_rule1') for mention in mention_list]
 		self.brand_doc = [ \
@@ -101,7 +101,7 @@ class RawData(Data):
 		]
 
 	def encode(self, tokenizer, p_encoder, b_encoder, p_multibinarizer, b_multibinarizer):
-		self.pid_code   = p_encoder.transform(self.pid)
+		self.gid_code   = p_encoder.transform(self.gid)
 		self.title_code = pad_sequences(tokenizer.texts_to_sequences(self.title), padding='post')
 		self.pre_code   = pad_sequences(tokenizer.texts_to_sequences(self.pre),   padding='pre')
 		self.post_code  = pad_sequences(tokenizer.texts_to_sequences(self.post),  padding='post')
@@ -117,7 +117,7 @@ class RawData(Data):
 		os.makedirs(os.path.dirname(file), exist_ok=True)
 		h5f = h5py.File(file, 'w')
 		h5f.create_dataset('comment',    data=comment)
-		h5f.create_dataset('pid_code',   data=self.pid_code)
+		h5f.create_dataset('gid_code',   data=self.gid_code)
 		h5f.create_dataset('title_code', data=self.title_code)
 		h5f.create_dataset('pre_code',   data=self.pre_code)
 		h5f.create_dataset('post_code',  data=self.post_code)
@@ -128,15 +128,15 @@ class RawData(Data):
 		h5f.create_dataset('sid',        data=self.sid, dtype='int32')
 		h5f.create_dataset('mid',        data=self.mid, dtype='int32')
 		h5f.create_dataset('rule',       data=[x.encode("ascii") for x in self.rule])
-		h5f.create_dataset('pid',        data=[x.encode("ascii") for x in self.pid])
-		h5f.create_dataset('p_classes',  data=[x.encode("ascii") for x in self.p_classes])
-		h5f.create_dataset('b_classes',  data=[x.encode("ascii") for x in self.b_classes])
+		h5f.create_dataset('gid',        data=[x.encode("ascii") for x in self.gid])
+		# h5f.create_dataset('p_classes',  data=[x.encode("ascii") for x in self.p_classes])
+		# h5f.create_dataset('b_classes',  data=[x.encode("ascii") for x in self.b_classes])
 		h5f.close()
 		print(f'Saved data into "{file}"')
 
 if __name__ == '__main__':
 
-	use_gid      = True
+	use_pid      = True
 
 	assert len(sys.argv) > 1
 	ver = sys.argv[1]
@@ -150,6 +150,7 @@ if __name__ == '__main__':
 	model_root   = f'{data_root}/model'
 	parts        = ['']
 	parts        = list(f'part-{x:05}' for x in range(1))
+	parts        = list(f'part-{x:05}' for x in range(127))
 	emb_file     = f'{data_root}/embedding/pruned_article.dim300.emb.bin'
 	data_file    = f'{model_root}/data{target_ver}.h5'
 
@@ -166,16 +167,16 @@ if __name__ == '__main__':
 	repo   = Repo(repo_root)
 	corpus = Corpus(article_root, mention_root, parts=parts)
 
-	if use_gid:
+	if use_pid:
 		for mention in corpus.mention_set:
-			if mention.gid:
-				mention.set_pid(mention.gid)
+			if mention.pid:
+				mention.set_gid(mention.pid)
 			else:
-				mention.set_pid('')
+				mention.set_gid('')
 				mention.set_rule('')
 
 	# Extract mentions with PID
-	mention_list = [mention for mention in corpus.mention_set if mention.pid.isdigit()]
+	mention_list = [mention for mention in corpus.mention_set if mention.gid.isdigit()]
 	num_mention = len(mention_list)
 	print(f'num_mention = {num_mention}')
 
@@ -184,7 +185,7 @@ if __name__ == '__main__':
 
 	# Prepare product encoder
 	p_encoder = LabelEncoder()
-	p_encoder.fit(data.pid)
+	p_encoder.fit(data.gid + [p for s in data.pid_doc for p in s])
 	num_label = len(p_encoder.classes_)
 	print(f'num_label   = {num_label}')
 

@@ -22,16 +22,11 @@ if __name__ == '__main__':
 	written_sentence = True
 
 	target       = f'pruned_article'
-	target_ver   = f''
-	target_ver   = f'_gid'
-	# target_ver   = f'_gid_orio'
 	tmp_root     = f'data/tmp'
 	data_root    = f'data/{ver}'
-	input_root   = f'host/{ver}/json'
-	# input_root   = f'host/{ver}/mention'
-	base_root    = f'{data_root}/mention/{target}'
-	base_root    = f'{data_root}/mention/{target}_gid_orio'
-	output_root  = f'{data_root}/mention/{target}{target_ver}'
+	base_root    = f'{data_root}/mention/{target}_pid'
+	input_root   = f'{data_root}/mention/{target}_gid_6.1'
+	output_root  = f'{data_root}/mention/{target}_pid_gid_6.1'
 	parts        = ['']
 	parts        = list(f'part-{x:05}' for x in range(1))
 	if len(sys.argv) > 2: parts = list(f'part-{x:05}' for x in range(int(sys.argv[2]), 128, 8))
@@ -56,11 +51,16 @@ if __name__ == '__main__':
 				for line in fin:
 					data = json.loads(line)
 					key = (int(data['sid']), int(data['mid']),)
-					del data['sid']
-					del data['mid']
+					# data.pop('sid', None)
+					# data.pop('mid', None)
 
-					del data['hint']
-					del data['hint_orio']
+					# data.pop('hint', None)
+					# data.pop('hint_orio', None)
+
+					if 'gid' not in data:
+						print(colored('1;33', f'\n[No PID] Remove {input_file}:{key[0]}:{key[1]}\n'))
+						continue
+					data = {'gid': data['gid']}
 
 					data = dict((attr, value,) for attr, value in data.items() if value)
 

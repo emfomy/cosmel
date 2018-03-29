@@ -11,7 +11,6 @@ import sys
 
 import numpy as np
 
-import keras.backend
 import keras.models
 
 from gensim.models.keyedvectors import KeyedVectors
@@ -30,17 +29,17 @@ def model_load(predict_file, weight_file):
 	return predict_model
 
 def model_predict(predict_model, test_data):
-	predict_pid_code = np.argmax(predict_model.predict({
+	predict_gid_code = np.argmax(predict_model.predict({
 			'title_code': test_data.title_code, \
 			'pre_code':   test_data.pre_code, \
 			'post_code':  test_data.post_code, \
 			'pid_bag':    test_data.pid_bag, \
 			'brand_bag':  test_data.brand_bag, \
 	}), axis=1)
-	return predict_pid_code
+	return predict_gid_code
 
-def model_accuracy(predict_pid_code, true_pid_code, mask=slice(None,None), name='all'):
-	correct = (true_pid_code[mask] == predict_pid_code[mask])
+def model_accuracy(predict_gid_code, true_gid_code, mask=slice(None,None), name='all'):
+	correct = (true_gid_code[mask] == predict_gid_code[mask])
 	accuracy = correct.sum() / correct.size
 	print(f'accuracy ({name}) = {accuracy} ({correct.sum()}/{correct.size})')
 
@@ -51,9 +50,11 @@ if __name__ == '__main__':
 
 	target_ver   = f''
 	if len(sys.argv) > 2: target_ver = f'_{sys.argv[2]}'
+	data_ver     = target_ver
+	if len(sys.argv) > 3: data_ver = f'_{sys.argv[3]}'
 	data_root    = f'data/{ver}'
 	model_root   = f'{data_root}/model'
-	data_file    = f'{model_root}/data{target_ver}.h5'
+	data_file    = f'{model_root}/data{data_ver}.h5'
 	predict_file = f'{model_root}/predict{target_ver}.json'
 	weight_file  = f'{model_root}/weight{target_ver}.h5'
 
@@ -65,8 +66,8 @@ if __name__ == '__main__':
 
 	# Load and apply model
 	predict_model = model_load(predict_file, weight_file)
-	predict_pid_code = model_predict(predict_model, test_data)
-	model_accuracy(predict_pid_code, test_data.pid_code)
-	model_accuracy(predict_pid_code, test_data.pid_code, test_data.rule == 'P_rule1', 'P_rule1')
+	predict_gid_code = model_predict(predict_model, test_data)
+	model_accuracy(predict_gid_code, test_data.gid_code)
+	model_accuracy(predict_gid_code, test_data.gid_code, test_data.rule == 'P_rule1', 'P_rule1')
 
 	pass

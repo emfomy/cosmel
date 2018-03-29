@@ -13,7 +13,7 @@ import sys
 
 import numpy as np
 
-import keras.backend
+import keras.backend as K
 import keras.layers
 import keras.models
 import keras.utils
@@ -43,6 +43,9 @@ if __name__ == '__main__':
 	predict_file = f'{model_root}/predict{target_ver}.json'
 	weight_file  = f'{model_root}/weight{target_ver}.h5'
 
+	pretrain_file= f''
+	if len(sys.argv) > 3: pretrain_file= f'{model_root}/weight_{sys.argv[3]}.h5'
+
 	# Load data
 	data = Data.load(data_file)
 
@@ -59,7 +62,7 @@ if __name__ == '__main__':
 	print(f'num_brand = {num_brand}')
 
 	# Prepare embeddings
-	vocab_embedding = keyed_vectors.wv[keyed_vectors.index2word]
+	vocab_embedding = keyed_vectors[keyed_vectors.index2word]
 	vocab_embedding[0] = 0
 
 	# Split train and test
@@ -68,13 +71,13 @@ if __name__ == '__main__':
 	print(f'num_test  = {test_data.size}')
 
 	# Prepare loss weights
-	num_mention = len(train_data.pid_code)
-	counter     = collections.Counter(train_data.pid_code)
+	num_mention = len(train_data.gid_code)
+	counter     = collections.Counter(train_data.gid_code)
 	train_data.text_weight = np.full((num_mention,), 1., dtype='float32')
-	train_data.desc_weight = np.asarray([1.0/counter[i] for i in train_data.pid_code], dtype='float32')
+	train_data.desc_weight = np.asarray([1.0/counter[i] for i in train_data.gid_code], dtype='float32')
 
 	# Prepare 1-hot for outputs
-	train_data.pid_1hot = keras.utils.to_categorical(train_data.pid_code, num_classes=num_label)
+	train_data.gid_1hot = keras.utils.to_categorical(train_data.gid_code, num_classes=num_label)
 
 	# Define model
 	CNN_WIN_SIZE    = 5
@@ -105,9 +108,10 @@ if __name__ == '__main__':
 	post_code_emb  = word_emb_layer(post_code)
 	desc_code_emb  = word_emb_layer(desc_code)
 
-	title_lstm   = keras.layers.LSTM(LSTM_EMB_SIZE,   go_backwards=False, name='title_lstm')(pre_code_emb)
-	pre_lstm     = keras.layers.LSTM(LSTM_EMB_SIZE,   go_backwards=False, name='pre_lstm')(pre_code_emb)
-	post_lstm    = keras.layers.LSTM(LSTM_EMB_SIZE,   go_backwards=True,  name='post_lstm')(post_code_emb)
+	title_lstm   = keras.layers.Bidirectional(keras.layers.LSTM(LSTM_EMB_SIZE, go_backwards=False), \
+				name='title_lstm')(title_code_emb)
+	pre_lstm     = keras.layers.LSTM(LSTM_EMB_SIZE, go_backwards=False, name='pre_lstm')(pre_code_emb)
+	post_lstm    = keras.layers.LSTM(LSTM_EMB_SIZE, go_backwards=True,  name='post_lstm')(post_code_emb)
 
 	local_concat = keras.layers.concatenate([title_lstm, pre_lstm, post_lstm], name='local_concat')
 	local_emb    = keras.layers.Dense(ENTITY_EMB_SIZE, activation='relu', name='local_emb')(local_concat)
@@ -173,7 +177,6 @@ if __name__ == '__main__':
 
 	# Compile the model
 	def custom_loss(y_true, y_pred):
-		import keras.backend as K
 		return -K.mean(y_pred[:,-1] * K.log(K.sum(y_true * y_pred[:,:-1], axis=1)), axis=-1)
 	model.compile(optimizer='adam', loss=custom_loss)
 
@@ -189,9 +192,9 @@ if __name__ == '__main__':
 			'desc_weight': train_data.desc_weight, \
 	}
 	output_data = { \
-			'text': train_data.pid_1hot, \
-			'name': train_data.pid_1hot, \
-			'desc': train_data.pid_1hot, \
+			'text': train_data.gid_1hot, \
+			'name': train_data.gid_1hot, \
+			'desc': train_data.gid_1hot, \
 	}
 	if not use_desc:
 		del input_data['desc_code']
@@ -199,6 +202,10 @@ if __name__ == '__main__':
 		del output_data['name']
 		del output_data['desc']
 
+	# Train the model
+	if pretrain_file:
+		model.load_weights(pretrain_file)
+		print(f'Loaded model weights from "{pretrain_file}"')
 	model.fit(input_data, output_data, epochs=20, batch_size=1000)
 
 	# Save models
