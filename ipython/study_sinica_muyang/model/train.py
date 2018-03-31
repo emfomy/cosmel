@@ -71,10 +71,13 @@ if __name__ == '__main__':
 	print(f'num_test  = {test_data.size}')
 
 	# Prepare loss weights
-	num_mention = len(train_data.gid_code)
-	counter     = collections.Counter(train_data.gid_code)
-	train_data.text_weight = np.full((num_mention,), 1., dtype='float32')
-	train_data.desc_weight = np.asarray([1.0/counter[i] for i in train_data.gid_code], dtype='float32')
+	num_text = len(train_data.gid_code)
+	counter  = collections.Counter(train_data.gid_code)
+	num_desc = len(set(i for i in train_data.gid_code if counter[i] != 0))
+	train_data.text_weight = np.full((num_text,), 1./num_text, dtype='float32')
+	train_data.desc_weight = np.asarray([1./counter[i]/num_desc for i in train_data.gid_code], dtype='float32')
+	print(f'num_text  = {num_text}')
+	print(f'num_desc  = {num_desc}')
 
 	# Prepare 1-hot for outputs
 	train_data.gid_1hot = keras.utils.to_categorical(train_data.gid_code, num_classes=num_label)
@@ -89,13 +92,13 @@ if __name__ == '__main__':
 	ENTITY_EMB_SIZE = W2V_EMB_SIZE
 	print(f'entity_emb_size = {ENTITY_EMB_SIZE}')
 
-	title_code = keras.layers.Input(shape=(None,), dtype='int32', name='title_code')
-	pre_code   = keras.layers.Input(shape=(None,), dtype='int32', name='pre_code')
-	post_code  = keras.layers.Input(shape=(None,), dtype='int32', name='post_code')
-	desc_code  = keras.layers.Input(shape=(None,), dtype='int32', name='desc_code')
+	title_code  = keras.layers.Input(shape=(None,), dtype='int32', name='title_code')
+	pre_code    = keras.layers.Input(shape=(None,), dtype='int32', name='pre_code')
+	post_code   = keras.layers.Input(shape=(None,), dtype='int32', name='post_code')
+	desc_code   = keras.layers.Input(shape=(None,), dtype='int32', name='desc_code')
 
-	pid_bag    = keras.layers.Input(shape=(num_label,), dtype='float32', name='pid_bag')
-	brand_bag  = keras.layers.Input(shape=(num_brand,), dtype='float32', name='brand_bag')
+	pid_bag     = keras.layers.Input(shape=(num_label,), dtype='float32', name='pid_bag')
+	brand_bag   = keras.layers.Input(shape=(num_brand,), dtype='float32', name='brand_bag')
 
 	text_weight = keras.layers.Input(shape=(1,), dtype='float32', name='text_weight')
 	desc_weight = keras.layers.Input(shape=(1,), dtype='float32', name='desc_weight')
@@ -122,9 +125,9 @@ if __name__ == '__main__':
 	text_concat  = keras.layers.concatenate([local_emb, doc_emb], name='text_concat')
 	text_emb     = keras.layers.Dense(ENTITY_EMB_SIZE, activation='relu', name='text_emb')(text_concat)
 
-	desc_cnn  = keras.layers.Conv1D(CNN_EMB_SIZE, CNN_WIN_SIZE, name='desc_cnn')(desc_code_emb)
-	desc_pool = keras.layers.GlobalMaxPooling1D(name='desc_pool')(desc_cnn)
-	desc_emb  = keras.layers.Dense(ENTITY_EMB_SIZE, activation='relu', name='desc_emb')(desc_pool)
+	desc_cnn     = keras.layers.Conv1D(CNN_EMB_SIZE, CNN_WIN_SIZE, name='desc_cnn')(desc_code_emb)
+	desc_pool    = keras.layers.GlobalMaxPooling1D(name='desc_pool')(desc_cnn)
+	desc_emb     = keras.layers.Dense(ENTITY_EMB_SIZE, activation='relu', name='desc_emb')(desc_pool)
 
 	entity_emb_layer = keras.layers.Dense(num_label, activation='softmax', use_bias=False, input_shape=(ENTITY_EMB_SIZE,), \
 			name='entity_emb')
@@ -177,7 +180,7 @@ if __name__ == '__main__':
 
 	# Compile the model
 	def custom_loss(y_true, y_pred):
-		return -K.mean(y_pred[:,-1] * K.log(K.sum(y_true * y_pred[:,:-1], axis=1)), axis=-1)
+		return -K.sum(y_pred[:,-1] * K.log(K.sum(y_true * y_pred[:,:-1], axis=1)), axis=-1)
 	model.compile(optimizer='adam', loss=custom_loss)
 
 	# Train the model

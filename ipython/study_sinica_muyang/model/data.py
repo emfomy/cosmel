@@ -136,13 +136,14 @@ class RawData(Data):
 
 if __name__ == '__main__':
 
-	use_pid      = True
-
-	assert len(sys.argv) > 1
+	assert len(sys.argv) > 3
 	ver = sys.argv[1]
 
+	use_pid      = (sys.argv[3] != '0')
+	use_pid_str  = '_use_pid' if use_pid else '_use_gid'
+
 	target_ver   = f''
-	if len(sys.argv) > 2: target_ver = f'_{sys.argv[2]}'
+	target_ver   = f'_{sys.argv[2]}'
 	data_root    = f'data/{ver}'
 	repo_root    = f'{data_root}/repo'
 	article_root = f'{data_root}/article/pruned_article_role'
@@ -150,9 +151,8 @@ if __name__ == '__main__':
 	model_root   = f'{data_root}/model'
 	parts        = ['']
 	parts        = list(f'part-{x:05}' for x in range(1))
-	parts        = list(f'part-{x:05}' for x in range(127))
 	emb_file     = f'{data_root}/embedding/pruned_article.dim300.emb.bin'
-	data_file    = f'{model_root}/data{target_ver}.h5'
+	data_file    = f'{model_root}/data{target_ver}{use_pid_str}.h5'
 
 	# Load word vectors
 	keyed_vectors = KeyedVectors.load_word2vec_format(emb_file, binary=True)
@@ -185,7 +185,7 @@ if __name__ == '__main__':
 
 	# Prepare product encoder
 	p_encoder = LabelEncoder()
-	p_encoder.fit(data.gid + [p for s in data.pid_doc for p in s])
+	p_encoder.fit(list(repo.id_to_product))
 	num_label = len(p_encoder.classes_)
 	print(f'num_label   = {num_label}')
 
