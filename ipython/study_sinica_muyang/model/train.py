@@ -7,7 +7,6 @@ __copyright__ = 'Copyright 2017-2018'
 
 
 import collections
-import h5py
 import os
 import sys
 
@@ -23,10 +22,13 @@ from gensim.models.keyedvectors import KeyedVectors
 
 sys.path.insert(0, os.path.abspath('.'))
 from styleme import *
-from data import Data
+from data import DataPack
 
 
 if __name__ == '__main__':
+
+	if len(sys.argv) <= 1:
+		print(f'Usage: {sys.argv[0]} <ver> [mention_suffix] [train_data_suffix] [pretrain_suffix]\n')
 
 	assert len(sys.argv) > 1
 	ver = sys.argv[1]
@@ -35,19 +37,26 @@ if __name__ == '__main__':
 
 	target_ver   = f''
 	if len(sys.argv) > 2: target_ver = f'_{sys.argv[2]}'
+	data_ver     = f''
+	if len(sys.argv) > 3: data_ver = f'.{sys.argv[3]}'
+	pre_ver      = f''
+	if len(sys.argv) > 4: pre_ver = f'.{sys.argv[4]}'
+
 	data_root    = f'data/{ver}'
 	emb_file     = f'{data_root}/embedding/pruned_article.dim300.emb.bin'
 	model_root   = f'{data_root}/model'
-	data_file    = f'{model_root}/data{target_ver}.h5'
-	train_file   = f'{model_root}/train{target_ver}.json'
-	predict_file = f'{model_root}/predict{target_ver}.json'
-	weight_file  = f'{model_root}/weight{target_ver}.h5'
+	data_file    = f'{model_root}/pruned_article{target_ver}.data{data_ver}.train.pkl'
+
+	train_file   = f'{model_root}/pruned_article{target_ver}.train{data_ver}{pre_ver}.h5'
+	predict_file = f'{model_root}/pruned_article{target_ver}.predict{data_ver}{pre_ver}.h5'
 
 	pretrain_file= f''
-	if len(sys.argv) > 3: pretrain_file= f'{model_root}/weight_{sys.argv[3]}.h5'
+	if len(sys.argv) > 4: pretrain_file= f'{model_root}/pruned_article{target_ver}.train{pre_ver}.h5'
 
 	# Load data
-	data = Data.load(data_file)
+	pack = DataPack.load(data_file)
+	num_train = pack.data.gid_code.shape[0]
+	print(f'num_train = {num_train}')
 
 	# Load word vectors
 	keyed_vectors = KeyedVectors.load_word2vec_format(emb_file, binary=True)
@@ -55,8 +64,8 @@ if __name__ == '__main__':
 	# Get sizes
 	W2V_EMB_SIZE = keyed_vectors.vector_size
 	num_vocab    = len(keyed_vectors.vocab)
-	num_label    = data.pid_bag.shape[1]
-	num_brand    = data.brand_bag.shape[1]
+	num_label    = pack.data.pid_bag.shape[1]
+	num_brand    = pack.data.brand_bag.shape[1]
 	print(f'num_vocab = {num_vocab}')
 	print(f'num_label = {num_label}')
 	print(f'num_brand = {num_brand}')
@@ -65,22 +74,17 @@ if __name__ == '__main__':
 	vocab_embedding = keyed_vectors[keyed_vectors.index2word]
 	vocab_embedding[0] = 0
 
-	# Split train and test
-	train_data, test_data = data.train_test_split(test_size=0.3, random_state=0, shuffle=True)
-	print(f'num_train = {train_data.size}')
-	print(f'num_test  = {test_data.size}')
-
 	# Prepare loss weights
-	num_text = len(train_data.gid_code)
-	counter  = collections.Counter(train_data.gid_code)
-	num_desc = len(set(i for i in train_data.gid_code if counter[i] != 0))
-	train_data.text_weight = np.full((num_text,), 1./num_text, dtype='float32')
-	train_data.desc_weight = np.asarray([1./counter[i]/num_desc for i in train_data.gid_code], dtype='float32')
+	num_text = len(pack.data.gid_code)
+	counter  = collections.Counter(pack.data.gid_code)
+	num_desc = len(set(i for i in pack.data.gid_code if counter[i] != 0))
+	pack.data.text_weight = np.full((num_text,), 1./num_text, dtype='float32')
+	pack.data.desc_weight = np.asarray([1./counter[i]/num_desc for i in pack.data.gid_code], dtype='float32')
 	print(f'num_text  = {num_text}')
 	print(f'num_desc  = {num_desc}')
 
 	# Prepare 1-hot for outputs
-	train_data.gid_1hot = keras.utils.to_categorical(train_data.gid_code, num_classes=num_label)
+	pack.data.gid_1hot = keras.utils.to_categorical(pack.data.gid_code, num_classes=num_label)
 
 	# Define model
 	CNN_WIN_SIZE    = 5
@@ -139,7 +143,7 @@ if __name__ == '__main__':
 	desc_target  = keras.layers.concatenate([desc_softmax, desc_weight], name='desc')
 
 	if use_desc:
-		model = keras.models.Model( \
+		train_model = keras.models.Model( \
 				inputs=[ \
 						title_code, \
 						pre_code, \
@@ -155,12 +159,11 @@ if __name__ == '__main__':
 						desc_target, \
 				])
 	else:
-		model = keras.models.Model( \
+		train_model = keras.models.Model( \
 				inputs=[ \
 						title_code, \
 						pre_code, \
 						post_code, \
-						desc_code, \
 						pid_bag, \
 						brand_bag, \
 						text_weight, \
@@ -170,7 +173,7 @@ if __name__ == '__main__':
 				])
 
 	# Summarize the model
-	model.summary()
+	train_model.summary()
 
 	# Define predicting model
 	predict_model = keras.models.Model(
@@ -181,23 +184,23 @@ if __name__ == '__main__':
 	# Compile the model
 	def custom_loss(y_true, y_pred):
 		return -K.sum(y_pred[:,-1] * K.log(K.sum(y_true * y_pred[:,:-1], axis=1)), axis=-1)
-	model.compile(optimizer='adam', loss=custom_loss)
+	train_model.compile(optimizer='adam', loss=custom_loss)
 
 	# Train the model
 	input_data = { \
-			'title_code':  train_data.title_code, \
-			'pre_code':    train_data.pre_code, \
-			'post_code':   train_data.post_code, \
-			'desc_code':   train_data.desc_code, \
-			'pid_bag':     train_data.pid_bag, \
-			'brand_bag':   train_data.brand_bag, \
-			'text_weight': train_data.text_weight, \
-			'desc_weight': train_data.desc_weight, \
+			'title_code':  pack.data.title_code, \
+			'pre_code':    pack.data.pre_code, \
+			'post_code':   pack.data.post_code, \
+			'desc_code':   pack.data.desc_code, \
+			'pid_bag':     pack.data.pid_bag, \
+			'brand_bag':   pack.data.brand_bag, \
+			'text_weight': pack.data.text_weight, \
+			'desc_weight': pack.data.desc_weight, \
 	}
 	output_data = { \
-			'text': train_data.gid_1hot, \
-			'name': train_data.gid_1hot, \
-			'desc': train_data.gid_1hot, \
+			'text': pack.data.gid_1hot, \
+			'name': pack.data.gid_1hot, \
+			'desc': pack.data.gid_1hot, \
 	}
 	if not use_desc:
 		del input_data['desc_code']
@@ -207,23 +210,17 @@ if __name__ == '__main__':
 
 	# Train the model
 	if pretrain_file:
-		model.load_weights(pretrain_file)
+		train_model.load_weights(pretrain_file)
 		print(f'Loaded model weights from "{pretrain_file}"')
-	model.fit(input_data, output_data, epochs=20, batch_size=1000)
+	train_model.fit(input_data, output_data, epochs=20, batch_size=1000)
 
 	# Save models
 	os.makedirs(os.path.dirname(train_file), exist_ok=True)
-	with open(train_file, 'w') as fout:
-		fout.write(model.to_json())
-		print(f'Saved training model into "{train_file}"')
+	train_model.save(train_file)
+	print(f'Saved training model into "{train_file}"')
 
 	os.makedirs(os.path.dirname(predict_file), exist_ok=True)
-	with open(predict_file, 'w') as fout:
-		fout.write(predict_model.to_json())
-		print(f'Saved predicting model into "{predict_file}"')
-
-	os.makedirs(os.path.dirname(weight_file), exist_ok=True)
-	predict_model.save_weights(weight_file)
-	print(f'Saved model weights into "{weight_file}"')
+	predict_model.save(predict_file)
+	print(f'Saved predicting model into "{predict_file}"')
 
 	pass

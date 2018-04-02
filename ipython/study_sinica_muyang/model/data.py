@@ -164,12 +164,12 @@ class DataPack:
 	def dump(self, file):
 		print(f'Dump data into {file}')
 		with open(file, 'wb') as fout:
-			pickle.dump(self, fout)
+			pickle.dump(self, fout, protocol=4)
 
 	@staticmethod
 	def load(file):
 		print(f'Load data from {file}')
-		with open(file, 'b') as fin:
+		with open(file, 'rb') as fin:
 			return pickle.load(fin)
 
 	def train_test_split(self, *args, **kwargs):
@@ -189,12 +189,12 @@ class DataPack:
 if __name__ == '__main__':
 
 	if len(sys.argv) <= 1:
-		print(f'Usage: {sys.argv[0]} <ver> [data_suffix]\n')
+		print(f'Usage: {sys.argv[0]} <ver> [mention_suffix]\n')
 
 	assert len(sys.argv) > 1
 	ver = sys.argv[1]
 
-	target_ver   = f''
+	target_ver    = f''
 	if len(sys.argv) > 2: target_ver = f'_{sys.argv[2]}'
 	data_root     = f'data/{ver}'
 	repo_root     = f'{data_root}/repo'
@@ -202,8 +202,15 @@ if __name__ == '__main__':
 	mention_root  = f'{data_root}/mention/pruned_article{target_ver}'
 	model_root    = f'{data_root}/model'
 	parts         = ['']
-	parts         = list(f'part-{x:05}' for x in range(1))
+	# parts         = list(f'part-{x:05}' for x in range(1))
 	emb_file      = f'{data_root}/embedding/pruned_article.dim300.emb.bin'
+
+	pack_pid_file       = f'{model_root}/pruned_article{target_ver}.data.pid.pkl'
+	pack_gid_file       = f'{model_root}/pruned_article{target_ver}.data.gid.pkl'
+	pack_pid_train_file = f'{model_root}/pruned_article{target_ver}.data.pid.train.pkl'
+	pack_pid_test_file  = f'{model_root}/pruned_article{target_ver}.data.pid.test.pkl'
+	pack_gid_train_file = f'{model_root}/pruned_article{target_ver}.data.gid.train.pkl'
+	pack_gid_test_file  = f'{model_root}/pruned_article{target_ver}.data.gid.test.pkl'
 
 	# Load StyleMe repository and corpus
 	repo   = Repo(repo_root)
@@ -217,7 +224,7 @@ if __name__ == '__main__':
 	pack_gid.extract(repo, corpus, True)
 
 	num_mention_pid = len(pack_pid.data.gid)
-	num_mention_gid = len(pack_pid.data.gid)
+	num_mention_gid = len(pack_gid.data.gid)
 	print(f'num_mention (PID) = {num_mention_pid}')
 	print(f'num_mention (GID) = {num_mention_gid}')
 
@@ -260,7 +267,16 @@ if __name__ == '__main__':
 
 	# Split train and test
 	pack_pid_train, pack_pid_test = pack_pid.train_test_split(test_size=0.3, random_state=0, shuffle=True)
-	pack_gid_train, pack_gid_test = pack_pid.train_test_split(test_size=0.3, random_state=0, shuffle=True)
+	pack_gid_train, pack_gid_test = pack_gid.train_test_split(test_size=0.3, random_state=0, shuffle=True)
+
+	num_train_pid = len(pack_pid_train.data.gid)
+	num_test_pid  = len(pack_pid_test.data.gid)
+	num_train_gid = len(pack_gid_train.data.gid)
+	num_test_gid  = len(pack_gid_test.data.gid)
+	print(f'num_train (PID) = {num_train_pid}')
+	print(f'num_test  (PID) = {num_test_pid}')
+	print(f'num_train (GID) = {num_train_gid}')
+	print(f'num_test  (GID) = {num_test_gid}')
 
 	# Save as pickle
 	pack_pid.dump(f'{model_root}/pruned_article{target_ver}.data.pid.pkl')
