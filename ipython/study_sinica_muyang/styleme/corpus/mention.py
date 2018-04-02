@@ -347,6 +347,10 @@ class MentionBundleSet(collections.abc.Collection):
 	def __len__(self):
 		return len(self.__data)
 
+	@property
+	def path(self):
+		return self.__path
+
 	def save(self, output_root):
 		"""Save all mention bundles to files."""
 		n = str(len(self))

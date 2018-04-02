@@ -110,6 +110,7 @@ class ArticleSet(collections.abc.Collection):
 		files = grep_files(article_root, parts)
 		n = str(len(files))
 		self.__data = [self.__article(file, i, n) for i, file in enumerate(files)]
+		self.__path = article_root
 		print()
 
 	@classmethod
@@ -125,6 +126,10 @@ class ArticleSet(collections.abc.Collection):
 
 	def __len__(self):
 		return len(self.__data)
+
+	@property
+	def path(self):
+		return self.__path
 
 
 class Id2Article(collections.abc.Mapping):
