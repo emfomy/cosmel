@@ -142,7 +142,7 @@ class DataPack:
 		self.info.b_multibinarizer = b_multibinarizer
 
 		# Encode products
-		self.info.raw.product       = [' '.join(list(repo.id_to_product[pid].brand) + repo.id_to_product[pid].name_ws.txts) \
+		self.info.raw.product  = [' '.join(list(repo.id_to_product[pid].brand) + repo.id_to_product[pid].name_ws.txts) \
 				for pid in p_encoder.classes_]
 		self.info.product_code = pad_sequences(tokenizer.texts_to_sequences(self.info.raw.product), padding='post')
 		self.info.product_len  = np.asarray([len(p.split(' ')) for p in self.info.raw.product])
