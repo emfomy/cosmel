@@ -25,7 +25,7 @@ app = Flask(__name__)
 
 def root():
 	global ver
-	return f'data/{ver}'
+	return ver
 
 @app.route('/')
 def index_route():
