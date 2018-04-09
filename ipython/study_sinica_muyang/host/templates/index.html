@@ -67,7 +67,8 @@
 
 			product::after {
 				color: #aa0000;
-				content: "Here!";
+				/*content: "Here!";*/
+				content: attr(pid) "?";
 			}
 
 			product[gid]:not([gid=""])::after {

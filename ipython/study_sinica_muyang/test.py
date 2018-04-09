@@ -16,10 +16,11 @@ if __name__ == '__main__':
 	ver = sys.argv[1]
 
 	target       = f'pruned_article'
+	target_ver   = f'_gid'
 	data_root    = f'data/{ver}'
 	repo_root    = f'{data_root}/repo'
 	article_root = f'{data_root}/article/{target}_role'
-	mention_root = f'{data_root}/mention/{target}'
+	mention_root = f'{data_root}/mention/{target}{target_ver}'
 	parts        = ['']
 	parts        = list(f'part-{x:05}' for x in range(1))
 	if len(sys.argv) > 2: parts = list(f'part-{x:05}' for x in range(int(sys.argv[2]), 128, 8))

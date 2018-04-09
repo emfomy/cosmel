@@ -26,7 +26,7 @@ if __name__ == '__main__':
 	data_root    = f'data/{ver}'
 	base_root    = f'{data_root}/mention/{target}_pid'
 	input_root   = f'{data_root}/mention/{target}_gid_6.1'
-	output_root  = f'{data_root}/mention/{target}_pid_gid_6.1'
+	output_root  = f'{data_root}/mention/{target}_gid'
 	parts        = ['']
 	parts        = list(f'part-{x:05}' for x in range(1))
 	if len(sys.argv) > 2: parts = list(f'part-{x:05}' for x in range(int(sys.argv[2]), 128, 8))
@@ -51,11 +51,11 @@ if __name__ == '__main__':
 				for line in fin:
 					data = json.loads(line)
 					key = (int(data['sid']), int(data['mid']),)
-					# data.discard('sid')
-					# data.discard('mid')
+					# data.pop('sid', None)
+					# data.pop('mid', None)
 
-					# data.discard('hint')
-					# data.discard('hint_orio')
+					# data.pop('hint', None)
+					# data.pop('hint_orio', None)
 
 					if 'gid' not in data:
 						print(colored('1;33', f'\n[No PID] Remove {input_file}:{key[0]}:{key[1]}\n'))
@@ -69,8 +69,9 @@ if __name__ == '__main__':
 					else:
 						print(colored('1;31', f'\nUnknown mention {input_file}:{key[0]}:{key[1]}!\n'))
 		except Exception as e:
-			print()
-			print(colored('0;33', e))
+			# print()
+			# print(colored('0;33', e))
+			pass
 
 		with open(output_file, 'w') as fout:
 			for data in data_dict.values():
