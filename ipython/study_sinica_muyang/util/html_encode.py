@@ -61,7 +61,7 @@ if __name__ == '__main__':
 				output_data[idx0] = add_start_xml(output_data[idx0], mention)
 				output_data[idx1] = add_end_xml(output_data[idx1], mention)
 
-			fout.write(''.join(output_data))
+			fout.write(f'<!--{ver}-->\n'+''.join(output_data))
 	print()
 
 	pass

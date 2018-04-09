@@ -6,8 +6,10 @@ __author__    = 'Mu Yang <emfomy@gmail.com>'
 __copyright__ = 'Copyright 2017-2018'
 
 
+import argparse
 import collections
 import os
+import re
 import sys
 
 import numpy as np
@@ -16,9 +18,6 @@ import keras.backend as K
 import keras.layers
 import keras.models
 import keras.utils
-import keras.engine.topology
-
-from gensim.models.keyedvectors import KeyedVectors
 
 sys.path.insert(0, os.path.abspath('.'))
 from styleme import *
@@ -27,31 +26,68 @@ from data import DataPack
 
 if __name__ == '__main__':
 
-	if len(sys.argv) <= 1:
-		print(f'Usage: {sys.argv[0]} <ver> [mention_suffix] [train_data_suffix] [pretrain_suffix]\n')
+	# Parse arguments
+	argparser = argparse.ArgumentParser(description='Train StyleMe model.')
 
-	assert len(sys.argv) > 1
-	ver = sys.argv[1]
+	arggroup = argparser.add_mutually_exclusive_group()
+	arggroup.add_argument('-v', '--ver', metavar='<ver>#<date>', \
+			help='set <dir> as "result/<ver>_<date>"')
+	arggroup.add_argument('-D', '--dir', metavar='<dir>', \
+			help='prepend <dir> to data and model path')
+	argparser.add_argument('-E', '--ext', action='store_true', \
+			help='append extensions to data and model path; use ".data.pkl" for data, and ".model.h5" for model.')
 
-	use_desc     = True
+	argparser.add_argument('-d', '--data', metavar='<data_path>', required=True, \
+			help='training data path; load data from "[<dir>]<data_path>[.data.pkl]"')
+	argparser.add_argument('-m', '--model', metavar='<model_path>', \
+			help='output model path; output model into "[<dir>]<model_path>[.model.h5]"; default is "<data_path>" if "--ext" is set')
+	argparser.add_argument('-p', '--pretrain', metavar='<pretrained_path>', \
+			help='pretrained model path; load model from "[<dir>]<pretrained_path>[.model.h5]"')
 
-	target_ver   = f''
-	if len(sys.argv) > 2: target_ver = f'_{sys.argv[2]}'
-	data_ver     = f''
-	if len(sys.argv) > 3: data_ver = f'.{sys.argv[3]}'
-	pre_ver      = f''
-	if len(sys.argv) > 4: pre_ver = f'.{sys.argv[4]}'
+	argparser.add_argument('-c', '--check', action='store_true', help='Check arguments.')
 
-	data_root    = f'data/{ver}'
-	emb_file     = f'{data_root}/embedding/pruned_article.dim300.emb.bin'
-	model_root   = f'{data_root}/model'
-	data_file    = f'{model_root}/pruned_article{target_ver}.data{data_ver}.train.pkl'
+	args = argparser.parse_args()
 
-	train_file   = f'{model_root}/pruned_article{target_ver}.train{data_ver}{pre_ver}.h5'
-	predict_file = f'{model_root}/pruned_article{target_ver}.predict{data_ver}{pre_ver}.h5'
+	vers          = args.ver.split('#')
+	ver           = vers[0]
+	date          = ''
+	if len(vers) > 1:
+		date        = f'_{vers[1]}'
 
-	pretrain_file= f''
-	if len(sys.argv) > 4: pretrain_file= f'{model_root}/pruned_article{target_ver}.train{pre_ver}.h5'
+	result_root = ''
+	if args.ver != None:
+		result_root = f'result/{ver}{date}/'
+	if args.dir != None:
+		result_root = args.output
+
+	data_ext      = ''
+	model_ext     = ''
+	if args.ext:
+		data_ext    = '.data.pkl'
+		model_ext   = '.model.h5'
+
+	data_file     = f'{result_root}{args.data}{data_ext}'
+
+	pretrain_file = ''
+	if args.pretrain != None:
+		pretrain_file = f'{result_root}{args.pretrain}{model_ext}'
+
+	model_file    = f'{result_root}{args.data}{model_ext}'
+	if args.model != None:
+		model_file  = f'{result_root}{args.model}{model_ext}'
+	assert model_file != data_file
+	assert model_file != pretrain_file
+
+	# Print arguments
+	print()
+	print(args)
+	print()
+	print(f'data_file     = {data_file}')
+	print(f'model_file    = {model_file}')
+	print(f'pretrain_file = {pretrain_file}')
+	print()
+
+	if args.check: exit()
 
 	# Load data
 	pack = DataPack.load(data_file)
@@ -59,7 +95,7 @@ if __name__ == '__main__':
 	print(f'num_train = {num_train}')
 
 	# Load word vectors
-	keyed_vectors = KeyedVectors.load_word2vec_format(emb_file, binary=True)
+	keyed_vectors = pack.info.keyed_vectors
 
 	# Get sizes
 	W2V_EMB_SIZE = keyed_vectors.vector_size
