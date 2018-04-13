@@ -84,7 +84,7 @@ def grep_files(root, parts=['']):
 
 	retval = set()
 	for part in parts:
-		subroot = root+'/'+part
+		subroot = os.path.join(root, part)
 		if os.path.isdir(subroot):
 			retval.update([os.path.join(path, file) for path, _, files in os.walk(subroot) for file in files])
 		elif os.path.isfile(subroot):

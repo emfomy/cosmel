@@ -20,19 +20,19 @@ class Repo:
 	"""
 
 	def __init__(self, repo_root):
-		self.__head_set                    = HeadSet(repo_root)
-		self.__infix_set                   = InfixSet(repo_root)
+		self.__head_set                   = HeadSet(repo_root)
+		self.__infix_set                  = InfixSet(repo_root)
 
-		self.__brand_set                   = BrandSet(repo_root)
+		self.__brand_set                  = BrandSet(repo_root)
 		self.__bname_to_brand             = BName2Brand(self.__brand_set)
 
-		self.__product_set                 = ProductSet(repo_root, self.__bname_to_brand)
-		self.__id_to_product               = Id2Product(self.__product_set)
+		self.__product_set                = ProductSet(repo_root, self.__bname_to_brand)
+		self.__id_to_product              = Id2Product(self.__product_set)
 		self.__brand_pname_to_product     = BrandPName2Product(self.__product_set)
-		self.__bname_pname_to_product    = BNamePName2Product(self.__brand_pname_to_product, self.__bname_to_brand)
+		self.__bname_pname_to_product     = BNamePName2Product(self.__brand_pname_to_product, self.__bname_to_brand)
 
 		self.__pname_to_product_list      = PName2ProductList(self.__product_set)
-		self.__brand_head_to_product_list  = BrandHead2ProductList(self.__product_set)
+		self.__brand_head_to_product_list = BrandHead2ProductList(self.__product_set)
 		self.__bname_head_to_product_list = BNameHead2ProductList(self.__brand_head_to_product_list, self.__bname_to_brand)
 
 	@property

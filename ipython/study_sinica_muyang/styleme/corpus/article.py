@@ -105,9 +105,10 @@ class ArticleSet(collections.abc.Collection):
 		* Load all articles from ``article_root``/``part`` for all ``part`` in ``parts``.
 	"""
 
-	def __init__(self, article_root, parts=['']):
+	def __init__(self, article_root, parts=[''], skips=[]):
 		super().__init__()
 		files = grep_files(article_root, parts)
+		files = [file for file in files if Article.path_to_aid(file) not in skips]
 		n = str(len(files))
 		self.__data = [self.__article(file, i, n) for i, file in enumerate(files)]
 		self.__path = article_root

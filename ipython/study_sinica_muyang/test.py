@@ -16,7 +16,7 @@ if __name__ == '__main__':
 	ver = sys.argv[1]
 
 	target       = f'pruned_article'
-	target_ver   = f'_gid'
+	target_ver   = f''
 	data_root    = f'data/{ver}'
 	repo_root    = f'{data_root}/repo'
 	article_root = f'{data_root}/article/{target}_role'

@@ -25,8 +25,8 @@ class Corpus:
 		* Load all mentions from ``mention_root``/``part`` for all ``part`` in ``parts``.
 	"""
 
-	def __init__(self, article_root, mention_root, parts=['']):
-		self.__article_set               = ArticleSet(article_root, parts=parts)
+	def __init__(self, article_root, mention_root, parts=[''], skips=[]):
+		self.__article_set               = ArticleSet(article_root, parts=parts, skips=skips)
 		self.__id_to_article             = Id2Article(self.__article_set)
 
 		self.__mention_bundle_set        = MentionBundleSet(article_root, mention_root, self.__article_set)

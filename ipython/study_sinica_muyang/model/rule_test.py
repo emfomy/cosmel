@@ -30,11 +30,9 @@ if __name__ == '__main__':
 			help='set <dir> as "result/<ver>_<date>"')
 	arggroup.add_argument('-D', '--dir', metavar='<dir>', \
 			help='prepend <dir> to data and model path')
-	argparser.add_argument('-E', '--ext', action='store_true', \
-			help='append extensions to data and model path; use ".data.pkl" for data, and ".model.h5" for model.')
 
-	argparser.add_argument('-d', '--data', metavar='<data_path>', required=True, \
-			help='testing data path; load data from "[<dir>]<data_path>[.data.pkl]"')
+	argparser.add_argument('-d', '--data', metavar='<data_name>', required=True, \
+			help='testing data path; load data from "[<dir>]<data_name>.data.pkl"')
 
 	argparser.add_argument('-c', '--check', action='store_true', help='Check arguments.')
 
@@ -50,13 +48,9 @@ if __name__ == '__main__':
 	if args.ver != None:
 		result_root = f'result/{ver}{date}/'
 	if args.dir != None:
-		result_root = args.dir
+		result_root = f'{args.dir}/'
 
-	data_ext      = ''
-	if args.ext:
-		data_ext    = '.data.pkl'
-
-	data_file     = f'{result_root}{args.data}{data_ext}'
+	data_file     = f'{result_root}{args.data}.data.pkl'
 
 	# Print arguments
 	print()
