@@ -44,7 +44,7 @@ class Model2(torch.nn.Module):
 		print(f'cnn_win_size    = {cnn_win_size}')
 
 		# Create modules
-		self.word_emb   = torch.nn.Embedding(num_vocab, w2v_emb_size)
+		self.word_emb = torch.nn.Embedding(num_vocab, w2v_emb_size)
 		self.word_emb.weight.data = torch.from_numpy(vocab_embedding)
 		self.word_emb.weight.requires_grad = False
 

@@ -77,7 +77,6 @@ if __name__ == '__main__':
 	pack = DataPack.load(data_file)
 	num_train = pack.data.gid_code.shape[0]
 	print(f'num_train       = {num_train}')
-	print()
 
 	# Create model
 	model = Model(pack.info)
@@ -98,11 +97,10 @@ if __name__ == '__main__':
 
 		# Forward and compute loss
 		text_loss, desc_loss = model(**vars(inputs))
-		loss = text_loss + desc_loss
 
-		loss_data      = loss.data[0]
 		text_loss_data = text_loss.data[0]
 		desc_loss_data = desc_loss.data[0]
+		loss_data      = text_loss.data[0] + desc_loss.data[0]
 		print(f'Epoch: {epoch:2d} | loss: {loss_data:.6f} | text_loss: {text_loss_data:.6f} | desc_loss: {desc_loss_data:.6f}')
 
 		optimizer.zero_grad()

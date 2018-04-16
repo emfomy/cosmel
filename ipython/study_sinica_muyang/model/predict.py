@@ -73,7 +73,6 @@ if __name__ == '__main__':
 	pack = DataPack.load(data_file)
 	num_test = pack.data.gid_code.shape[0]
 	print(f'num_test        = {num_test}')
-	print()
 
 	# Load model
 	model = Model(pack.info)
