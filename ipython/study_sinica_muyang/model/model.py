@@ -153,3 +153,30 @@ class DescriptionEncoder(torch.nn.Module):
 		desc_emb     = torch.nn.functional.relu(self.linear(desc_pool))
 
 		return desc_emb
+
+class ProductEncoder(torch.nn.Module):
+
+	def __init__(self, info, word_emb_module):
+		super().__init__()
+
+		# Get dimensions
+		w2v_emb_size = word_emb_module.embedding_dim
+
+		# Set size
+		self.output_size = w2v_emb_size
+
+		# Create modules
+		self.word_emb = word_emb_module
+
+	def forward(self, **kwargs):
+		
+		product_pad = kwargs['product_pad']
+		product_len = kwargs['product_len']
+
+		product_pad_emb = self.word_emb(product_pad)
+		product_sum = torch.sum(product_pad_emb, 0)
+		product_avg = torch.mul(product_len, product_sum.t())
+
+
+		return product_avg
+

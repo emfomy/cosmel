@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding:utf-8 -*-
 
-
 __author__    = 'Mu Yang <emfomy@gmail.com>'
 __copyright__ = 'Copyright 2017-2018'
 
@@ -17,7 +16,6 @@ from torch.nn.utils.rnn import pack_padded_sequence
 sys.path.insert(0, os.path.abspath('.'))
 from styleme import *
 from data import DataPack
-from model2 import Model2 as Model
 
 
 if __name__ == '__main__':
@@ -33,11 +31,13 @@ if __name__ == '__main__':
 
 	argparser.add_argument('-d', '--data', metavar='<data_name>', required=True, \
 			help='training data path; load data from "[<dir>/]<data_name>.data.pkl"')
-	argparser.add_argument('-m', '--model', metavar='<model_name>', required=True, \
-			help='output model path; output training model into "[<dir>/]<model_name>.model.pt", '+ \
-				'and predicting model into "[<dir>/]<model_name>.predict.model"')
+	argparser.add_argument('-f', '--file', metavar='<file_name>', required=True, \
+			help='output model path; output training model into "[<dir>/]<file_name>.model.pt", '+ \
+				'and predicting model into "[<dir>/]<file_name>.predict.model"')
 	argparser.add_argument('-p', '--pretrain', metavar='<pretrained_name>', \
 			help='pretrained model path; load model from "[<dir>/]<pretrained_name>.model.pt"')
+	argparser.add_argument('-m', '--model', metavar='<model_name>', choices=['model2', 'model3'], \
+			help='use model from <model_name>')
 
 	argparser.add_argument('-c', '--check', action='store_true', help='Check arguments.')
 
@@ -61,6 +61,11 @@ if __name__ == '__main__':
 	pretrain_file = ''
 	if args.pretrain != None:
 		pretrain_file = f'{result_root}{args.pretrain}.model.pt'
+
+	if args.model == 'model2':
+		from model2 import Model2 as Model
+	elif args.model == 'model3':
+		from model3 import Model3 as Model
 
 	# Print arguments
 	print()

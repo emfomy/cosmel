@@ -17,7 +17,6 @@ import torch
 sys.path.insert(0, os.path.abspath('.'))
 from styleme import *
 from data import DataPack
-from model2 import Model2 as Model
 
 def model_accuracy(predict_gid_code, true_gid_code, mask=slice(None,None), name='all'):
 	correct = (true_gid_code[mask] == predict_gid_code[mask])
@@ -37,8 +36,10 @@ if __name__ == '__main__':
 
 	argparser.add_argument('-d', '--data', metavar='<data_name>', required=True, \
 			help='testing data path; load data from "[<dir>]<data_name>.data.pkl"')
-	argparser.add_argument('-m', '--model', metavar='<model_name>', \
-			help='model path; load model into "[<dir>]<model_name>.model.pt"')
+	argparser.add_argument('-f', '--file', metavar='<file_name>', \
+			help='model path; load model into "[<dir>]<file_name>.model.pt"')
+	argparser.add_argument('-m', '--model', metavar='<model_name>', choices=['model2', 'model3'], \
+			help='use model from <model_name>')
 
 	argparser.add_argument('-c', '--check', action='store_true', help='Check arguments.')
 
@@ -57,7 +58,12 @@ if __name__ == '__main__':
 		result_root = f'{args.dir}/'
 
 	data_file     = f'{result_root}{args.data}.data.pkl'
-	model_file    = f'{result_root}{args.model}.model.pt'
+	model_file    = f'{result_root}{args.file}.model.pt'
+
+	if args.model == 'model2':
+		from model2 import Model2 as Model
+	elif args.model == 'model3':
+		from model3 import Model3 as Model
 
 	# Print arguments
 	print()
