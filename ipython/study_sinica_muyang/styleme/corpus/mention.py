@@ -71,10 +71,18 @@ class Mention:
 		""":class:`.WsWords`: the words before this mention in the sentence."""
 		return self.sentence[self.slice_pre]
 
+	def sentence_pre_(self, with_mention=True):
+		""":class:`.WsWords`: the words before this mention in the sentence (with/without mention)."""
+		return self.sentence[self.slice_pre_(with_mention)]
+
 	@property
 	def sentence_post(self):
 		""":class:`.WsWords`: the words after this mention in the sentence."""
 		return self.sentence[self.slice_post]
+
+	def sentence_post_(self, with_mention=True):
+		""":class:`.WsWords`: the words after this mention in the sentence (with/without mention)."""
+		return self.sentence[self.slice_post_(with_mention)]
 
 	@property
 	def mention(self):
@@ -136,10 +144,18 @@ class Mention:
 		"""slice: the slice index of the words before this mention in the sentence."""
 		return slice(None, self.__start)
 
+	def slice_pre_(self, with_mention=True):
+		"""slice: the slice index of the words before this mention in the sentence (with/without mention)."""
+		return slice(None, self.__start) if with_mention else slice(None, self.__end)
+
 	@property
 	def slice_post(self):
 		"""slice: the slice index of the words after this mention in the sentence."""
 		return slice(self.__end, None)
+
+	def slice_post_(self, with_mention=True):
+		"""slice: the slice index of the words after this mention in the sentence (with/without mention)."""
+		return slice(self.__end, None) if with_mention else slice(None, self.__strat)
 
 	@property
 	def pid(self):
@@ -192,7 +208,7 @@ class Mention:
 		return f'<product ' + ' '.join(f'{k}="{v}"' for k, v in self.attrs.items()) + '>'
 
 	def start_xml_(self, **kwargs):
-		"""str: the starting XML tag with custom tags."""
+		"""str: the starting XML tag with custom attributes."""
 		attrs = self.attrs
 		attrs.update(kwargs)
 		return f'<product ' + ' '.join(f'{k}="{v}"' for k, v in attrs.items()) + '>'

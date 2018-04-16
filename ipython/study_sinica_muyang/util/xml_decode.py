@@ -23,11 +23,11 @@ def get_xml_idx(xml_data, word, start_idx):
 def grep_mention(article, sid, mid, txt):
 	soup = BeautifulSoup(txt.split('>', 1)[0]+'>', 'lxml')
 	attrs = soup.product.attrs
-	attrs.pop('sid', None)
-	attrs.pop('mid', None)
+	attrs['sid'] = sid
+	attrs['mid'] = mid
 	attrs = dict((attr, value,) for attr, value in attrs.items() if value)
 
-	return Mention(article, sid, mid, **attrs)
+	return Mention(article, **attrs)
 
 if __name__ == '__main__':
 

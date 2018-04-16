@@ -6,6 +6,7 @@ __author__    = 'Mu Yang <emfomy@gmail.com>'
 __copyright__ = 'Copyright 2017-2018'
 
 
+import argparse
 import copy
 import itertools
 import os
@@ -15,7 +16,6 @@ import sys
 import numpy as np
 
 from keras.preprocessing.text import Tokenizer
-from keras.preprocessing.sequence import pad_sequences
 
 from sklearn.preprocessing import LabelEncoder
 from sklearn.preprocessing import MultiLabelBinarizer
@@ -75,7 +75,7 @@ class DataPack:
 	def __repr__(self):
 		return str(self)
 
-	def extract(self, repo, corpus, use_gid=True, max_num_sentences=5):
+	def extract(self, repo, corpus, keyed_vectors, use_gid=True, max_num_sentences=5):
 
 		# Declare raw data
 		self.data.raw = self.Raw()
@@ -91,6 +91,7 @@ class DataPack:
 		self.info.article_root      = corpus.article_set.path
 		self.info.mention_root      = corpus.mention_bundle_set.path
 		self.info.max_num_sentences = max_num_sentences
+		self.info.keyed_vectors     = keyed_vectors
 
 		# Load Data
 		self.data.aid  = np.asarray([mention.aid  for mention in mention_list])
@@ -103,6 +104,9 @@ class DataPack:
 		else:
 			self.data.gid  = np.asarray([mention.pid for mention in mention_list])
 
+		self.data.pid  = np.asarray([mention.pid for mention in mention_list])
+
+		# Load context
 		self.data.raw.title = [ \
 				' '.join(mention.article[0].txts) for mention in mention_list \
 		]
@@ -111,20 +115,26 @@ class DataPack:
 						itertools.chain.from_iterable( \
 								s.txts for s in mention.article[relu(mention.sid-max_num_sentences):mention.sid] \
 						), \
-						mention.sentence_pre.txts, mention.mention.txts \
+						mention.sentence_pre_().txts \
 				)) for mention in mention_list \
 		]
 		self.data.raw.post = [ \
 				' '.join(itertools.chain( \
-						mention.mention.txts, mention.sentence_post.txts, \
+						mention.sentence_post_().txts, \
 						itertools.chain.from_iterable( \
 								s.txts for s in mention.article[mention.sid+1:mention.sid+1+max_num_sentences] \
 						) \
 				)) for mention in mention_list \
 		]
 
-		self.data.raw.desc  = [' '.join(repo.id_to_product[gid].descr_ws.txts) for gid in self.data.gid]
+		# Load products
+		self.info.product_pid      = np.asarray([product.pid for product in repo.product_set])
+		self.info.raw.product      = [' '.join(list(product.brand) + product.name_ws.txts) for product in repo.product_set]
+		self.info.raw.product_pre  = [' '.join(list(product.brand) + product.infix_ws_().txts) for product in repo.product_set]
+		self.info.raw.product_post = [' '.join(product.suffix_ws_().txts) for product in repo.product_set]
+		self.info.raw.desc         = [' '.join(product.descr_ws.txts)for product in repo.product_set]
 
+		# Load bag
 		self.data.raw.pid_doc   = [set(m.pid for m in mention.bundle if m.rule == 'P_rule1') for mention in mention_list]
 		self.data.raw.brand_doc = [ \
 				set(repo.bname_to_brand[t[0]][0] \
@@ -142,26 +152,27 @@ class DataPack:
 		self.info.b_multibinarizer = b_multibinarizer
 
 		# Encode products
-		self.info.raw.product  = [' '.join(list(repo.id_to_product[pid].brand) + repo.id_to_product[pid].name_ws.txts) \
-				for pid in p_encoder.classes_]
-		self.info.product_code = pad_sequences(tokenizer.texts_to_sequences(self.info.raw.product), padding='post')
-		self.info.product_len  = np.asarray([len(p.split(' ')) for p in self.info.raw.product])
+		self.info.product_pid_code  = p_encoder.transform(self.info.product_pid)
+		self.info.product_code      = tokenizer.texts_to_sequences(self.info.raw.product)
+		self.info.product_pre_code  = tokenizer.texts_to_sequences(self.info.raw.product_pre)
+		self.info.product_post_code = tokenizer.texts_to_sequences(self.info.raw.product_post)
+		self.info.desc_code         = tokenizer.texts_to_sequences(self.info.raw.desc)
 
 		# Encode corpus
 		self.data.gid_code   = p_encoder.transform(self.data.gid)
-		self.data.title_code = pad_sequences(tokenizer.texts_to_sequences(self.data.raw.title), padding='post')
-		self.data.pre_code   = pad_sequences(tokenizer.texts_to_sequences(self.data.raw.pre),   padding='pre')
-		self.data.post_code  = pad_sequences(tokenizer.texts_to_sequences(self.data.raw.post),  padding='post')
-		self.data.desc_code  = pad_sequences(tokenizer.texts_to_sequences(self.data.raw.desc),  padding='post')
+		self.data.title_code = tokenizer.texts_to_sequences(self.data.raw.title)
+		self.data.pre_code   = tokenizer.texts_to_sequences(self.data.raw.pre)
+		self.data.post_code  = tokenizer.texts_to_sequences(self.data.raw.post)
 
 		self.data.pid_bag    = p_multibinarizer.transform(self.data.raw.pid_doc)
 		self.data.brand_bag  = b_multibinarizer.transform(self.data.raw.brand_doc)
 
-	def prune(self):
+	def purge(self):
 		del self.data.raw
 		del self.info.raw
 
 	def dump(self, file):
+		os.makedirs(os.path.dirname(file), exist_ok=True)
 		print(f'Dump data into {file}')
 		with open(file, 'wb') as fout:
 			pickle.dump(self, fout, protocol=4)
@@ -188,66 +199,112 @@ class DataPack:
 
 if __name__ == '__main__':
 
-	if len(sys.argv) <= 1:
-		print(f'Usage: {sys.argv[0]} <ver> [mention_suffix]\n')
+	# Parse arguments
+	argparser = argparse.ArgumentParser(description='Process StyleMe training/testing data.')
 
-	assert len(sys.argv) > 1
-	ver = sys.argv[1]
+	argparser.add_argument('-v', '--ver', metavar='<ver>#<date>', required=True, \
+			help='StyleMe corpus version; load data from "data/<ver>", and load mention from "data/<ver1>/pruned_article_gid_<date>"')
+	argparser.add_argument('-D', '--dir', metavar='<dir>', \
+			help='data path prefix; output data into "<dir>/"; default is "result/<ver>_<date>"')
+	argparser.add_argument('-e', '--embedding', metavar='<embedding_path>', \
+			help='embedding path; default is "data/<ver>/embedding/pruned_article.dim300.emb.bin."')
 
-	target_ver    = f''
-	if len(sys.argv) > 2: target_ver = f'_{sys.argv[2]}'
-	data_root     = f'data/{ver}'
-	repo_root     = f'{data_root}/repo'
-	article_root  = f'{data_root}/article/pruned_article_role'
-	mention_root  = f'{data_root}/mention/pruned_article{target_ver}'
-	model_root    = f'{data_root}/model'
+	arggroup = argparser.add_mutually_exclusive_group()
+	arggroup.add_argument('-p', '--parts', metavar='<part>', nargs='+', help='parts of corpus')
+	arggroup.add_argument('-n', '--num-parts', metavar='<num>', type=int, help='number of parts (override --parts)')
+
+	argparser.add_argument('-c', '--check', action='store_true', help='check arguments ')
+
+	args = argparser.parse_args()
+
+	vers          = args.ver.split('#')
+	ver           = vers[0]
+	date          = ''
+	if len(vers) > 1:
+		date        = f'_{vers[1]}'
+
+	result_root   = f'result/{ver}{date}/'
+	if args.dir != None:
+		result_root = f'{args.dir}/'
+
 	parts         = ['']
-	# parts         = list(f'part-{x:05}' for x in range(1))
-	emb_file      = f'{data_root}/embedding/pruned_article.dim300.emb.bin'
+	if args.parts != None:
+		parts       = args.parts
+	if args.num_parts != None:
+		parts       = list(f'part-{x:05}' for x in range(args.num_parts))
 
-	pack_pid_file       = f'{model_root}/pruned_article{target_ver}.data.pid.pkl'
-	pack_gid_file       = f'{model_root}/pruned_article{target_ver}.data.gid.pkl'
-	pack_pid_train_file = f'{model_root}/pruned_article{target_ver}.data.pid.train.pkl'
-	pack_pid_test_file  = f'{model_root}/pruned_article{target_ver}.data.pid.test.pkl'
-	pack_gid_train_file = f'{model_root}/pruned_article{target_ver}.data.gid.train.pkl'
-	pack_gid_test_file  = f'{model_root}/pruned_article{target_ver}.data.gid.test.pkl'
+	data_root     = f'data/{ver}/'
+	repo_root     = f'{data_root}repo'
+	article_root  = f'{data_root}article/pruned_article_role'
+	mention_root  = f'{data_root}mention/pruned_article_gid{date}'
+
+	emb_file      = f'{data_root}embedding/pruned_article.dim300.emb.bin'
+	if args.embedding != None:
+		emb_file    = embedding.parts
+
+	pack_pid_file       = f'{result_root}pid.all.data.pkl'
+	pack_gid_file       = f'{result_root}gid.all.data.pkl'
+	pack_pid_train_file = f'{result_root}pid.train.data.pkl'
+	pack_pid_test_file  = f'{result_root}pid.test.data.pkl'
+	pack_gid_train_file = f'{result_root}gid.train.data.pkl'
+	pack_gid_test_file  = f'{result_root}gid.test.data.pkl'
+
+	# Print arguments
+	print()
+	print(args)
+	print()
+	print(f'repo_root           = {repo_root}')
+	print(f'article_root        = {article_root}')
+	print(f'mention_root        = {mention_root}')
+	print(f'emb_file            = {emb_file}')
+	print(f'parts               = {parts}')
+	print()
+	print(f'pack_pid_file       = {pack_pid_file}')
+	print(f'pack_gid_file       = {pack_gid_file}')
+	print(f'pack_pid_train_file = {pack_pid_train_file}')
+	print(f'pack_pid_test_file  = {pack_pid_test_file}')
+	print(f'pack_gid_train_file = {pack_gid_train_file}')
+	print(f'pack_gid_test_file  = {pack_gid_test_file}')
+	print()
+
+	if args.check: exit()
 
 	# Load StyleMe repository and corpus
 	repo   = Repo(repo_root)
 	corpus = Corpus(article_root, mention_root, parts=parts)
 
+	# Load word vectors
+	keyed_vectors = KeyedVectors.load_word2vec_format(emb_file, binary=True)
+
 	# Extract mention data
 	pack_pid = DataPack()
 	pack_gid = DataPack()
 
-	pack_pid.extract(repo, corpus, False)
-	pack_gid.extract(repo, corpus, True)
+	pack_pid.extract(repo, corpus, keyed_vectors, use_gid=False)
+	pack_gid.extract(repo, corpus, keyed_vectors, use_gid=True)
 
 	num_mention_pid = len(pack_pid.data.gid)
 	num_mention_gid = len(pack_gid.data.gid)
 	print(f'num_mention (PID) = {num_mention_pid}')
 	print(f'num_mention (GID) = {num_mention_gid}')
 
-	# Load word vectors
-	keyed_vectors = KeyedVectors.load_word2vec_format(emb_file, binary=True)
-
 	# Prepare tokenizer
 	tokenizer = Tokenizer()
 	tokenizer.fit_on_texts([' '.join(keyed_vectors.index2word[1:])])
 	num_vocab = len(tokenizer.word_index)+1
-	print(f'num_vocab   = {num_vocab}')
+	print(f'num_vocab         = {num_vocab}')
 
 	# Prepare product encoder
 	p_encoder = LabelEncoder()
 	p_encoder.fit(list(repo.id_to_product.keys()))
 	num_product = len(p_encoder.classes_)
-	print(f'num_product = {num_product}')
+	print(f'num_product       = {num_product}')
 
 	# Prepare brand encoder
 	b_encoder = LabelEncoder()
 	b_encoder.fit([brand[0] for brand in repo.brand_set])
 	num_brand = len(b_encoder.classes_)
-	print(f'num_brand   = {num_brand}')
+	print(f'num_brand         = {num_brand}')
 
 	# Prepare product multi-binarizer
 	p_multibinarizer = MultiLabelBinarizer(classes=p_encoder.classes_.tolist())
@@ -262,8 +319,8 @@ if __name__ == '__main__':
 	pack_gid.encode(repo, tokenizer, p_encoder, b_encoder, p_multibinarizer, b_multibinarizer)
 
 	# Delete raw data
-	pack_pid.prune()
-	pack_gid.prune()
+	pack_pid.purge()
+	pack_gid.purge()
 
 	# Split train and test
 	pack_pid_train, pack_pid_test = pack_pid.train_test_split(test_size=0.3, random_state=0, shuffle=True)
@@ -273,19 +330,19 @@ if __name__ == '__main__':
 	num_test_pid  = len(pack_pid_test.data.gid)
 	num_train_gid = len(pack_gid_train.data.gid)
 	num_test_gid  = len(pack_gid_test.data.gid)
-	print(f'num_train (PID) = {num_train_pid}')
-	print(f'num_test  (PID) = {num_test_pid}')
-	print(f'num_train (GID) = {num_train_gid}')
-	print(f'num_test  (GID) = {num_test_gid}')
+	print(f'num_train (PID)   = {num_train_pid}')
+	print(f'num_test  (PID)   = {num_test_pid}')
+	print(f'num_train (GID)   = {num_train_gid}')
+	print(f'num_test  (GID)   = {num_test_gid}')
 
 	# Save as pickle
-	pack_pid.dump(f'{model_root}/pruned_article{target_ver}.data.pid.pkl')
-	pack_gid.dump(f'{model_root}/pruned_article{target_ver}.data.gid.pkl')
+	pack_pid.dump(pack_pid_file)
+	pack_gid.dump(pack_gid_file)
 
-	pack_pid_train.dump(f'{model_root}/pruned_article{target_ver}.data.pid.train.pkl')
-	pack_pid_test.dump(f'{model_root}/pruned_article{target_ver}.data.pid.test.pkl')
+	pack_pid_train.dump(pack_pid_train_file)
+	pack_pid_test.dump(pack_pid_test_file)
 
-	pack_gid_train.dump(f'{model_root}/pruned_article{target_ver}.data.gid.train.pkl')
-	pack_gid_test.dump(f'{model_root}/pruned_article{target_ver}.data.gid.test.pkl')
+	pack_gid_train.dump(pack_gid_train_file)
+	pack_gid_test.dump(pack_gid_test_file)
 
 	pass

@@ -84,10 +84,18 @@ class Product:
 		""":class:`.WsWords`: the word-segmented infix."""
 		return self.__name_ws[:self.__head_idx]
 
+	def infix_ws_(self, with_head=True):
+		""":class:`.WsWords`: the word-segmented infix (with/without head word)."""
+		return self.__name_ws[:self.__head_idx+with_head]
+
 	@property
 	def suffix_ws(self):
 		""":class:`.WsWords`: the word-segmented suffix."""
 		return self.__name_ws[self.__head_idx+1:]
+
+	def suffix_ws_(self, with_head=True):
+		""":class:`.WsWords`: the word-segmented suffix (with/without head word)."""
+		return self.__name_ws[self.__head_idx+(not with_head):]
 
 
 class ProductSet(collections.abc.Collection):
