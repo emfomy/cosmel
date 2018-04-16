@@ -36,13 +36,13 @@ class ContextEncoder(torch.nn.Module):
 		self.local_encoder = LocalContextEncoder(info, word_emb_module, lstm_emb_size)
 		self.docu_encoder  = DocumentEncoder(info, word_emb_module)
 
-		self.text_emb      = torch.nn.Linear(self.local_encoder.output_size + self.docu_encoder.output_size, self.output_size)
+		self.linear = torch.nn.Linear(self.local_encoder.output_size + self.docu_encoder.output_size, self.output_size)
 
 	def forward(self, **kwargs):
 
 		local_emb = self.local_encoder(**kwargs)
 		docu_emb  = self.docu_encoder(**kwargs)
-		text_emb  = torch.nn.functional.relu(self.text_emb(torch.cat((local_emb, docu_emb), dim=1)))
+		text_emb  = torch.nn.functional.relu(self.linear(torch.cat((local_emb, docu_emb), dim=1)))
 
 		return text_emb
 
@@ -66,8 +66,8 @@ class LocalContextEncoder(torch.nn.Module):
 		self.pre_lstm   = torch.nn.LSTM(w2v_emb_size, lstm_emb_size, batch_first=True)
 		self.post_lstm  = torch.nn.LSTM(w2v_emb_size, lstm_emb_size, batch_first=True)
 
-		lstm_cat_size = lstm_size(self.title_lstm) + lstm_size(self.pre_lstm) + lstm_size(self.post_lstm)
-		self.local_emb  = torch.nn.Linear(lstm_cat_size, self.output_size)
+		lstm_cat_size  = lstm_size(self.title_lstm) + lstm_size(self.pre_lstm) + lstm_size(self.post_lstm)
+		self.linear = torch.nn.Linear(lstm_cat_size, self.output_size)
 
 	def forward(self, **kwargs):
 
@@ -87,7 +87,7 @@ class LocalContextEncoder(torch.nn.Module):
 		pre_lstm   = pre_lstm0[-1, :, :]
 		post_lstm  = post_lstm0[-1, :, :]
 
-		local_emb = torch.nn.functional.relu(self.local_emb(torch.cat((title_lstm, pre_lstm, post_lstm), dim=1)))
+		local_emb = torch.nn.functional.relu(self.linear(torch.cat((title_lstm, pre_lstm, post_lstm), dim=1)))
 
 		return local_emb
 
@@ -109,14 +109,14 @@ class DocumentEncoder(torch.nn.Module):
 		# Create modules
 		self.word_emb = word_emb_module
 
-		self.docu_emb = torch.nn.Linear(num_label+num_brand, self.output_size)
+		self.linear = torch.nn.Linear(num_label+num_brand, self.output_size)
 
 	def forward(self, **kwargs):
 
 		pid_bag   = kwargs['pid_bag']
 		brand_bag = kwargs['brand_bag']
 
-		docu_emb = torch.nn.functional.relu(self.docu_emb(torch.cat((pid_bag, brand_bag), dim=1)))
+		docu_emb = torch.nn.functional.relu(self.linear(torch.cat((pid_bag, brand_bag), dim=1)))
 
 		return docu_emb
 
@@ -140,16 +140,16 @@ class DescriptionEncoder(torch.nn.Module):
 		# Create modules
 		self.word_emb = word_emb_module
 
-		self.desc_cnn   = torch.nn.Conv1d(w2v_emb_size, cnn_emb_size, cnn_win_size)
-		self.desc_emb   = torch.nn.Linear(cnn_emb_size, w2v_emb_size)
+		self.conv1d = torch.nn.Conv1d(w2v_emb_size, cnn_emb_size, cnn_win_size)
+		self.linear = torch.nn.Linear(cnn_emb_size, w2v_emb_size)
 
 	def forward(self, **kwargs):
 
-		desc_pad  = kwargs['desc_pad']
+		desc_pad = kwargs['desc_pad']
 
-		desc_pad_emb   = self.word_emb(desc_pad)
-		desc_cnn       = self.desc_cnn(desc_pad_emb.permute(1, 2, 0))
-		desc_pool      = torch.nn.functional.max_pool1d(desc_cnn, desc_cnn.size()[2]).squeeze_(2)
-		desc_emb       = torch.nn.functional.relu(self.desc_emb(desc_pool))
+		desc_pad_emb = self.word_emb(desc_pad)
+		desc_cnn     = self.conv1d(desc_pad_emb.permute(1, 2, 0))
+		desc_pool    = torch.nn.functional.max_pool1d(desc_cnn, desc_cnn.size()[2]).squeeze_(2)
+		desc_emb     = torch.nn.functional.relu(self.linear(desc_pool))
 
 		return desc_emb
