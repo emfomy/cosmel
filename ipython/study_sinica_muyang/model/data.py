@@ -14,6 +14,8 @@ import sys
 
 import numpy as np
 
+import torch
+
 from keras.preprocessing.sequence import pad_sequences
 
 from sklearn.model_selection import train_test_split
@@ -338,9 +340,9 @@ class ProductDataset():
 
 		# Convert to PyTorch
 		retval = BatchData()
-		retval.product_code = torch.from_numpy(pid_code).long()
-		retval.desc_pad     = torch.from_numpy(desc_pad).long()
-		retval.name_pad     = torch.from_numpy(name_pad).long()
-		retval.desc_1hot    = torch.from_numpy(desc_1hot).float()
+		retval.product_code    = torch.from_numpy(pid_code).long()
+		retval.desc_pad        = torch.from_numpy(desc_pad).long()
+		retval.name_pad        = torch.from_numpy(name_pad).long()
+		retval.desc_1hot       = torch.from_numpy(desc_1hot).float()
 
 		return vars(retval)

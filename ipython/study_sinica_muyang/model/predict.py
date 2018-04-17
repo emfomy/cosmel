@@ -108,11 +108,9 @@ if __name__ == '__main__':
 
 	osp_code = meta.p_encoder.transform(['OSP'])[0]
 	gp_code  = meta.p_encoder.transform(['GP'])[0]
-	nap_code = meta.p_encoder.transform(['NAP'])[0]
 
 	model_accuracy(predict_gid_code, text_gid_code)
 	model_accuracy(predict_gid_code, text_gid_code, text_gid_code == osp_code, 'OSP')
 	model_accuracy(predict_gid_code, text_gid_code, text_gid_code == gp_code,  'GP')
-	model_accuracy(predict_gid_code, text_gid_code, text_gid_code == nap_code, 'NAP')
 
 	pass

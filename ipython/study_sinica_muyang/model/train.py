@@ -86,6 +86,11 @@ if __name__ == '__main__':
 	if args.meta != None:
 		meta_file = args.meta
 
+	if args.model == 'model2':
+		from model2 import Model2 as Model
+	elif args.model == 'model3':
+		from model3 import Model3 as Model
+
 	# Print arguments
 	print()
 	print(args)
@@ -105,7 +110,13 @@ if __name__ == '__main__':
 	desc_dataset = ProductDataset(meta)
 	num_train    = len(text_dataset)
 	print(f'num_train     = {num_train}')
-	batch_size = 500
+
+	# Set batch size
+	num_text        = len(text_dataset)
+	num_desc        = len(desc_dataset)
+	text_batch_size = 500
+	num_step        = int(np.ceil(num_text/text_batch_size))
+	desc_batch_size = int(np.ceil(num_desc/num_step))
 
 	# Create model
 	model = Model(meta)
@@ -121,12 +132,12 @@ if __name__ == '__main__':
 	num_epoch = 20
 	for epoch in range(num_epoch):
 
-		text_idxs = np.split(np.random.permutation(num_train), range(batch_size, num_train, batch_size))
+		text_batch_idxs = np.split(np.random.permutation(num_text), range(text_batch_size, num_text, text_batch_size))
+		desc_batch_idxs = np.split(np.random.permutation(num_desc), range(desc_batch_size, num_desc, desc_batch_size))
 
-		num_step = len(text_idxs)
-		for step, text_idx in enumerate(text_idxs):
-			text_batch = text_dataset[text_idx]
-			desc_batch = desc_dataset[:]
+		for step, (text_batch_idx, desc_batch_idx) in enumerate(zip(text_batch_idxs, desc_batch_idxs)):
+			text_batch = text_dataset[text_batch_idx]
+			desc_batch = desc_dataset[desc_batch_idx]
 
 			inputs = Inputs(**text_batch, **desc_batch)
 			inputs.cuda()

@@ -43,7 +43,7 @@ class Model2(torch.nn.Module):
 		# Create modules
 		self.word_emb = torch.nn.Embedding(num_vocab, w2v_emb_size)
 		self.word_emb.weight.data = torch.from_numpy(vocab_embedding)
-		self.word_emb.weight.requires_grad = False
+		# self.word_emb.weight.requires_grad = False
 
 		self.text_encoder = ContextEncoder(meta, self.word_emb, lstm_emb_size)
 		self.desc_encoder = DescriptionEncoder(meta, self.word_emb, cnn_emb_size, cnn_win_size)
