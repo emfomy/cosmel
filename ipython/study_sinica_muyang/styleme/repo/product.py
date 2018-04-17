@@ -33,8 +33,10 @@ class Product:
 		self.__head        = head
 		self.__name_ws     = WsWords(name_ws)
 		self.__descr_ws    = WsWords(descr_ws)
-		if head:
+		try:
 			self.__head_idx  = self.name_ws.txts.index(head)
+		except:
+			pass
 
 	def __str__(self):
 		return f'{self.__pid} {self.__brand!s} {self.__name}'

@@ -157,6 +157,11 @@ class DescriptionEncoder(torch.nn.Module):
 
 		return desc_emb
 
+
+################################################################################################################################
+# Product Encoder
+#
+
 class ProductEncoder(torch.nn.Module):
 
 	def __init__(self, info, word_emb_module):
@@ -172,7 +177,7 @@ class ProductEncoder(torch.nn.Module):
 		self.word_emb = word_emb_module
 
 	def forward(self, **kwargs):
-		
+
 		product_pad = kwargs['product_pad']
 		product_len = kwargs['product_len']
 
@@ -182,4 +187,3 @@ class ProductEncoder(torch.nn.Module):
 
 
 		return product_avg
-
