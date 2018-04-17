@@ -105,7 +105,7 @@ class Tokenizer():
 		self._tokenizer = _Tokenizer()
 
 	def fit(self, y):
-		self._tokenizer.fit_on_texts(' '.join(y))
+		self._tokenizer.fit_on_texts([' '.join(y)])
 		return self
 
 	def transform(self, y):

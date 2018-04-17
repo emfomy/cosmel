@@ -115,8 +115,8 @@ if __name__ == '__main__':
 	num_text        = len(text_dataset)
 	num_desc        = len(desc_dataset)
 	text_batch_size = 500
-	num_step        = int(np.ceil(num_text/text_batch_size))
-	desc_batch_size = int(np.ceil(num_desc/num_step))
+	num_step        = num_text // text_batch_size
+	desc_batch_size = num_desc // num_step
 
 	# Create model
 	model = Model(meta)
