@@ -35,6 +35,8 @@ class Repo:
 		self.__brand_head_to_product_list = BrandHead2ProductList(self.__product_set)
 		self.__bname_head_to_product_list = BNameHead2ProductList(self.__brand_head_to_product_list, self.__bname_to_brand)
 
+		self.__path = repo_root
+
 	@property
 	def infix_set(self):
 		""":class:`.HeadSet`: the infix word set."""
@@ -89,3 +91,8 @@ class Repo:
 	def bname_head_to_product_list(self):
 		""":class:`.BNameHead2ProductList`: the dictionary maps brand name and head word to product object list."""
 		return self.__bname_head_to_product_list
+
+	@property
+	def path(self):
+		"""str: the root path of the repo."""
+		return self.__path

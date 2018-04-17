@@ -18,17 +18,14 @@ if __name__ == '__main__':
 	assert len(sys.argv) > 1
 	ver = sys.argv[1]
 
-	greped_mention   = False
-	written_sentence = True
-
 	target       = f'pruned_article'
 	tmp_root     = f'data/tmp'
 	data_root    = f'data/{ver}'
-	base_root    = f'{data_root}/mention/{target}_pid'
-	input_root   = f'{data_root}/mention/{target}_gid_6.1'
-	output_root  = f'{data_root}/mention/{target}_gid'
+	base_root    = f'{data_root}/mention/{target}_gid_20180315'
+	input_root   = f'{data_root}/mention/{target}_gid_20180409_6.0'
+	output_root  = f'{data_root}/mention/{target}_gid_20180409'
 	parts        = ['']
-	parts        = list(f'part-{x:05}' for x in range(1))
+	# parts        = list(f'part-{x:05}' for x in range(1))
 	if len(sys.argv) > 2: parts = list(f'part-{x:05}' for x in range(int(sys.argv[2]), 128, 8))
 
 	# Embed input mention
@@ -57,8 +54,8 @@ if __name__ == '__main__':
 					# data.pop('hint', None)
 					# data.pop('hint_orio', None)
 
-					if 'gid' not in data:
-						print(colored('1;33', f'\n[No PID] Remove {input_file}:{key[0]}:{key[1]}\n'))
+					if 'gid' not in data or not data['gid']:
+						print(colored('1;33', f'[No GID] Remove {input_file}:{key[0]}:{key[1]}'))
 						continue
 					data = {'gid': data['gid']}
 
@@ -67,10 +64,10 @@ if __name__ == '__main__':
 					if key in data_dict:
 						data_dict[key].update(data)
 					else:
-						print(colored('1;31', f'\nUnknown mention {input_file}:{key[0]}:{key[1]}!\n'))
+						print(colored('1;31', f'Unknown mention {input_file}:{key[0]}:{key[1]}!'))
 		except Exception as e:
-			# print()
-			# print(colored('0;33', e))
+			print()
+			print(colored('0;33', e))
 			pass
 
 		with open(output_file, 'w') as fout:

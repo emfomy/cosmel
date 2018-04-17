@@ -6,68 +6,39 @@ __author__    = 'Mu Yang <emfomy@gmail.com>'
 __copyright__ = 'Copyright 2017-2018'
 
 
-import argparse
-import copy
 import itertools
+import json
 import os
 import pickle
 import sys
 
 import numpy as np
 
-from keras.preprocessing.text import Tokenizer
+from keras.preprocessing.sequence import pad_sequences
 
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import label_binarize
+from sklearn.preprocessing import LabelBinarizer
 from sklearn.preprocessing import LabelEncoder
 from sklearn.preprocessing import MultiLabelBinarizer
-import sklearn.model_selection
+
+# from sklearn.base import BaseEstimator, TransformerMixin
+# from sklearn.utils.validation import column_or_1d
 
 from gensim.models.keyedvectors import KeyedVectors
 
 sys.path.insert(0, os.path.abspath('.'))
 from styleme import *
 
-class DataPack:
 
-	class Raw():
+class Asmid:
 
-		def __str__(self):
-			return str(list(self.__dict__.keys()))
-
-		def __repr__(self):
-			return str(self)
-
-
-	class Data():
-
-		def __str__(self):
-			return str(list(self.__dict__.keys()))
-
-		def __repr__(self):
-			return str(self)
-
-		def train_test_split(self, *args, **kwargs):
-			train_data = DataPack.Data()
-			test_data  = DataPack.Data()
-			keys = list(self.__dict__.keys())
-			splitting = sklearn.model_selection.train_test_split(*(getattr(self, key) for key in keys), *args, **kwargs)
-			for i, key in enumerate(keys):
-				setattr(train_data, key, splitting[2*i])
-				setattr(test_data,  key, splitting[2*i+1])
-			return train_data, test_data
-
-
-	class Info():
-
-		def __str__(self):
-			return str(list(self.__dict__.keys()))
-
-		def __repr__(self):
-			return str(self)
-
-
-	def __init__(self):
-		self.data = self.Data()
-		self.info = self.Info()
+	def __init__(self, json_str):
+		data = json.loads(json_str)
+		self.aid     = data['aid']
+		self.sid     = data['sid']
+		self.mid     = data['mid']
+		self.use_gid = data['use_gid']
 
 	def __str__(self):
 		return str(self.__dict__)
@@ -75,274 +46,301 @@ class DataPack:
 	def __repr__(self):
 		return str(self)
 
-	def extract(self, repo, corpus, keyed_vectors, use_gid=True, max_num_sentences=5):
+	@property
+	def asmid(self):
+		return (self.aid, self.sid, self.mid,)
 
-		# Declare raw data
-		self.data.raw = self.Raw()
-		self.info.raw = self.Raw()
 
-		# Extract mention
-		if use_gid:
-			mention_list = [mention for mention in corpus.mention_set if mention.gid.isdigit()]
-		else:
-			mention_list = [mention for mention in corpus.mention_set if mention.pid.isdigit()]
-
-		# Load Info
-		self.info.article_root      = corpus.article_set.path
-		self.info.mention_root      = corpus.mention_bundle_set.path
-		self.info.max_num_sentences = max_num_sentences
-		self.info.keyed_vectors     = keyed_vectors
-
-		# Load Data
-		self.data.aid  = np.asarray([mention.aid  for mention in mention_list])
-		self.data.sid  = np.asarray([mention.sid  for mention in mention_list])
-		self.data.mid  = np.asarray([mention.mid  for mention in mention_list])
-		self.data.rule = np.asarray([mention.rule for mention in mention_list])
-
-		if use_gid:
-			self.data.gid  = np.asarray([mention.gid for mention in mention_list])
-		else:
-			self.data.gid  = np.asarray([mention.pid for mention in mention_list])
-
-		self.data.pid  = np.asarray([mention.pid for mention in mention_list])
-
-		# Load context
-		self.data.raw.title = [ \
-				' '.join(mention.article[0].txts) for mention in mention_list \
-		]
-		self.data.raw.pre  = [ \
-				' '.join(itertools.chain( \
-						itertools.chain.from_iterable( \
-								s.txts for s in mention.article[relu(mention.sid-max_num_sentences):mention.sid] \
-						), \
-						mention.sentence_pre_().txts \
-				)) for mention in mention_list \
-		]
-		self.data.raw.post = [ \
-				' '.join(itertools.chain( \
-						mention.sentence_post_().txts, \
-						itertools.chain.from_iterable( \
-								s.txts for s in mention.article[mention.sid+1:mention.sid+1+max_num_sentences] \
-						) \
-				)) for mention in mention_list \
-		]
-
-		# Load products
-		self.info.product_pid      = np.asarray([product.pid for product in repo.product_set])
-		self.info.raw.product      = [' '.join(list(product.brand) + product.name_ws.txts) for product in repo.product_set]
-		self.info.raw.product_pre  = [' '.join(list(product.brand) + product.infix_ws_().txts) for product in repo.product_set]
-		self.info.raw.product_post = [' '.join(product.suffix_ws_().txts) for product in repo.product_set]
-		self.info.raw.desc         = [' '.join(product.descr_ws.txts)for product in repo.product_set]
-
-		# Load bag
-		self.data.raw.pid_doc   = [set(m.pid for m in mention.bundle if m.rule == 'P_rule1') for mention in mention_list]
-		self.data.raw.brand_doc = [ \
-				set(repo.bname_to_brand[t[0]][0] \
-						for t in itertools.chain.from_iterable(sentence.zip3 for sentence in mention.article) if t[2] == 'Brand' \
-				) for mention in mention_list \
-		]
-
-	def encode(self, repo, tokenizer, p_encoder, b_encoder, p_multibinarizer, b_multibinarizer):
-
-		# Store classes
-		self.info.tokenizer        = tokenizer
-		self.info.p_encoder        = p_encoder
-		self.info.b_encoder        = b_encoder
-		self.info.p_multibinarizer = p_multibinarizer
-		self.info.b_multibinarizer = b_multibinarizer
-
-		# Encode products
-		self.info.product_pid_code  = p_encoder.transform(self.info.product_pid)
-		self.info.product_code      = tokenizer.texts_to_sequences(self.info.raw.product)
-		self.info.product_pre_code  = tokenizer.texts_to_sequences(self.info.raw.product_pre)
-		self.info.product_post_code = tokenizer.texts_to_sequences(self.info.raw.product_post)
-		self.info.desc_code         = tokenizer.texts_to_sequences(self.info.raw.desc)
-
-		# Encode corpus
-		self.data.gid_code   = p_encoder.transform(self.data.gid)
-		self.data.title_code = tokenizer.texts_to_sequences(self.data.raw.title)
-		self.data.pre_code   = tokenizer.texts_to_sequences(self.data.raw.pre)
-		self.data.post_code  = tokenizer.texts_to_sequences(self.data.raw.post)
-
-		self.data.pid_bag    = p_multibinarizer.transform(self.data.raw.pid_doc)
-		self.data.brand_bag  = b_multibinarizer.transform(self.data.raw.brand_doc)
-
-	def purge(self):
-		del self.data.raw
-		del self.info.raw
+class AsmidList(list):
 
 	def dump(self, file):
 		os.makedirs(os.path.dirname(file), exist_ok=True)
-		print(f'Dump data into {file}')
+		print(f'Dump asmid list into {file}')
+		with open(file, 'w') as fout:
+			for asmid in self:
+				fout.write(asmid+'\n')
+
+	@staticmethod
+	def load(file):
+		print(f'Load asmid list from {file}')
+		with open(file) as fin:
+			return AsmidList(Asmid(s) for s in fin)
+
+
+# class Tokenizer(BaseEstimator, TransformerMixin):
+
+# 	def fit(self, y):
+# 		y = column_or_1d(y, warn=True)
+# 		assert '' not in y
+# 		self.classes_ = np.insert(np.unique(y), 0, '')
+# 		return self
+
+# 	def transform(self, y):
+# 		y = column_or_1d(y, warn=True)
+# 		assert '' not in y
+# 		return np.searchsorted(self.classes_, [v for v in y if v in self.classes_])
+
+# 	def fit_transform(self, y):
+# 		self.fit(y)
+# 		self.transform(y)
+
+# 	def inverse_transform(self, y):
+# 		check_is_fitted(self, 'classes_')
+# 		assert 0 not in y
+# 		return self.classes_[y]
+
+# 	def transform_sequences(self, yy):
+# 		return [self.transform(y) for y in yy]
+
+# 	def inverse_transform_sequences(self, yy):
+# 		return [self.inverse_transform(y) for y in yy]
+
+
+class Tokenizer():
+
+	def __init__(self):
+		from keras.preprocessing.text import Tokenizer as _Tokenizer
+		self._tokenizer = _Tokenizer()
+
+	def fit(self, y):
+		self._tokenizer.fit_on_texts(' '.join(y))
+		return self
+
+	def transform(self, y):
+		return self._tokenizer.texts_to_sequences([' '.join(y)])
+
+	def fit_transform(self, y):
+		self.fit(y)
+		self.transform(y)
+
+	def transform_sequences(self, yy):
+		return self._tokenizer.texts_to_sequences([' '.join(y) for y in yy])
+
+	@property
+	def classes_(self):
+		return self._tokenizer.word_index
+
+
+class DatasetMeta:
+
+	def __init__(self, repo, corpus, emb_file):
+
+		# Save pathes
+		self.repo_path    = repo.path
+		self.article_path = corpus.article_set.path
+		self.mention_path = corpus.mention_set.path
+
+		# Load word vectors
+		self.keyed_vectors = KeyedVectors.load_word2vec_format(emb_file, binary=True)
+
+		# Prepare tokenizer
+		self.tokenizer = Tokenizer()
+		self.tokenizer.fit(self.keyed_vectors.index2word[1:])
+		num_vocab = len(self.tokenizer.classes_)+1
+		print(f'num_vocab   = {num_vocab}')
+
+		# Prepare product encoder
+		self.p_encoder = LabelEncoder()
+		self.p_encoder.fit(['OSP', 'GP'] + list(repo.id_to_product.keys()))
+		num_product = len(self.p_encoder.classes_)
+		print(f'num_product = {num_product}')
+
+		# Prepare brand encoder
+		self.b_encoder = LabelEncoder()
+		self.b_encoder.fit(list(repo.bname_to_brand.keys()))
+		num_brand = len(self.b_encoder.classes_)
+		print(f'num_brand   = {num_brand}')
+
+	def dump(self, file):
+		os.makedirs(os.path.dirname(file), exist_ok=True)
+		print(f'Dump data meta into {file}')
 		with open(file, 'wb') as fout:
 			pickle.dump(self, fout, protocol=4)
 
 	@staticmethod
 	def load(file):
-		print(f'Load data from {file}')
+		print(f'Load data meta from {file}')
 		with open(file, 'rb') as fin:
 			return pickle.load(fin)
 
-	def train_test_split(self, *args, **kwargs):
-		assert not hasattr(self.data, 'raw')
-		assert not hasattr(self.data, 'raw')
 
-		train_pack      = DataPack()
-		test_pack       = DataPack()
+class BatchData:
 
-		train_pack.info = copy.deepcopy(self.info)
-		test_pack.info  = copy.deepcopy(self.info)
+	def cuda(self):
+		for k, v in vars(self).items():
+			setattr(self, k, v.cuda())
 
-		train_pack.data, test_pack.data = self.data.train_test_split(*args, **kwargs)
 
-		return train_pack, test_pack
+class MentionDataset():
 
-if __name__ == '__main__':
+	def __init__(self, meta, asmid_list, max_num_sentences=5):
 
-	# Parse arguments
-	argparser = argparse.ArgumentParser(description='Process StyleMe training/testing data.')
+		self.meta = meta
 
-	argparser.add_argument('-v', '--ver', metavar='<ver>#<date>', required=True, \
-			help='StyleMe corpus version; load data from "data/<ver>", and load mention from "data/<ver1>/pruned_article_gid_<date>"')
-	argparser.add_argument('-D', '--dir', metavar='<dir>', \
-			help='data path prefix; output data into "<dir>/"; default is "result/<ver>_<date>"')
-	argparser.add_argument('-e', '--embedding', metavar='<embedding_path>', \
-			help='embedding path; default is "data/<ver>/embedding/pruned_article.dim300.emb.bin."')
+		parts = list(set(m.aid for m in asmid_list))
+		self.repo   = Repo(meta.repo_path)
+		self.corpus = Corpus(meta.article_path, meta.mention_path, parts=parts)
 
-	arggroup = argparser.add_mutually_exclusive_group()
-	arggroup.add_argument('-p', '--parts', metavar='<part>', nargs='+', help='parts of corpus')
-	arggroup.add_argument('-n', '--num-parts', metavar='<num>', type=int, help='number of parts (override --parts)')
+		self.mention_list = [self.corpus.id_to_mention[asmid.asmid] for asmid in asmid_list]
+		for m in self.mention_list:
+			if m.gid == 'NAP': m.set_gid('GP')
+			if m.pid == 'NAP': m.set_pid('GP')
+		for m, asmid in zip(self.mention_list, asmid_list):
+			if not asmid.use_gid: m.set_gid(m.pid)
 
-	argparser.add_argument('-c', '--check', action='store_true', help='check arguments ')
+		self.max_num_sentences = max_num_sentences
 
-	args = argparser.parse_args()
+		# Get length
+		self.title_maxlen = 80
+		self.loacl_maxlen = self.title_maxlen*(max_num_sentences+1)
 
-	vers          = args.ver.split('#')
-	ver           = vers[0]
-	date          = ''
-	if len(vers) > 1:
-		date        = f'_{vers[1]}'
+		# Load tokenizer and encoder
+		self.tokenizer = meta.tokenizer
+		self.p_encoder = meta.p_encoder
+		self.b_encoder = meta.b_encoder
 
-	result_root   = f'result/{ver}{date}/'
-	if args.dir != None:
-		result_root = f'{args.dir}/'
+		# Prepare product binarizer
+		self.p_binarizer = LabelBinarizer()
+		self.p_binarizer.fit(meta.p_encoder.classes_)
+		np.testing.assert_array_equal(meta.p_encoder.classes_, self.p_binarizer.classes_)
 
-	parts         = ['']
-	if args.parts != None:
-		parts       = args.parts
-	if args.num_parts != None:
-		parts       = list(f'part-{x:05}' for x in range(args.num_parts))
+		# Prepare product multi-binarizer
+		self.p_multibinarizer = MultiLabelBinarizer(classes=meta.p_encoder.classes_)
+		self.p_multibinarizer.fit([])
+		np.testing.assert_array_equal(meta.p_encoder.classes_, self.p_multibinarizer.classes_)
 
-	data_root     = f'data/{ver}/'
-	repo_root     = f'{data_root}repo'
-	article_root  = f'{data_root}article/pruned_article_role'
-	mention_root  = f'{data_root}mention/pruned_article_gid{date}'
+		# Prepare brand multi-binarizer
+		self.b_multibinarizer = MultiLabelBinarizer(classes=meta.b_encoder.classes_)
+		self.b_multibinarizer.fit([])
+		np.testing.assert_array_equal(meta.b_encoder.classes_, self.b_multibinarizer.classes_)
 
-	emb_file      = f'{data_root}embedding/pruned_article.dim300.emb.bin'
-	if args.embedding != None:
-		emb_file    = embedding.parts
+	def __len__(self):
+		return len(self.mention_list)
 
-	pack_pid_file       = f'{result_root}pid.all.data.pkl'
-	pack_gid_file       = f'{result_root}gid.all.data.pkl'
-	pack_pid_train_file = f'{result_root}pid.train.data.pkl'
-	pack_pid_test_file  = f'{result_root}pid.test.data.pkl'
-	pack_gid_train_file = f'{result_root}gid.train.data.pkl'
-	pack_gid_test_file  = f'{result_root}gid.test.data.pkl'
+	def __getitem__(self, idx):
 
-	# Print arguments
-	print()
-	print(args)
-	print()
-	print(f'repo_root           = {repo_root}')
-	print(f'article_root        = {article_root}')
-	print(f'mention_root        = {mention_root}')
-	print(f'emb_file            = {emb_file}')
-	print(f'parts               = {parts}')
-	print()
-	print(f'pack_pid_file       = {pack_pid_file}')
-	print(f'pack_gid_file       = {pack_gid_file}')
-	print(f'pack_pid_train_file = {pack_pid_train_file}')
-	print(f'pack_pid_test_file  = {pack_pid_test_file}')
-	print(f'pack_gid_train_file = {pack_gid_train_file}')
-	print(f'pack_gid_test_file  = {pack_gid_test_file}')
-	print()
+		if isinstance(idx, int):
+			sublist = [self.mention_list[idx]]
+		else:
+			sublist = np.asarray(self.mention_list)[idx]
 
-	if args.check: exit()
+		# Load Data
+		gid = [mention.gid for mention in sublist]
 
-	# Load StyleMe repository and corpus
-	repo   = Repo(repo_root)
-	corpus = Corpus(article_root, mention_root, parts=parts)
+		# Load context
+		raw_title = [ \
+				mention.article[0].txts for mention in sublist \
+		]
+		raw_pre  = [ \
+				list(itertools.chain( \
+						itertools.chain.from_iterable( \
+								s.txts for s in mention.article[relu(mention.sid-self.max_num_sentences):mention.sid] \
+						), \
+						mention.sentence_pre_().txts \
+				)) for mention in sublist \
+		]
+		raw_post = [ \
+				list(itertools.chain( \
+						mention.sentence_post_().txts, \
+						itertools.chain.from_iterable( \
+								s.txts for s in mention.article[mention.sid+1:mention.sid+1+self.max_num_sentences] \
+						) \
+				)) for mention in sublist \
+		]
 
-	# Load word vectors
-	keyed_vectors = KeyedVectors.load_word2vec_format(emb_file, binary=True)
+		# Load bag
+		raw_pid_bag   = [set(m.pid for m in mention.bundle if m.rule == 'P_rule1') for mention in sublist]
+		raw_brand_bag = [ \
+				set(self.repo.bname_to_brand[t[0]][0] \
+						for t in itertools.chain.from_iterable(sentence.zip3 for sentence in mention.article) if t[2] == 'Brand' \
+				) for mention in sublist \
+		]
 
-	# Extract mention data
-	pack_pid = DataPack()
-	pack_gid = DataPack()
+		# Encode
+		gid_code   = self.p_encoder.transform(gid)
+		title_code = self.tokenizer.transform_sequences(raw_title)
+		pre_code   = self.tokenizer.transform_sequences(raw_pre)
+		post_code  = self.tokenizer.transform_sequences(raw_post)
+		pid_bag    = self.p_multibinarizer.transform(raw_pid_bag)
+		brand_bag  = self.b_multibinarizer.transform(raw_brand_bag)
+		text_1hot  = self.p_binarizer.transform(gid)
 
-	pack_pid.extract(repo, corpus, keyed_vectors, use_gid=False)
-	pack_gid.extract(repo, corpus, keyed_vectors, use_gid=True)
+		# Pad
+		title_pad  = pad_sequences(title_code, padding='pre')
+		pre_pad    = pad_sequences(pre_code,   padding='pre')
+		post_pad   = pad_sequences(post_code,  padding='post')
 
-	num_mention_pid = len(pack_pid.data.gid)
-	num_mention_gid = len(pack_gid.data.gid)
-	print(f'num_mention (PID) = {num_mention_pid}')
-	print(f'num_mention (GID) = {num_mention_gid}')
+		# Convert to PyTorch
+		retval = BatchData()
+		retval.gid_code  = torch.from_numpy(gid_code).long()
+		retval.title_pad = torch.from_numpy(title_pad).long()
+		retval.pre_pad   = torch.from_numpy(pre_pad).long()
+		retval.post_pad  = torch.from_numpy(post_pad).long()
+		retval.pid_bag   = torch.from_numpy(pid_bag).float()
+		retval.brand_bag = torch.from_numpy(brand_bag).float()
+		retval.text_1hot = torch.from_numpy(text_1hot).float()
 
-	# Prepare tokenizer
-	tokenizer = Tokenizer()
-	tokenizer.fit_on_texts([' '.join(keyed_vectors.index2word[1:])])
-	num_vocab = len(tokenizer.word_index)+1
-	print(f'num_vocab         = {num_vocab}')
+		return vars(retval)
 
-	# Prepare product encoder
-	p_encoder = LabelEncoder()
-	p_encoder.fit(list(repo.id_to_product.keys()))
-	num_product = len(p_encoder.classes_)
-	print(f'num_product       = {num_product}')
 
-	# Prepare brand encoder
-	b_encoder = LabelEncoder()
-	b_encoder.fit([brand[0] for brand in repo.brand_set])
-	num_brand = len(b_encoder.classes_)
-	print(f'num_brand         = {num_brand}')
+class ProductDataset():
 
-	# Prepare product multi-binarizer
-	p_multibinarizer = MultiLabelBinarizer(classes=p_encoder.classes_.tolist())
-	p_multibinarizer.fit(pack_pid.data.raw.pid_doc + pack_gid.data.raw.pid_doc)
+	def __init__(self, meta):
 
-	# Prepare brand multi-binarizer
-	b_multibinarizer = MultiLabelBinarizer(classes=b_encoder.classes_.tolist())
-	b_multibinarizer.fit(pack_pid.data.raw.brand_doc + pack_gid.data.raw.brand_doc)
+		self.meta = meta
+		self.repo = Repo(meta.repo_path)
 
-	# Integer encode the docments and the labels
-	pack_pid.encode(repo, tokenizer, p_encoder, b_encoder, p_multibinarizer, b_multibinarizer)
-	pack_gid.encode(repo, tokenizer, p_encoder, b_encoder, p_multibinarizer, b_multibinarizer)
+		self.product_list = list(self.repo.product_set)
 
-	# Delete raw data
-	pack_pid.purge()
-	pack_gid.purge()
+		# Load tokenizer and encoder
+		self.tokenizer = meta.tokenizer
+		self.p_encoder = meta.p_encoder
 
-	# Split train and test
-	pack_pid_train, pack_pid_test = pack_pid.train_test_split(test_size=0.3, random_state=0, shuffle=True)
-	pack_gid_train, pack_gid_test = pack_gid.train_test_split(test_size=0.3, random_state=0, shuffle=True)
+		# Get length
+		self.desc_maxlen = max([len(product.descr_ws.txts) for product in self.product_list])
+		self.name_maxlen = max([len(list(product.brand) + product.name_ws.txts) for product in self.product_list])
 
-	num_train_pid = len(pack_pid_train.data.gid)
-	num_test_pid  = len(pack_pid_test.data.gid)
-	num_train_gid = len(pack_gid_train.data.gid)
-	num_test_gid  = len(pack_gid_test.data.gid)
-	print(f'num_train (PID)   = {num_train_pid}')
-	print(f'num_test  (PID)   = {num_test_pid}')
-	print(f'num_train (GID)   = {num_train_gid}')
-	print(f'num_test  (GID)   = {num_test_gid}')
+		# Prepare product binarizer
+		self.p_binarizer = LabelBinarizer()
+		self.p_binarizer.fit(meta.p_encoder.classes_)
+		np.testing.assert_array_equal(meta.p_encoder.classes_, self.p_binarizer.classes_)
 
-	# Save as pickle
-	pack_pid.dump(pack_pid_file)
-	pack_gid.dump(pack_gid_file)
+	def __len__(self):
+		return len(self.product_list)
 
-	pack_pid_train.dump(pack_pid_train_file)
-	pack_pid_test.dump(pack_pid_test_file)
+	def __getitem__(self, idx):
 
-	pack_gid_train.dump(pack_gid_train_file)
-	pack_gid_test.dump(pack_gid_test_file)
+		if isinstance(idx, int):
+			sublist = [self.product_list[idx]]
+		else:
+			sublist = np.asarray(self.product_list)[idx]
 
-	pass
+		# Load Data
+		pid           = [product.pid for product in sublist]
+
+		# Load context
+		raw_name      = [list(product.brand) + product.name_ws.txts for product in sublist]
+		# raw_name_pre  = [list(product.brand) + product.infix_ws_().txts for product in sublist]
+		# raw_name_post = [product.suffix_ws_().txts for product in sublist]
+		raw_desc      = [product.descr_ws.txts for product in sublist]
+
+		# Encode
+		pid_code       = self.p_encoder.transform(pid)
+		desc_code      = self.tokenizer.transform_sequences(raw_desc)
+		name_code      = self.tokenizer.transform_sequences(raw_name)
+		# name_pre_code  = self.tokenizer.transform_sequences(raw_name_pre)
+		# name_post_code = self.tokenizer.transform_sequences(raw_name_post)
+		desc_1hot      = self.p_binarizer.transform(pid)
+
+		# Pad
+		desc_pad = pad_sequences(desc_code, padding='pre')
+		name_pad = pad_sequences(name_code, padding='pre')
+
+		# Convert to PyTorch
+		retval = BatchData()
+		retval.product_code = torch.from_numpy(pid_code).long()
+		retval.desc_pad     = torch.from_numpy(desc_pad).long()
+		retval.name_pad     = torch.from_numpy(name_pad).long()
+		retval.desc_1hot    = torch.from_numpy(desc_1hot).float()
+
+		return vars(retval)

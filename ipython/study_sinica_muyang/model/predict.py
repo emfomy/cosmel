@@ -16,8 +16,8 @@ import torch
 
 sys.path.insert(0, os.path.abspath('.'))
 from styleme import *
-from data import DataPack
-from model2 import Model2 as Model
+from data import *
+from train import Inputs
 
 def model_accuracy(predict_gid_code, true_gid_code, mask=slice(None,None), name='all'):
 	correct = (true_gid_code[mask] == predict_gid_code[mask])
@@ -36,9 +36,13 @@ if __name__ == '__main__':
 			help='prepend <dir> to data and model path')
 
 	argparser.add_argument('-d', '--data', metavar='<data_name>', required=True, \
-			help='testing data path; load data from "[<dir>]<data_name>.data.pkl"')
-	argparser.add_argument('-m', '--model', metavar='<model_name>', \
-			help='model path; load model into "[<dir>]<model_name>.model.pt"')
+			help='testing data path; load data from "[<dir>]<data_name>.list.txt"')
+	argparser.add_argument('-w', '--weight', metavar='<weight_name>', \
+			help='model weight path; load model weight from "[<dir>]<weight_name>.weight.pt"')
+	argparser.add_argument('-m', '--model', metavar='<model_name>', choices=['model2', 'model3'], \
+			help='use model from <model_name>')
+	argparser.add_argument('--meta', metavar='<meta_name>', \
+			help='dataset meta path; default is "[<dir>/]meta.pkl"')
 
 	argparser.add_argument('-c', '--check', action='store_true', help='Check arguments.')
 
@@ -56,8 +60,17 @@ if __name__ == '__main__':
 	if args.dir != None:
 		result_root = f'{args.dir}/'
 
-	data_file     = f'{result_root}{args.data}.data.pkl'
-	model_file    = f'{result_root}{args.model}.model.pt'
+	data_file     = f'{result_root}{args.data}.list.txt'
+	model_file    = f'{result_root}{args.weight}.weight.pt'
+
+	if args.model == 'model2':
+		from model2 import Model2 as Model
+	elif args.model == 'model3':
+		from model3 import Model3 as Model
+
+	meta_file     = f'{result_root}meta.pkl'
+	if args.meta != None:
+		meta_file = args.meta
 
 	# Print arguments
 	print()
@@ -65,33 +78,41 @@ if __name__ == '__main__':
 	print()
 	print(f'data_file  = {data_file}')
 	print(f'model_file = {model_file}')
+	print(f'meta_file  = {meta_file}')
 	print()
 
 	if args.check: exit()
 
 	# Load data
-	pack = DataPack.load(data_file)
-	num_test = pack.data.gid_code.shape[0]
-	print(f'num_test        = {num_test}')
+	meta         = DatasetMeta.load(meta_file)
+	asmid_list   = AsmidList.load(data_file)
+	text_dataset = MentionDataset(meta, asmid_list)
+	num_test     = len(text_dataset)
+	print(f'num_test      = {num_test}')
 
 	# Load model
-	model = Model(pack.info)
+	model = Model(meta)
 	print()
 	model.load(model_file)
 	print(f'Loaded model from "{model_file}"')
 	print()
 
 	# Create inputs
-	inputs = model.inputs(pack)
-
-	# Use GPU
-	model.cuda()
-	inputs.cuda()
+	text_batch = text_dataset[:]
+	inputs = Inputs(**text_batch)
 
 	# Apply model
-	predict_prob = model.predict(**vars(inputs)).cpu().data.numpy()
+	predict_prob = model.predict(**vars(inputs)).data.numpy()
 	predict_gid_code = np.argmax(predict_prob, axis=1)
-	model_accuracy(predict_gid_code, pack.data.gid_code)
-	model_accuracy(predict_gid_code, pack.data.gid_code, pack.data.rule == 'P_rule1', 'P_rule1')
+	text_gid_code = text_batch['gid_code'].numpy()
+
+	osp_code = meta.p_encoder.transform(['OSP'])[0]
+	gp_code  = meta.p_encoder.transform(['GP'])[0]
+	nap_code = meta.p_encoder.transform(['NAP'])[0]
+
+	model_accuracy(predict_gid_code, text_gid_code)
+	model_accuracy(predict_gid_code, text_gid_code, text_gid_code == osp_code, 'OSP')
+	model_accuracy(predict_gid_code, text_gid_code, text_gid_code == gp_code,  'GP')
+	model_accuracy(predict_gid_code, text_gid_code, text_gid_code == nap_code, 'NAP')
 
 	pass

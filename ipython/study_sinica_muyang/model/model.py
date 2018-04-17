@@ -15,6 +15,9 @@ from sklearn.preprocessing import label_binarize
 def lstm_size(module):
 	return module.hidden_size * (module.bidirectional+1)
 
+def cnn_size(module):
+	return module.hidden_size
+
 
 ################################################################################################################################
 # Context Encoder
@@ -22,7 +25,7 @@ def lstm_size(module):
 
 class ContextEncoder(torch.nn.Module):
 
-	def __init__(self, info, word_emb_module, lstm_emb_size):
+	def __init__(self, meta, word_emb_module, lstm_emb_size):
 
 		super().__init__()
 
@@ -33,8 +36,8 @@ class ContextEncoder(torch.nn.Module):
 		self.output_size = w2v_emb_size
 
 		# Create modules
-		self.local_encoder = LocalContextEncoder(info, word_emb_module, lstm_emb_size)
-		self.docu_encoder  = DocumentEncoder(info, word_emb_module)
+		self.local_encoder = LocalContextEncoder(meta, word_emb_module, lstm_emb_size)
+		self.docu_encoder  = DocumentEncoder(meta, word_emb_module)
 
 		self.linear = torch.nn.Linear(self.local_encoder.output_size + self.docu_encoder.output_size, self.output_size)
 
@@ -49,7 +52,7 @@ class ContextEncoder(torch.nn.Module):
 
 class LocalContextEncoder(torch.nn.Module):
 
-	def __init__(self, info, word_emb_module, lstm_emb_size):
+	def __init__(self, meta, word_emb_module, lstm_emb_size):
 
 		super().__init__()
 
@@ -83,9 +86,9 @@ class LocalContextEncoder(torch.nn.Module):
 		pre_lstm0, _   = self.pre_lstm(pre_pad_emb)
 		post_lstm0, _  = self.post_lstm(post_pad_emb)
 
-		title_lstm = title_lstm0[-1, :, :]
-		pre_lstm   = pre_lstm0[-1, :, :]
-		post_lstm  = post_lstm0[-1, :, :]
+		title_lstm = title_lstm0[:, -1, :]
+		pre_lstm   = pre_lstm0[:, -1, :]
+		post_lstm  = post_lstm0[:, -1, :]
 
 		local_emb = torch.nn.functional.relu(self.linear(torch.cat((title_lstm, pre_lstm, post_lstm), dim=1)))
 
@@ -94,14 +97,14 @@ class LocalContextEncoder(torch.nn.Module):
 
 class DocumentEncoder(torch.nn.Module):
 
-	def __init__(self, info, word_emb_module):
+	def __init__(self, meta, word_emb_module):
 
 		super().__init__()
 
 		# Get dimensions
 		w2v_emb_size = word_emb_module.embedding_dim
-		num_label    = len(info.p_encoder.classes_)
-		num_brand    = len(info.b_encoder.classes_)
+		num_label    = len(meta.p_encoder.classes_)
+		num_brand    = len(meta.b_encoder.classes_)
 
 		# Set size
 		self.output_size = w2v_emb_size
@@ -127,7 +130,7 @@ class DocumentEncoder(torch.nn.Module):
 
 class DescriptionEncoder(torch.nn.Module):
 
-	def __init__(self, info, word_emb_module, cnn_emb_size, cnn_win_size):
+	def __init__(self, meta, word_emb_module, cnn_emb_size, cnn_win_size):
 
 		super().__init__()
 
@@ -148,7 +151,7 @@ class DescriptionEncoder(torch.nn.Module):
 		desc_pad = kwargs['desc_pad']
 
 		desc_pad_emb = self.word_emb(desc_pad)
-		desc_cnn     = self.conv1d(desc_pad_emb.permute(1, 2, 0))
+		desc_cnn     = self.conv1d(desc_pad_emb.permute(0, 2, 1))
 		desc_pool    = torch.nn.functional.max_pool1d(desc_cnn, desc_cnn.size()[2]).squeeze_(2)
 		desc_emb     = torch.nn.functional.relu(self.linear(desc_pool))
 

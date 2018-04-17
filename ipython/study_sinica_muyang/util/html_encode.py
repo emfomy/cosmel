@@ -57,7 +57,7 @@ if __name__ == '__main__':
 			bundle = corpus.id_to_mention_bundle[Article.path_to_aid(html_file)]
 
 			for mention in bundle:
-				idx0, idx1 = get_html_idxs(corpus.id_to_mention[mention.ids])
+				idx0, idx1 = get_html_idxs(corpus.id_to_mention[mention.asmid])
 				output_data[idx0] = add_start_xml(output_data[idx0], mention)
 				output_data[idx1] = add_end_xml(output_data[idx1], mention)
 

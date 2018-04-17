@@ -23,26 +23,26 @@ def get_xml_idx(xml_data, word, start_idx):
 def grep_mention(article, sid, mid, txt):
 	soup = BeautifulSoup(txt.split('>', 1)[0]+'>', 'lxml')
 	attrs = soup.product.attrs
-	attrs['sid'] = sid
-	attrs['mid'] = mid
+	attrs.pop('sid', None)
+	attrs.pop('mid', None)
 	attrs = dict((attr, value,) for attr, value in attrs.items() if value)
 
-	return Mention(article, **attrs)
+	return Mention(article, sid, mid, **attrs)
 
 if __name__ == '__main__':
 
 	assert len(sys.argv) > 1
 	ver = sys.argv[1]
 
-	textualized = False
+	textualized = True
 	get_mention = False
 
 	target        = f'pruned_article'
-	target2       = f'parsed_article'
+	# target2       = f'parsed_article'
+	target2       = f'pruned_article'
 	target_ver    = f''
-	target_ver    = f'_pid'
-	# target_ver    = f'_gid'
-	# target_ver    = f'_gid_6.1'
+	# target_ver    = f'_pid'
+	target_ver    = f'_gid_20180409_6.0'
 	tmp_root      = f'data/tmp'
 	data_root     = f'data/{ver}'
 	repo_root     = f'{data_root}/repo'

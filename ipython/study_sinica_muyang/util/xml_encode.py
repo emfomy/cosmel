@@ -24,10 +24,10 @@ if __name__ == '__main__':
 	assert len(sys.argv) > 1
 	ver = sys.argv[1]
 
-	target       = f'pruned_article'
+	target       = f'pruned_article_ma'
 	target_ver   = f''
 	# target_ver   = f'_pid'
-	target_ver   = f'_gid'
+	target_ver   = f'_gid_20180409'
 	data_root    = f'data/{ver}'
 	repo_root    = f'{data_root}/repo'
 	article_root = f'{data_root}/article/{target}_role'

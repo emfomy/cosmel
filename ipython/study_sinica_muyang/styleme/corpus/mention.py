@@ -95,9 +95,13 @@ class Mention:
 		return self.__article.bundle
 
 	@property
-	def ids(self):
+	def asmid(self):
 		"""tuple: the tuple of article ID, sentence ID, and mention ID."""
 		return (self.aid, self.sid, self.mid,)
+
+	@property
+	def ids(self):
+		return self.asmid
 
 	@property
 	def aid(self):
@@ -248,6 +252,7 @@ class MentionSet(collections.abc.Collection):
 	def __init__(self, mention_bundles):
 		super().__init__()
 		self.__data = list(itertools.chain.from_iterable(mention_bundles))
+		self.__path = mention_bundles.path
 
 	def __contains__(self, item):
 		return item in self.__data
@@ -257,6 +262,11 @@ class MentionSet(collections.abc.Collection):
 
 	def __len__(self):
 		return len(self.__data)
+
+	@property
+	def path(self):
+		"""str: the root path of the mentions."""
+		return self.__path
 
 
 class MentionBundle(collections.abc.Sequence):
@@ -365,6 +375,7 @@ class MentionBundleSet(collections.abc.Collection):
 
 	@property
 	def path(self):
+		"""str: the root path of the mentions."""
 		return self.__path
 
 	def save(self, output_root):
@@ -380,7 +391,7 @@ class MentionBundleSet(collections.abc.Collection):
 class Id2Mention(collections.abc.Mapping):
 	"""The dictionary maps article ID, sentence ID, and mention ID to mention object.
 
-	* Key:  the article ID (str).
+	* Key:  the article ID, sentence ID, and mention ID (tuple).
 	* Item: the mention object (:class:`.Mention`).
 
 	Args:
@@ -389,7 +400,7 @@ class Id2Mention(collections.abc.Mapping):
 
 	def __init__(self, mention_set):
 		super().__init__()
-		self.__data = dict((mention.ids, mention,) for mention in mention_set)
+		self.__data = dict((mention.asmid, mention,) for mention in mention_set)
 
 	def __contains__(self, key):
 		return key in self.__data

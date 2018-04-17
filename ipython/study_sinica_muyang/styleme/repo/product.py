@@ -18,7 +18,7 @@ class Product:
 	"""The product object.
 
 	Args:
-		pid (str):              the ID.
+		pid (str):               the ID.
 		brand (:class:`.Brand`): the brand.
 		name (str):              the name.
 		head (str):              the head word.
@@ -27,13 +27,14 @@ class Product:
 	"""
 
 	def __init__(self, pid, brand, name, head, name_ws, descr_ws):
-		self.__pid        = pid
+		self.__pid         = pid
 		self.__brand       = brand
 		self.__name        = name
 		self.__head        = head
 		self.__name_ws     = WsWords(name_ws)
 		self.__descr_ws    = WsWords(descr_ws)
-		self.__head_idx    = self.name_ws.txts.index(head)
+		if head:
+			self.__head_idx  = self.name_ws.txts.index(head)
 
 	def __str__(self):
 		return f'{self.__pid} {self.__brand!s} {self.__name}'

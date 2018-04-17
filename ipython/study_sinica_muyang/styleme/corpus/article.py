@@ -130,6 +130,7 @@ class ArticleSet(collections.abc.Collection):
 
 	@property
 	def path(self):
+		"""str: the root path of the articles."""
 		return self.__path
 
 
