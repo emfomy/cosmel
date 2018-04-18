@@ -18,7 +18,6 @@ from torch.nn.utils.rnn import pack_padded_sequence
 sys.path.insert(0, os.path.abspath('.'))
 from styleme import *
 from data import *
-from model2 import Model2 as Model
 
 class Inputs:
 
@@ -49,7 +48,7 @@ if __name__ == '__main__':
 				'and predicting model into "[<dir>/]<model_name>.predict.model"')
 	argparser.add_argument('-p', '--pretrain', metavar='<pretrained_name>', \
 			help='pretrained weight path; load model weight from "[<dir>/]<pretrained_name>.weight.pt"')
-	argparser.add_argument('-m', '--model', metavar='<model_name>', choices=['model2', 'model3'], \
+	argparser.add_argument('-m', '--model', metavar='<model_name>', choices=['model2', 'model3'], required=True, \
 			help='use model from <model_name>')
 	argparser.add_argument('--meta', metavar='<meta_name>', \
 			help='dataset meta path; default is "[<dir>/]meta.pkl"')

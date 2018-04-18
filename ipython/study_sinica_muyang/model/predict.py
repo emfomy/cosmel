@@ -37,9 +37,9 @@ if __name__ == '__main__':
 
 	argparser.add_argument('-d', '--data', metavar='<data_name>', required=True, \
 			help='testing data path; load data from "[<dir>]<data_name>.list.txt"')
-	argparser.add_argument('-w', '--weight', metavar='<weight_name>', \
+	argparser.add_argument('-w', '--weight', metavar='<weight_name>', required=True, \
 			help='model weight path; load model weight from "[<dir>]<weight_name>.weight.pt"')
-	argparser.add_argument('-m', '--model', metavar='<model_name>', choices=['model2', 'model3'], \
+	argparser.add_argument('-m', '--model', metavar='<model_name>', choices=['model2', 'model3'], required=True, \
 			help='use model from <model_name>')
 	argparser.add_argument('--meta', metavar='<meta_name>', \
 			help='dataset meta path; default is "[<dir>/]meta.pkl"')
