@@ -134,7 +134,7 @@ if __name__ == '__main__':
 		text_batch_idxs = np.split(np.random.permutation(num_text), range(text_batch_size, num_text, text_batch_size))
 		desc_batch_idxs = np.split(np.random.permutation(num_desc), range(desc_batch_size, num_desc, desc_batch_size))
 
-		for step, (text_batch_idx, desc_batch_idx) in enumerate(zip(text_batch_idxs, desc_batch_idxs)):
+		for step, text_batch_idx, desc_batch_idx in zip(range(num_step), text_batch_idxs, desc_batch_idxs):
 			text_batch = text_dataset[text_batch_idx]
 			desc_batch = desc_dataset[desc_batch_idx]
 

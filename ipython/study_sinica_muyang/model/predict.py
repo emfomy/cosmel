@@ -20,7 +20,8 @@ from data import *
 from train import Inputs
 
 def model_accuracy(predict_gid_code, true_gid_code, mask=slice(None,None), name='all'):
-	correct = (true_gid_code[mask] == predict_gid_code[mask])
+	assert (np.shape(predict_gid_code) == np.shape(true_gid_code))
+	correct = (predict_gid_code[mask] == true_gid_code[mask])
 	accuracy = correct.sum() / correct.size
 	print(f'accuracy ({name}) = {accuracy} ({correct.sum()}/{correct.size})')
 
@@ -90,25 +91,39 @@ if __name__ == '__main__':
 	num_test     = len(text_dataset)
 	print(f'num_test      = {num_test}')
 
+	# Set batch size
+	num_text        = len(text_dataset)
+	text_batch_size = 500
+	num_step        = int(np.ceil(num_text/text_batch_size))
+
 	# Load model
 	model = Model(meta)
+	model.cuda()
 	print()
 	model.load(model_file)
 	print(f'Loaded model from "{model_file}"')
 	print()
 
-	# Create inputs
-	text_batch = text_dataset[:]
-	inputs = Inputs(**text_batch)
-
 	# Apply model
-	predict_prob = model.predict(**vars(inputs)).data.numpy()
-	predict_gid_code = np.argmax(predict_prob, axis=1)
-	text_gid_code = text_batch['gid_code'].numpy()
+	predict_batch_prob = [None] * num_step
+	text_batch_idxs = np.split(range(num_text), range(text_batch_size, num_text, text_batch_size))
+	for step, text_batch_idx in zip(range(num_step), text_batch_idxs):
+		text_batch = text_dataset[text_batch_idx]
+		inputs = Inputs(**text_batch)
+		inputs.cuda()
+		predict_batch_prob[step] = model.predict(**vars(inputs)).cpu().data.numpy()
+		printr(f'Batch: {step+1:0{len(str(num_step))}}/{num_step}')
 
+	print()
+
+	# Concatenate result
+	predict_prob = np.concatenate(predict_batch_prob)
+	predict_gid_code = np.argmax(predict_prob, axis=1)
+	text_gid_code = text_dataset[:]['gid_code'].numpy()
+
+	# Check accuracy
 	osp_code = meta.p_encoder.transform(['OSP'])[0]
 	gp_code  = meta.p_encoder.transform(['GP'])[0]
-
 	model_accuracy(predict_gid_code, text_gid_code)
 	model_accuracy(predict_gid_code, text_gid_code, text_gid_code == osp_code, 'OSP')
 	model_accuracy(predict_gid_code, text_gid_code, text_gid_code == gp_code,  'GP')
