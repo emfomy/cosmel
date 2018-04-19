@@ -268,7 +268,7 @@ class MentionDataset():
 		text_1hot  = self.p_binarizer.transform(gid)
 
 		# Pad
-		title_pad  = pad_sequences(title_code, padding='pre')
+		title_pad  = pad_sequences(title_code, padding='post')
 		pre_pad    = pad_sequences(pre_code,   padding='pre')
 		post_pad   = pad_sequences(post_code,  padding='post')
 
@@ -335,8 +335,8 @@ class ProductDataset():
 		desc_1hot      = self.p_binarizer.transform(pid)
 
 		# Pad
-		desc_pad = pad_sequences(desc_code, padding='pre')
-		name_pad = pad_sequences(name_code, padding='pre')
+		desc_pad = pad_sequences(desc_code, padding='post')
+		name_pad = pad_sequences(name_code, padding='post')
 
 		# Convert to PyTorch
 		retval = BatchData()

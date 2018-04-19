@@ -39,17 +39,16 @@ if __name__ == '__main__':
 	arggroup.add_argument('-v', '--ver', metavar='<ver>#<date>', \
 			help='set <dir> as "result/<ver>_<date>"')
 	arggroup.add_argument('-D', '--dir', metavar='<dir>', \
-			help='append extensions to data and model path; use ".data.pkl" for data, ".weight.pt" for weight.')
+			help='prepend <dir> to data and model path')
 
 	argparser.add_argument('-d', '--data', metavar='<data_name>', required=True, \
 			help='training data path; load data list from "[<dir>/]<data_name>.list.txt"')
 	argparser.add_argument('-w', '--weight', metavar='<weight_name>', required=True, \
-			help='output weight path; output model weight into "[<dir>/]<weight_name>.weight.pt", '+ \
-				'and predicting model into "[<dir>/]<model_name>.predict.model"')
+			help='output weight path; output model weight into "[<dir>/]<weight_name>.<model_type>.weight.pt"')
 	argparser.add_argument('-p', '--pretrain', metavar='<pretrained_name>', \
 			help='pretrained weight path; load model weight from "[<dir>/]<pretrained_name>.weight.pt"')
-	argparser.add_argument('-m', '--model', metavar='<model_name>', choices=['model2', 'model3'], required=True, \
-			help='use model from <model_name>')
+	argparser.add_argument('-m', '--model', metavar='<model_type>', required=True, \
+		  choices=['model2c', 'model2cd', 'model2cp', 'model2cdp'], help='use model <model_type>')
 	argparser.add_argument('--meta', metavar='<meta_name>', \
 			help='dataset meta path; default is "[<dir>/]meta.pkl"')
 
@@ -70,30 +69,30 @@ if __name__ == '__main__':
 		result_root = f'{args.dir}/'
 
 	data_file     = f'{result_root}{args.data}.list.txt'
-	model_file    = f'{result_root}{args.weight}.weight.pt'
+	model_file    = f'{result_root}{args.weight}.{args.model}.pt'
 
 	pretrain_file = ''
 	if args.pretrain != None:
-		pretrain_file = f'{result_root}{args.pretrain}.weight.pt'
-
-	if args.model == 'model2':
-		from model2 import Model2 as Model
-	elif args.model == 'model3':
-		from model3 import Model3 as Model
+		pretrain_file = f'{result_root}{args.pretrain}.{args.model}.pt'
 
 	meta_file     = f'{result_root}meta.pkl'
 	if args.meta != None:
 		meta_file = args.meta
 
-	if args.model == 'model2':
-		from model2 import Model2 as Model
-	elif args.model == 'model3':
-		from model3 import Model3 as Model
+	if   args.model == 'model2c':
+		from model2.model2c   import Model2c   as Model
+	elif args.model == 'model2cd':
+		from model2.model2cd  import Model2cd  as Model
+	elif args.model == 'model2cp':
+		from model2.model2cp  import Model2cp  as Model
+	elif args.model == 'model2cdp':
+		from model2.model2cdp import Model2cdp as Model
 
 	# Print arguments
 	print()
 	print(args)
 	print()
+	print(f'model         = {args.model}')
 	print(f'data_file     = {data_file}')
 	print(f'model_file    = {model_file}')
 	print(f'pretrain_file = {pretrain_file}')
@@ -142,14 +141,13 @@ if __name__ == '__main__':
 			inputs.cuda()
 
 			# Forward and compute loss
-			text_loss, desc_loss = model(**vars(inputs))
-			loss  = text_loss + desc_loss
-
-			loss_data      = loss.data[0]
-			text_loss_data = text_loss.data[0]
-			desc_loss_data = desc_loss.data[0]
-			printr(f'Epoch: {epoch+1:0{len(str(num_epoch))}}/{num_epoch} | Batch: {step+1:0{len(str(num_step))}}/{num_step}' + \
-					f' | loss: {loss_data:.6f} | text_loss: {text_loss_data:.6f} | desc_loss: {desc_loss_data:.6f}')
+			losses = model(**vars(inputs))
+			loss = sum(losses.values())
+			printr( \
+					f'Epoch: {epoch+1:0{len(str(num_epoch))}}/{num_epoch}' + \
+					f' | Batch: {step+1:0{len(str(num_step))}}/{num_step}' + \
+					f' | loss: {loss.data[0]:.6f}' + \
+					''.join([f' | {k}: {v.data[0]:.6f}' for k, v in losses.items()]))
 			sys.stdout.flush()
 
 			optimizer.zero_grad()

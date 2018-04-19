@@ -39,9 +39,9 @@ if __name__ == '__main__':
 	argparser.add_argument('-d', '--data', metavar='<data_name>', required=True, \
 			help='testing data path; load data from "[<dir>]<data_name>.list.txt"')
 	argparser.add_argument('-w', '--weight', metavar='<weight_name>', required=True, \
-			help='model weight path; load model weight from "[<dir>]<weight_name>.weight.pt"')
-	argparser.add_argument('-m', '--model', metavar='<model_name>', choices=['model2', 'model3'], required=True, \
-			help='use model from <model_name>')
+			help='model weight path; load model weight from "[<dir>]<weight_name>.<model_type>.weight.pt"')
+	argparser.add_argument('-m', '--model', metavar='<model_type>', required=True, \
+		  choices=['model2c', 'model2cd', 'model2cp', 'model2cdp'], help='use model <model_type>')
 	argparser.add_argument('--meta', metavar='<meta_name>', \
 			help='dataset meta path; default is "[<dir>/]meta.pkl"')
 
@@ -62,12 +62,16 @@ if __name__ == '__main__':
 		result_root = f'{args.dir}/'
 
 	data_file     = f'{result_root}{args.data}.list.txt'
-	model_file    = f'{result_root}{args.weight}.weight.pt'
+	model_file    = f'{result_root}{args.weight}.{args.model}.pt'
 
-	if args.model == 'model2':
-		from model2 import Model2 as Model
-	elif args.model == 'model3':
-		from model3 import Model3 as Model
+	if   args.model == 'model2c':
+		from model2.model2c   import Model2c   as Model
+	elif args.model == 'model2cd':
+		from model2.model2cd  import Model2cd  as Model
+	elif args.model == 'model2cp':
+		from model2.model2cp  import Model2cp  as Model
+	elif args.model == 'model2cdp':
+		from model2.model2cdp import Model2cdp as Model
 
 	meta_file     = f'{result_root}meta.pkl'
 	if args.meta != None:
@@ -77,6 +81,7 @@ if __name__ == '__main__':
 	print()
 	print(args)
 	print()
+	print(f'model      = {args.model}')
 	print(f'data_file  = {data_file}')
 	print(f'model_file = {model_file}')
 	print(f'meta_file  = {meta_file}')
@@ -125,6 +130,7 @@ if __name__ == '__main__':
 	osp_code = meta.p_encoder.transform(['OSP'])[0]
 	gp_code  = meta.p_encoder.transform(['GP'])[0]
 	model_accuracy(predict_gid_code, text_gid_code)
+	model_accuracy(predict_gid_code, text_gid_code, np.logical_and(text_gid_code != osp_code, text_gid_code != gp_code), 'PID')
 	model_accuracy(predict_gid_code, text_gid_code, text_gid_code == osp_code, 'OSP')
 	model_accuracy(predict_gid_code, text_gid_code, text_gid_code == gp_code,  'GP')
 
