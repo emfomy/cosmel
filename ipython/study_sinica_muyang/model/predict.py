@@ -40,7 +40,7 @@ if __name__ == '__main__':
 	argparser.add_argument('-w', '--weight', metavar='<weight_name>', required=True, \
 			help='model weight path; load model weight from "[<dir>]<weight_name>.<model_type>.weight.pt"')
 	argparser.add_argument('-m', '--model', metavar='<model_type>', required=True, \
-		  choices=['model2c', 'model2cd', 'model2cn', 'model2cdn'], help='use model <model_type>')
+		  choices=['model0', 'model2c', 'model2cd', 'model2cn', 'model2cdn'], help='use model <model_type>')
 	argparser.add_argument('--meta', metavar='<meta_name>', \
 			help='dataset meta path; default is "[<dir>/]meta.pkl"')
 
@@ -63,7 +63,9 @@ if __name__ == '__main__':
 	data_file     = f'{result_root}{args.data}.list.txt'
 	model_file    = f'{result_root}{args.weight}.{args.model}.pt'
 
-	if   args.model == 'model2c':
+	if   args.model == 'model0':
+		from module.model0    import Model0    as Model
+	elif args.model == 'model2c':
 		from module.model2c   import Model2c   as Model
 	elif args.model == 'model2cd':
 		from module.model2cd  import Model2cd  as Model
@@ -107,25 +109,27 @@ if __name__ == '__main__':
 	print(f'num_test      = {num_test}')
 
 	# Apply model
-	pred_batch_prob = [None] * num_step
-	for step, inputs in enumerate(dataset.batch(num_step)):
+	pred_batch_gid = []
+	for step, inputs in enumerate(dataset.batch(num_step, shuffle=False, drop_last=False)):
 		inputs.cuda()
-		pred_batch_prob[step] = model.predict(inputs).cpu().data.numpy()
+		pred_batch_gid.append(model.predict(inputs))
 		printr(f'Batch: {step+1:0{len(str(num_step))}}/{num_step}')
 
 	print()
 
 	# Concatenate result
-	pred_prob = np.concatenate(pred_batch_prob)
-	pred_gid = meta.p_encoder.inverse_transform(np.argmax(pred_prob, axis=1))
+	pred_gid = np.concatenate(pred_batch_gid)
 	raw_data = dataset.raw(None)
 	true_gid = raw_data.gid
 
 	# Check accuracy
 	model_accuracy(pred_gid, true_gid, slice(None,None),                'accuracy       ')
 
-	model_accuracy(pred_gid, true_gid, [i.isdigit() for i in pred_gid], 'precision (PID)')
-	model_accuracy(pred_gid, true_gid, [i.isdigit() for i in true_gid], 'recall    (PID)')
+	model_accuracy(pred_gid, true_gid, [i.isdigit() for i in pred_gid], 'precision (ID) ')
+	model_accuracy(pred_gid, true_gid, [i.isdigit() for i in true_gid], 'recall    (ID) ')
+
+	model_accuracy(pred_gid, true_gid, pred_gid == 'PID',               'precision (PID)')
+	model_accuracy(pred_gid, true_gid, true_gid == 'PID',               'recall    (PID)')
 
 	model_accuracy(pred_gid, true_gid, pred_gid == 'OSP',               'precision (OSP)')
 	model_accuracy(pred_gid, true_gid, true_gid == 'OSP',               'recall    (OSP)')

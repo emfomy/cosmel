@@ -38,7 +38,7 @@ if __name__ == '__main__':
 	argparser.add_argument('-p', '--pretrain', metavar='<pretrained_name>', \
 			help='pretrained weight path; load model weight from "[<dir>/]<pretrained_name>.weight.pt"')
 	argparser.add_argument('-m', '--model', metavar='<model_type>', required=True, \
-		  choices=['model2c', 'model2cd', 'model2cn', 'model2cdn'], help='use model <model_type>')
+		  choices=['model0', 'model2c', 'model2cd', 'model2cn', 'model2cdn'], help='use model <model_type>')
 	argparser.add_argument('--meta', metavar='<meta_name>', \
 			help='dataset meta path; default is "[<dir>/]meta.pkl"')
 
@@ -69,7 +69,9 @@ if __name__ == '__main__':
 	if args.meta != None:
 		meta_file = args.meta
 
-	if   args.model == 'model2c':
+	if   args.model == 'model0':
+		from module.model0    import Model0    as Model
+	elif args.model == 'model2c':
 		from module.model2c   import Model2c   as Model
 	elif args.model == 'model2cd':
 		from module.model2cd  import Model2cd  as Model

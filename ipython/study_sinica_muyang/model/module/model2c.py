@@ -7,9 +7,9 @@ __copyright__ = 'Copyright 2017-2018'
 
 import os
 
-import torch
+import numpy as np
 
-from sklearn.preprocessing import LabelBinarizer
+import torch
 
 from .model2 import Model2
 
@@ -40,10 +40,10 @@ class Model2c(Model2):
 
 	def forward(self, inputs):
 
-		text_1hot = inputs._1hot
-		text_emb  = self.text_encoder(inputs.text)
+		text_1hot    = inputs._1hot
+		text_emb     = self.text_encoder(inputs.text)
 		text_softmax = torch.nn.functional.log_softmax(self.entity_emb(text_emb), dim=1)
-		text_loss = -torch.mean(torch.bmm(text_softmax.unsqueeze(dim=1), text_1hot.unsqueeze(dim=2)))
+		text_loss    = -torch.mean(torch.bmm(text_softmax.unsqueeze(dim=1), text_1hot.unsqueeze(dim=2)))
 
 		return {'text_loss': text_loss}
 
@@ -51,5 +51,6 @@ class Model2c(Model2):
 
 		text_emb     = self.text_encoder(inputs.text)
 		text_softmax = torch.nn.functional.log_softmax(self.entity_emb(text_emb), dim=1)
+		pred_gid     = self.meta.p_encoder.inverse_transform(np.argmax(text_softmax.cpu().data.numpy(), axis=1))
 
-		return text_softmax
+		return pred_gid

@@ -43,12 +43,22 @@ class CoreDataSet:
 	def __getitem__(self, idx):
 		return self.model.inputs(self.raw(idx))
 
-	def batch(self, num_step):
+	def batch(self, num_step, shuffle=True, drop_last=True):
+
+		if shuffle:
+			idxs     = np.random.permutation(len(self))
+		else:
+			idxs     = range(len(self))
 
 		batch_size = len(self) // num_step
-		batch_idxs = np.split(np.random.permutation(len(self)), range(batch_size, len(self), batch_size))
+		batch_idxs = np.split(idxs, range(batch_size, len(self), batch_size))
 
-		for _, idx in zip(range(num_step), batch_idxs):
+		if drop_last:
+			it = zip(range(num_step), batch_idxs)
+		else:
+			it = enumerate(batch_idxs)
+
+		for _, idx in it:
 			yield self[idx]
 
 
@@ -96,6 +106,19 @@ class MentionDataSet(CoreDataSet):
 		retval.rule = np.asarray([m.rule for m in sublist])
 
 		return retval
+
+
+################################################################################################################################
+# Mention Type Data Set
+#
+class MentionTypeDataSet(MentionDataSet):
+
+	def __init__(self, model, asmid_list):
+
+		super().__init__(model, asmid_list)
+		for m in self.mention_list:
+			if m.gid.isdigit(): m.set_gid('PID')
+			if m.pid.isdigit(): m.set_pid('PID')
 
 
 ################################################################################################################################
