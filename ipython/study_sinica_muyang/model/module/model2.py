@@ -9,11 +9,13 @@ import os
 
 import torch
 
-class Model2(torch.nn.Module):
+from .model import Model
+
+class Model2(Model):
 
 	def __init__(self, meta):
 
-		super().__init__()
+		super().__init__(meta)
 
 		# Get sizes
 		num_vocab = len(meta.keyed_vectors.vocab)
@@ -36,10 +38,3 @@ class Model2(torch.nn.Module):
 		# self.word_emb.weight.requires_grad = False
 
 		self.entity_emb = torch.nn.Linear(w2v_emb_size, num_label, bias=False)
-
-	def save(self, file):
-		os.makedirs(os.path.dirname(file), exist_ok=True)
-		torch.save(self.state_dict(), file)
-
-	def load(self, file):
-		self.load_state_dict(torch.load(file))

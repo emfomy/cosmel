@@ -9,9 +9,13 @@ import os
 
 import torch
 
+from sklearn.preprocessing import LabelBinarizer
+
 from .model2 import Model2
 
 class Model2c(Model2):
+
+	from .dataset import MentionDataSet as DataSet
 
 	def __init__(self, meta):
 
@@ -25,18 +29,27 @@ class Model2c(Model2):
 		# Create modules
 		self.text_encoder = ContextEncoder(meta, self.word_emb, lstm_emb_size)
 
-	def forward(self, **kwargs):
+	def inputs(self, raw):
 
-		text_1hot = kwargs['text_1hot']
-		text_emb = self.text_encoder(**kwargs)
+		# Combine inputs
+		from .dataset import Inputs
+		inputs = Inputs()
+		inputs._1hot = torch.autograd.Variable(torch.from_numpy(self.meta.p_binarizer.transform(raw.gid)).float())
+		inputs.text  = self.text_encoder.inputs(raw)
+		return inputs
+
+	def forward(self, inputs):
+
+		text_1hot = inputs._1hot
+		text_emb  = self.text_encoder(inputs.text)
 		text_softmax = torch.nn.functional.log_softmax(self.entity_emb(text_emb), dim=1)
 		text_loss = -torch.mean(torch.bmm(text_softmax.unsqueeze(dim=1), text_1hot.unsqueeze(dim=2)))
 
 		return {'text_loss': text_loss}
 
-	def predict(self, **kwargs):
+	def predict(self, inputs):
 
-		text_emb     = self.text_encoder(**kwargs)
+		text_emb     = self.text_encoder(inputs.text)
 		text_softmax = torch.nn.functional.log_softmax(self.entity_emb(text_emb), dim=1)
 
 		return text_softmax

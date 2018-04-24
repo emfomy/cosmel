@@ -17,7 +17,7 @@ from sklearn.model_selection import train_test_split
 
 sys.path.insert(0, os.path.abspath('.'))
 from styleme import *
-from data import DatasetMeta
+from meta import *
 
 
 if __name__ == '__main__':

@@ -18,5 +18,6 @@ Contents
 .. toctree::
 
    _api/styleme
+   _api/model
    genindex
    py-modindex

@@ -5,18 +5,20 @@
 __author__    = 'Mu Yang <emfomy@gmail.com>'
 __copyright__ = 'Copyright 2017-2018'
 
-import os
+import itertools
 
 import torch
 
 from keras.preprocessing.sequence import pad_sequences
-from sklearn.preprocessing import label_binarize
 
 def lstm_size(module):
 	return module.hidden_size * (module.bidirectional+1)
 
 def cnn_size(module):
 	return module.hidden_size
+
+def relu(x):
+	return max(x, 0)
 
 
 ################################################################################################################################
@@ -28,6 +30,7 @@ class ContextEncoder(torch.nn.Module):
 	def __init__(self, meta, word_emb_module, lstm_emb_size):
 
 		super().__init__()
+		self.meta = meta
 
 		# Set dimensions
 		w2v_emb_size = word_emb_module.embedding_dim
@@ -41,10 +44,19 @@ class ContextEncoder(torch.nn.Module):
 
 		self.linear = torch.nn.Linear(self.local_encoder.output_size + self.docu_encoder.output_size, self.output_size)
 
-	def forward(self, **kwargs):
+	def inputs(self, raw):
 
-		local_emb = self.local_encoder(**kwargs)
-		docu_emb  = self.docu_encoder(**kwargs)
+		# Combine inputs
+		from .dataset import Inputs
+		inputs = Inputs()
+		inputs.local = self.local_encoder.inputs(raw)
+		inputs.docu  = self.docu_encoder.inputs(raw)
+		return inputs
+
+	def forward(self, inputs):
+
+		local_emb = self.local_encoder(inputs.local)
+		docu_emb  = self.docu_encoder(inputs.docu)
 		text_emb  = torch.nn.functional.relu(self.linear(torch.cat((local_emb, docu_emb), dim=1)))
 
 		return text_emb
@@ -55,6 +67,7 @@ class LocalContextEncoder(torch.nn.Module):
 	def __init__(self, meta, word_emb_module, lstm_emb_size):
 
 		super().__init__()
+		self.meta = meta
 
 		# Set dimensions
 		w2v_emb_size = word_emb_module.embedding_dim
@@ -72,11 +85,54 @@ class LocalContextEncoder(torch.nn.Module):
 		lstm_cat_size  = lstm_size(self.title_lstm) + lstm_size(self.pre_lstm) + lstm_size(self.post_lstm)
 		self.linear = torch.nn.Linear(lstm_cat_size, self.output_size)
 
-	def forward(self, **kwargs):
+	def inputs(self, raw):
 
-		title_pad = kwargs['title_pad']
-		pre_pad   = kwargs['pre_pad']
-		post_pad  = kwargs['post_pad']
+		max_num_sentences = 5
+
+		# Load context
+		raw_title = [ \
+				mention.article[0].txts for mention in raw.sublist \
+		]
+		raw_pre  = [ \
+				list(itertools.chain( \
+						itertools.chain.from_iterable( \
+								s.txts for s in mention.article[relu(mention.sid-max_num_sentences):mention.sid] \
+						), \
+						mention.sentence_pre_().txts \
+				)) for mention in raw.sublist \
+		]
+		raw_post = [ \
+				list(itertools.chain( \
+						mention.sentence_post_().txts, \
+						itertools.chain.from_iterable( \
+								s.txts for s in mention.article[mention.sid+1:mention.sid+1+max_num_sentences] \
+						) \
+				)) for mention in raw.sublist \
+		]
+
+		# Encode
+		title_code = self.meta.tokenizer.transform_sequences(raw_title)
+		pre_code   = self.meta.tokenizer.transform_sequences(raw_pre)
+		post_code  = self.meta.tokenizer.transform_sequences(raw_post)
+
+		# Pad
+		title_pad  = pad_sequences(title_code, padding='post')
+		pre_pad    = pad_sequences(pre_code,   padding='pre')
+		post_pad   = pad_sequences(post_code,  padding='post')
+
+		# Combine inputs
+		from .dataset import Inputs
+		inputs = Inputs()
+		inputs.title_pad = torch.autograd.Variable(torch.from_numpy(title_pad).long())
+		inputs.pre_pad   = torch.autograd.Variable(torch.from_numpy(pre_pad).long())
+		inputs.post_pad  = torch.autograd.Variable(torch.from_numpy(post_pad).long())
+		return inputs
+
+	def forward(self, inputs):
+
+		title_pad = inputs.title_pad
+		pre_pad   = inputs.pre_pad
+		post_pad  = inputs.post_pad
 
 		title_pad_emb = self.word_emb(title_pad)
 		pre_pad_emb   = self.word_emb(pre_pad)
@@ -100,6 +156,7 @@ class DocumentEncoder(torch.nn.Module):
 	def __init__(self, meta, word_emb_module):
 
 		super().__init__()
+		self.meta = meta
 
 		# Get dimensions
 		w2v_emb_size = word_emb_module.embedding_dim
@@ -114,10 +171,31 @@ class DocumentEncoder(torch.nn.Module):
 
 		self.linear = torch.nn.Linear(num_label+num_brand, self.output_size)
 
-	def forward(self, **kwargs):
+	def inputs(self, raw):
 
-		pid_bag   = kwargs['pid_bag']
-		brand_bag = kwargs['brand_bag']
+		# Load bag
+		raw_pid_bag   = [set(m.pid for m in mention.bundle if m.rule == 'P_rule1') for mention in raw.sublist]
+		raw_brand_bag = [ \
+				set(raw.repo.bname_to_brand[t[0]][0] \
+						for t in itertools.chain.from_iterable(sentence.zip3 for sentence in mention.article) if t[2] == 'Brand' \
+				) for mention in raw.sublist \
+		]
+
+		# Encode
+		pid_bag    = self.meta.p_multibinarizer.transform(raw_pid_bag)
+		brand_bag  = self.meta.b_multibinarizer.transform(raw_brand_bag)
+
+		# Combine inputs
+		from .dataset import Inputs
+		inputs = Inputs()
+		inputs.pid_bag = torch.autograd.Variable(torch.from_numpy(pid_bag).float())
+		inputs.brand_bag   = torch.autograd.Variable(torch.from_numpy(brand_bag).float())
+		return inputs
+
+	def forward(self, inputs):
+
+		pid_bag   = inputs.pid_bag
+		brand_bag = inputs.brand_bag
 
 		docu_emb = torch.nn.functional.relu(self.linear(torch.cat((pid_bag, brand_bag), dim=1)))
 
@@ -133,6 +211,7 @@ class DescriptionEncoder(torch.nn.Module):
 	def __init__(self, meta, word_emb_module, cnn_emb_size, cnn_win_size):
 
 		super().__init__()
+		self.meta = meta
 
 		# Get dimensions
 		w2v_emb_size = word_emb_module.embedding_dim
@@ -146,9 +225,26 @@ class DescriptionEncoder(torch.nn.Module):
 		self.conv1d = torch.nn.Conv1d(w2v_emb_size, cnn_emb_size, cnn_win_size)
 		self.linear = torch.nn.Linear(cnn_emb_size, w2v_emb_size)
 
-	def forward(self, **kwargs):
+	def inputs(self, raw):
 
-		desc_pad = kwargs['desc_pad']
+		# Load context
+		raw_desc = [product.descr_ws.txts for product in raw.sublist]
+
+		# Encode
+		desc_code = self.meta.tokenizer.transform_sequences(raw_desc)
+
+		# Pad
+		desc_pad = pad_sequences(desc_code, padding='post')
+
+		# Combine inputs
+		from .dataset import Inputs
+		inputs = Inputs()
+		inputs.desc_pad = torch.autograd.Variable(torch.from_numpy(desc_pad).long())
+		return inputs
+
+	def forward(self, inputs):
+
+		desc_pad = inputs.desc_pad
 
 		desc_pad_emb = self.word_emb(desc_pad)
 		desc_cnn     = self.conv1d(desc_pad_emb.permute(0, 2, 1))
@@ -162,8 +258,21 @@ class DescriptionEncoder(torch.nn.Module):
 # Product Encoder
 #
 
-class ProductEncoder(DescriptionEncoder):
+class NameEncoder(DescriptionEncoder):
 
-	def forward(self, **kwargs):
+	def inputs(self, raw):
 
-		return super().forward(desc_pad=kwargs['name_pad'])
+		# Load context
+		raw_name = [list(product.brand) + product.name_ws.txts for product in sublist]
+
+		# Encode
+		name_code = self.meta.tokenizer.transform_sequences(raw_name)
+
+		# Pad
+		name_pad = pad_sequences(name_code, padding='post')
+
+		# Combine inputs
+		from .dataset import Inputs
+		inputs = Inputs()
+		inputs.desc_pad = torch.autograd.Variable(torch.from_numpy(name_pad).long())
+		return inputs

@@ -126,7 +126,7 @@ html_sidebars = {
 # -- Options for HTMLHelp output:---------------------------------------
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'StyleMedoc'
+htmlhelp_basename = 'StyleMeDoc'
 
 
 # -- Options for LaTeX output:------------------------------------------

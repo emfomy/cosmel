@@ -84,7 +84,7 @@ class Article(collections.abc.Sequence):
 		"""Save the article to file.
 
 			Args:
-				method: one of :function:`str`, :function:`txtstr`, :function:`roledstr`, :function:`roledtxtstr`.
+				method: one of :func:`str`, :func:`txtstr`, :func:`roledstr`, :func:`roledtxtstr`.
 
 		"""
 		os.makedirs(os.path.dirname(file_path), exist_ok=True)

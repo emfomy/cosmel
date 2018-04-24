@@ -68,12 +68,12 @@
 			product::after {
 				color: #aa0000;
 				/*content: "Here!";*/
-				content: attr(pid) "?";
+				content: "(" attr(pid) "?)";
 			}
 
 			product[gid]:not([gid=""])::after {
 				color: #00aa00;
-				content: attr(gid);
+				content: attr(gid) "(" attr(pid) "?)";
 			}
 		</style>
 	</head>
@@ -238,13 +238,20 @@
 						}
 					{% endfor %}
 
+					var broken_alert = [];
 					while ($('product product').length > 0) {
 						$('product product').each(
 							(i, e) => {
-								alert('Remove "product#' + $(e)[0].id + '"!');
+								// alert('Remove "product#' + $(e)[0].id + '"!');
+								broken_alert.push('{{part}}/{{aid}}#' + $(e)[0].id + '\n')
 								$(e).replaceWith('<notproduct>' + $(e).html() + '</notproduct>');
 							}
 						);
+					}
+					broken_alert.sort()
+					broken_alert = jQuery.unique(broken_alert);
+					if ( broken_alert.length ) {
+						alert(broken_alert.join(''));
 					}
 
 					updateCounter();

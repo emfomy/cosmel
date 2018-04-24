@@ -120,11 +120,6 @@ def colored(code, string):
 	return f'\033[{code}m{string}\033[0m'
 
 
-def relu(x):
-	"""ReLU function."""
-	return max(x, 0)
-
-
 def pause():
 	"""Pause until pressing Enter."""
 	input("Press Enter to continue...")

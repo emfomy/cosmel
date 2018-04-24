@@ -16,14 +16,13 @@ import torch
 
 sys.path.insert(0, os.path.abspath('.'))
 from styleme import *
-from data import *
-from train import Inputs
+from meta import *
 
-def model_accuracy(predict_gid_code, true_gid_code, mask=slice(None,None), name='all'):
-	assert (np.shape(predict_gid_code) == np.shape(true_gid_code))
-	correct = (predict_gid_code[mask] == true_gid_code[mask])
+def model_accuracy(pred_gid_code, true_gid_code, mask=slice(None,None), name='accuracy'):
+	assert (np.shape(pred_gid_code) == np.shape(true_gid_code))
+	correct = (pred_gid_code[mask] == true_gid_code[mask])
 	accuracy = correct.sum() / correct.size
-	print(f'accuracy ({name}) = {accuracy} ({correct.sum()}/{correct.size})')
+	print(f'{name} = {accuracy} ({correct.sum()}/{correct.size})')
 
 if __name__ == '__main__':
 
@@ -41,7 +40,7 @@ if __name__ == '__main__':
 	argparser.add_argument('-w', '--weight', metavar='<weight_name>', required=True, \
 			help='model weight path; load model weight from "[<dir>]<weight_name>.<model_type>.weight.pt"')
 	argparser.add_argument('-m', '--model', metavar='<model_type>', required=True, \
-		  choices=['model2c', 'model2cd', 'model2cp', 'model2cdp'], help='use model <model_type>')
+		  choices=['model2c', 'model2cd', 'model2cn', 'model2cdn'], help='use model <model_type>')
 	argparser.add_argument('--meta', metavar='<meta_name>', \
 			help='dataset meta path; default is "[<dir>/]meta.pkl"')
 
@@ -65,13 +64,13 @@ if __name__ == '__main__':
 	model_file    = f'{result_root}{args.weight}.{args.model}.pt'
 
 	if   args.model == 'model2c':
-		from model2.model2c   import Model2c   as Model
+		from module.model2c   import Model2c   as Model
 	elif args.model == 'model2cd':
-		from model2.model2cd  import Model2cd  as Model
-	elif args.model == 'model2cp':
-		from model2.model2cp  import Model2cp  as Model
-	elif args.model == 'model2cdp':
-		from model2.model2cdp import Model2cdp as Model
+		from module.model2cd  import Model2cd  as Model
+	elif args.model == 'model2cn':
+		from module.model2cn  import Model2cp  as Model
+	elif args.model == 'model2cdn':
+		from module.model2cdn import Model2cdp as Model
 
 	meta_file     = f'{result_root}meta.pkl'
 	if args.meta != None:
@@ -89,19 +88,8 @@ if __name__ == '__main__':
 
 	if args.check: exit()
 
-	# Load data
-	meta         = DatasetMeta.load(meta_file)
-	asmid_list   = AsmidList.load(data_file)
-	text_dataset = MentionDataset(meta, asmid_list)
-	num_test     = len(text_dataset)
-	print(f'num_test      = {num_test}')
-
-	# Set batch size
-	num_text        = len(text_dataset)
-	text_batch_size = 500
-	num_step        = int(np.ceil(num_text/text_batch_size))
-
 	# Load model
+	meta  = DatasetMeta.load(meta_file)
 	model = Model(meta)
 	model.cuda()
 	print()
@@ -109,29 +97,40 @@ if __name__ == '__main__':
 	print(f'Loaded model from "{model_file}"')
 	print()
 
+	# Load dataset
+	asmid_list = AsmidList.load(data_file)
+	dataset    = model.dataset(asmid_list)
+
+	# Set batch size
+	num_test = len(dataset)
+	num_step = num_test // 500
+	print(f'num_test      = {num_test}')
+
 	# Apply model
-	predict_batch_prob = [None] * num_step
-	text_batch_idxs = np.split(range(num_text), range(text_batch_size, num_text, text_batch_size))
-	for step, text_batch_idx in zip(range(num_step), text_batch_idxs):
-		text_batch = text_dataset[text_batch_idx]
-		inputs = Inputs(**text_batch)
+	pred_batch_prob = [None] * num_step
+	for step, inputs in enumerate(dataset.batch(num_step)):
 		inputs.cuda()
-		predict_batch_prob[step] = model.predict(**vars(inputs)).cpu().data.numpy()
+		pred_batch_prob[step] = model.predict(inputs).cpu().data.numpy()
 		printr(f'Batch: {step+1:0{len(str(num_step))}}/{num_step}')
 
 	print()
 
 	# Concatenate result
-	predict_prob = np.concatenate(predict_batch_prob)
-	predict_gid_code = np.argmax(predict_prob, axis=1)
-	text_gid_code = text_dataset[:]['gid_code'].numpy()
+	pred_prob = np.concatenate(pred_batch_prob)
+	pred_gid = meta.p_encoder.inverse_transform(np.argmax(pred_prob, axis=1))
+	raw_data = dataset.raw(None)
+	true_gid = raw_data.gid
 
 	# Check accuracy
-	osp_code = meta.p_encoder.transform(['OSP'])[0]
-	gp_code  = meta.p_encoder.transform(['GP'])[0]
-	model_accuracy(predict_gid_code, text_gid_code)
-	model_accuracy(predict_gid_code, text_gid_code, np.logical_and(text_gid_code != osp_code, text_gid_code != gp_code), 'PID')
-	model_accuracy(predict_gid_code, text_gid_code, text_gid_code == osp_code, 'OSP')
-	model_accuracy(predict_gid_code, text_gid_code, text_gid_code == gp_code,  'GP')
+	model_accuracy(pred_gid, true_gid, slice(None,None),                'accuracy       ')
+
+	model_accuracy(pred_gid, true_gid, [i.isdigit() for i in pred_gid], 'precision (PID)')
+	model_accuracy(pred_gid, true_gid, [i.isdigit() for i in true_gid], 'recall    (PID)')
+
+	model_accuracy(pred_gid, true_gid, pred_gid == 'OSP',               'precision (OSP)')
+	model_accuracy(pred_gid, true_gid, true_gid == 'OSP',               'recall    (OSP)')
+
+	model_accuracy(pred_gid, true_gid, pred_gid == 'GP',                'precision (GP) ')
+	model_accuracy(pred_gid, true_gid, true_gid == 'GP',                'recall    (GP) ')
 
 	pass

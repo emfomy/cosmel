@@ -12,18 +12,18 @@ import sys
 
 import numpy as np
 
-import keras.models
-
-from gensim.models.keyedvectors import KeyedVectors
+import torch
 
 sys.path.insert(0, os.path.abspath('.'))
 from styleme import *
-from data import DataPack
+from meta import *
 from predict import model_accuracy
+from module.dataset import MentionDataSet
 
 if __name__ == '__main__':
 
-	argparser = argparse.ArgumentParser(description='Test StyleMe rule.')
+	# Parse arguments
+	argparser = argparse.ArgumentParser(description='Test StyleMe model.')
 
 	arggroup = argparser.add_mutually_exclusive_group()
 	arggroup.add_argument('-v', '--ver', metavar='<ver>#<date>', \
@@ -32,7 +32,9 @@ if __name__ == '__main__':
 			help='prepend <dir> to data and model path')
 
 	argparser.add_argument('-d', '--data', metavar='<data_name>', required=True, \
-			help='testing data path; load data from "[<dir>]<data_name>.data.pkl"')
+			help='testing data path; load data from "[<dir>]<data_name>.list.txt"')
+	argparser.add_argument('--meta', metavar='<meta_name>', \
+			help='dataset meta path; default is "[<dir>/]meta.pkl"')
 
 	argparser.add_argument('-c', '--check', action='store_true', help='Check arguments.')
 
@@ -50,24 +52,45 @@ if __name__ == '__main__':
 	if args.dir != None:
 		result_root = f'{args.dir}/'
 
-	data_file     = f'{result_root}{args.data}.data.pkl'
+	data_file     = f'{result_root}{args.data}.list.txt'
+
+	meta_file     = f'{result_root}meta.pkl'
+	if args.meta != None:
+		meta_file = args.meta
 
 	# Print arguments
 	print()
 	print(args)
 	print()
-	print(f'data_file  = {data_file}')
+	print(f'data_file = {data_file}')
 	print()
 
 	if args.check: exit()
 
-	# Load data
-	pack = DataPack.load(data_file)
-	num_test = pack.data.gid_code.shape[0]
+	# Load dataset
+	meta       = DatasetMeta.load(meta_file)
+	asmid_list = AsmidList.load(data_file)
+	dataset    = MentionDataSet(type('', (object,), {'meta': meta}), asmid_list)
+
+	# Set batch size
+	num_test = len(dataset)
 	print(f'num_test = {num_test}')
 
-	# Check accuracy of PID
-	model_accuracy(pack.data.pid, pack.data.gid)
-	model_accuracy(pack.data.pid, pack.data.gid, pack.data.rule == 'P_rule1', 'P_rule1')
+	# Concatenate result
+	raw_data = dataset.raw(None)
+	pred_gid = raw_data.pid
+	true_gid = raw_data.gid
+
+	# Check accuracy
+	model_accuracy(pred_gid, true_gid, slice(None,None),                'accuracy       ')
+
+	model_accuracy(pred_gid, true_gid, [i.isdigit() for i in pred_gid], 'precision (PID)')
+	model_accuracy(pred_gid, true_gid, [i.isdigit() for i in true_gid], 'recall    (PID)')
+
+	model_accuracy(pred_gid, true_gid, pred_gid == 'OSP',               'precision (OSP)')
+	model_accuracy(pred_gid, true_gid, true_gid == 'OSP',               'recall    (OSP)')
+
+	model_accuracy(pred_gid, true_gid, pred_gid == 'GP',                'precision (GP) ')
+	model_accuracy(pred_gid, true_gid, true_gid == 'GP',                'recall    (GP) ')
 
 	pass

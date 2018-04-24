@@ -10,10 +10,11 @@ SPHINXAPIOPTS   =
 
 PROJ = StyleMe
 
-DOCDIR    = .
-BUILDDIR  = _build
-SOURCEDIR = ../styleme
-APIDIR    = _api
+DOCDIR     = .
+BUILDDIR   = _build
+SOURCEDIR1 = ../styleme
+SOURCEDIR2 = ../model
+APIDIR     = _api
 
 # Put it first so that "make" without argument is like "make help".
 help:
@@ -22,7 +23,8 @@ help:
 .PHONY: help Makefile api clean
 
 api:
-	@$(SPHINXAPI) -fMeT -o "$(APIDIR)"  "$(SOURCEDIR)" $(SPHINXAPIOPTS)
+	@$(SPHINXAPI) -fMeT -o "$(APIDIR)" "$(SOURCEDIR1)" $(SPHINXAPIOPTS)
+	@$(SPHINXAPI) -fMeT -o "$(APIDIR)" "$(SOURCEDIR2)" $(SPHINXAPIOPTS)
 
 clean: Makefile
 	@$(SPHINXBUILD) -M $@ "$(DOCDIR)" "$(BUILDDIR)" $(SPHINXBUILDOPTS)
