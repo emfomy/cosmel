@@ -55,7 +55,7 @@ class ContextEncoder(torch.nn.Module):
 
 		local_emb = self.local_encoder(inputs.local)
 		docu_emb  = self.docu_encoder(inputs.docu)
-		text_emb  = torch.nn.functional.relu(self.linear(torch.cat((local_emb, docu_emb), dim=1)))
+		text_emb  = self.linear(torch.cat((local_emb, docu_emb), dim=1)).clamp(min=0)
 
 		return text_emb
 
@@ -144,7 +144,7 @@ class LocalContextEncoder(torch.nn.Module):
 		pre_lstm   = pre_lstm0[:, -1, :]
 		post_lstm  = post_lstm0[:, -1, :]
 
-		local_emb = torch.nn.functional.relu(self.linear(torch.cat((title_lstm, pre_lstm, post_lstm), dim=1)))
+		local_emb = self.linear(torch.cat((title_lstm, pre_lstm, post_lstm), dim=1)).clamp(min=0)
 
 		return local_emb
 
@@ -195,7 +195,7 @@ class DocumentEncoder(torch.nn.Module):
 		pid_bag   = inputs.pid_bag
 		brand_bag = inputs.brand_bag
 
-		docu_emb = torch.nn.functional.relu(self.linear(torch.cat((pid_bag, brand_bag), dim=1)))
+		docu_emb = self.linear(torch.cat((pid_bag, brand_bag), dim=1)).clamp(min=0)
 
 		return docu_emb
 
@@ -247,7 +247,7 @@ class DescriptionEncoder(torch.nn.Module):
 		desc_pad_emb = self.word_emb(desc_pad)
 		desc_cnn     = self.conv1d(desc_pad_emb.permute(0, 2, 1))
 		desc_pool    = torch.nn.functional.max_pool1d(desc_cnn, desc_cnn.size()[2]).squeeze_(2)
-		desc_emb     = torch.nn.functional.relu(self.linear(desc_pool))
+		desc_emb     = self.linear(desc_pool).clamp(min=0)
 
 		return desc_emb
 

@@ -120,8 +120,8 @@ if __name__ == '__main__':
 			printr( \
 					f'Epoch: {epoch+1:0{len(str(num_epoch))}}/{num_epoch}' + \
 					f' | Batch: {step+1:0{len(str(num_step))}}/{num_step}' + \
-					f' | loss: {loss.data[0]:.6f}' + \
-					''.join([f' | {k}: {v.data[0]:.6f}' for k, v in losses.items()]))
+					f' | loss: {loss.data.item():.6f}' + \
+					''.join([f' | {k}: {v.data.item():.6f}' for k, v in losses.items()]))
 			sys.stdout.flush()
 
 			optimizer.zero_grad()
