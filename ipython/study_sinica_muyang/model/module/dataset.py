@@ -117,7 +117,6 @@ class MentionTypeDataSet(MentionDataSet):
 		super().__init__(model, asmid_list)
 		for m in self.mention_list:
 			if m.gid.isdigit(): m.set_gid('PID')
-			if m.pid.isdigit(): m.set_pid('PID')
 
 
 ################################################################################################################################

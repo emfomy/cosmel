@@ -85,8 +85,11 @@ if __name__ == '__main__':
 	# Check accuracy
 	model_accuracy(pred_gid, true_gid, slice(None,None),                'accuracy       ')
 
-	model_accuracy(pred_gid, true_gid, [i.isdigit() for i in pred_gid], 'precision (PID)')
-	model_accuracy(pred_gid, true_gid, [i.isdigit() for i in true_gid], 'recall    (PID)')
+	model_accuracy(pred_gid, true_gid, [i.isdigit() for i in pred_gid], 'precision (ID) ')
+	model_accuracy(pred_gid, true_gid, [i.isdigit() for i in true_gid], 'recall    (ID) ')
+
+	# model_accuracy(pred_gid, true_gid, pred_gid == 'PID',               'precision (PID)')
+	# model_accuracy(pred_gid, true_gid, true_gid == 'PID',               'recall    (PID)')
 
 	model_accuracy(pred_gid, true_gid, pred_gid == 'OSP',               'precision (OSP)')
 	model_accuracy(pred_gid, true_gid, true_gid == 'OSP',               'recall    (OSP)')

@@ -21,7 +21,7 @@ class Model0(Model):
 
 	def __init__(self, meta):
 
-		from .module import LocalContextEncoder
+		from .module import ContextEncoder
 
 		super().__init__(meta)
 
@@ -33,7 +33,7 @@ class Model0(Model):
 		self.mtype_encoder.fit(['PID', 'OSP', 'GP'])
 
 		# Create modules
-		self.local_encoder = LocalContextEncoder(meta, self.word_emb, lstm_emb_size)
+		self.local_encoder = ContextEncoder(meta, self.word_emb, lstm_emb_size)
 		self.linear1       = torch.nn.Linear(self.local_encoder.output_size, 100)
 		self.linear2       = torch.nn.Linear(100, len(self.mtype_encoder.classes_))
 

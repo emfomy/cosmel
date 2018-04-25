@@ -180,8 +180,8 @@ class DocumentEncoder(torch.nn.Module):
 		]
 
 		# Encode
-		pid_bag    = self.meta.p_multibinarizer.transform(raw_pid_bag)
-		brand_bag  = self.meta.b_multibinarizer.transform(raw_brand_bag)
+		pid_bag   = self.meta.p_multibinarizer.transform(raw_pid_bag)
+		brand_bag = self.meta.b_multibinarizer.transform(raw_brand_bag)
 
 		# Combine inputs
 		from .dataset import Inputs
