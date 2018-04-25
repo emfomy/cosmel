@@ -10,6 +10,7 @@ Requirements
 ------------
 
 * `Python <https://www.python.org/>`_ 3.6.
+* `Pytorch <http://pytorch.org/>`_ 0.4.0.
 * [optional] `sphinx_rtd_theme <https://github.com/rtfd/sphinx_rtd_theme/>`_.
 
 Contents
