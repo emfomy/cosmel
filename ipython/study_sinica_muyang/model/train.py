@@ -38,7 +38,7 @@ if __name__ == '__main__':
 	argparser.add_argument('-p', '--pretrain', metavar='<pretrained_name>', \
 			help='pretrained weight path; load model weight from "[<dir>/]<pretrained_name>.weight.pt"')
 	argparser.add_argument('-m', '--model', metavar='<model_type>', required=True, \
-		  choices=['model0', 'model2c', 'model2cd', 'model2cn', 'model2cdn'], help='use model <model_type>')
+		  help='use model <model_type>')
 	argparser.add_argument('--meta', metavar='<meta_name>', \
 			help='dataset meta path; default is "[<dir>/]meta.pkl"')
 
@@ -69,16 +69,9 @@ if __name__ == '__main__':
 	if args.meta != None:
 		meta_file = args.meta
 
-	if   args.model == 'model0':
-		from module.model0    import Model0    as Model
-	elif args.model == 'model2c':
-		from module.model2c   import Model2c   as Model
-	elif args.model == 'model2cd':
-		from module.model2cd  import Model2cd  as Model
-	elif args.model == 'model2cn':
-		from module.model2cn  import Model2cp  as Model
-	elif args.model == 'model2cdn':
-		from module.model2cdn import Model2cdp as Model
+	model_pkg_name = args.model
+	model_cls_name = args.model.capitalize()
+	Model = getattr(__import__('module.'+model_pkg_name, fromlist=model_cls_name), model_cls_name)
 
 	# Print arguments
 	print()
@@ -103,12 +96,13 @@ if __name__ == '__main__':
 
 	# Load dataset
 	asmid_list = AsmidList.load(data_file)
+	print()
 	dataset    = model.dataset(asmid_list)
 
 	# Set batch size
 	num_train = len(dataset)
 	num_step  = num_train // 500
-	print(f'num_train     = {num_train}')
+	print(f'num_train = {num_train}')
 
 	# Create optimizer
 	optimizer = torch.optim.Adam(filter(lambda p: p.requires_grad, model.parameters()))

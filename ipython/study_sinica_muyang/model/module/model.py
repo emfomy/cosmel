@@ -19,18 +19,13 @@ class Model(torch.nn.Module):
 
 		# Get sizes
 		num_vocab = len(meta.keyed_vectors.vocab)
-		num_label = len(meta.p_encoder.classes_)
-		num_brand = len(meta.b_encoder.classes_)
-		print(f'num_vocab     = {num_vocab}')
-		print(f'num_label     = {num_label}')
-		print(f'num_brand     = {num_brand}')
 
 		# Prepare embeddings
 		vocab_embedding = meta.keyed_vectors[meta.keyed_vectors.index2word]
 		vocab_embedding[0] = 0
 
 		# Set dimensions
-		self.w2v_emb_size  = meta.keyed_vectors.vector_size
+		self.w2v_emb_size = meta.keyed_vectors.vector_size
 
 		# Create modules
 		self.word_emb = torch.nn.Embedding(num_vocab, self.w2v_emb_size)

@@ -70,6 +70,7 @@ if __name__ == '__main__':
 	# Load dataset
 	meta       = DatasetMeta.load(meta_file)
 	asmid_list = AsmidList.load(data_file)
+	print()
 	dataset    = MentionDataSet(type('', (object,), {'meta': meta}), asmid_list)
 
 	# Set batch size

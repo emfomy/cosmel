@@ -9,8 +9,6 @@ import itertools
 
 import torch
 
-from keras.preprocessing.sequence import pad_sequences
-
 def lstm_size(module):
 	return module.hidden_size * (module.bidirectional+1)
 
@@ -116,9 +114,9 @@ class LocalContextEncoder(torch.nn.Module):
 		post_code  = self.meta.tokenizer.transform_sequences(raw_post)
 
 		# Pad
-		title_pad  = pad_sequences(title_code, padding='post')
-		pre_pad    = pad_sequences(pre_code,   padding='pre')
-		post_pad   = pad_sequences(post_code,  padding='post')
+		title_pad  = self.meta.padder(title_code, padding='post')
+		pre_pad    = self.meta.padder(pre_code,   padding='pre')
+		post_pad   = self.meta.padder(post_code,  padding='post')
 
 		# Combine inputs
 		from .dataset import Inputs
@@ -188,8 +186,8 @@ class DocumentEncoder(torch.nn.Module):
 		# Combine inputs
 		from .dataset import Inputs
 		inputs = Inputs()
-		inputs.pid_bag = torch.autograd.Variable(torch.from_numpy(pid_bag).float())
-		inputs.brand_bag   = torch.autograd.Variable(torch.from_numpy(brand_bag).float())
+		inputs.pid_bag   = torch.autograd.Variable(torch.from_numpy(pid_bag).float())
+		inputs.brand_bag = torch.autograd.Variable(torch.from_numpy(brand_bag).float())
 		return inputs
 
 	def forward(self, inputs):
@@ -234,7 +232,7 @@ class DescriptionEncoder(torch.nn.Module):
 		desc_code = self.meta.tokenizer.transform_sequences(raw_desc)
 
 		# Pad
-		desc_pad = pad_sequences(desc_code, padding='post')
+		desc_pad = self.meta.padder(desc_code, padding='post')
 
 		# Combine inputs
 		from .dataset import Inputs
@@ -269,7 +267,7 @@ class NameEncoder(DescriptionEncoder):
 		name_code = self.meta.tokenizer.transform_sequences(raw_name)
 
 		# Pad
-		name_pad = pad_sequences(name_code, padding='post')
+		name_pad = self.meta.padder(name_code, padding='post')
 
 		# Combine inputs
 		from .dataset import Inputs

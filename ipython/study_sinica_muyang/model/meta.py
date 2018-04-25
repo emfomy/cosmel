@@ -68,18 +68,26 @@ class AsmidList(list):
 
 class Tokenizer(BaseEstimator, TransformerMixin):
 
+	def __init__(self, classes=None):
+
+		super().__init__()
+
+		if classes: self.classes_ = classes
+		self.__fit_index()
+
 	def fit(self, y):
 		y = column_or_1d(y, warn=True)
-		assert '' not in y
-		self.classes_ = np.insert(np.unique(y), 0, '')
-		self.index_   = {s: i for i, s in enumerate(self.classes_)}
+		self.classes_ = np.unique(y)
+		self.__fit_index()
 		return self
+
+	def __fit_index(self):
+		self.index_ = {s: i+1 for i, s in enumerate(self.classes_)}
 
 	def transform(self, y):
 		check_is_fitted(self, 'index_')
 		y = column_or_1d(y, warn=True)
-		assert '' not in y
-		return np.asarray([self.index_[s] for s in y if s in self.index_])
+		return [self.index_[s] for s in y if s in self.index_]
 
 	def fit_transform(self, y):
 		self.fit(y)
@@ -88,7 +96,7 @@ class Tokenizer(BaseEstimator, TransformerMixin):
 	def inverse_transform(self, y):
 		check_is_fitted(self, 'classes_')
 		assert 0 not in y
-		return self.classes_[y]
+		return self.classes_[y-1]
 
 	def transform_sequences(self, yy):
 		return [self.transform(y) for y in yy]
@@ -97,33 +105,102 @@ class Tokenizer(BaseEstimator, TransformerMixin):
 		return [self.inverse_transform(y) for y in yy]
 
 
+# class Tokenizer():
+
+# 	def __init__(self, classes=None):
+# 		from keras.preprocessing.text import Tokenizer as _Tokenizer
+# 		self._tokenizer = _Tokenizer()
+# 		if classes: self.fit(classes)
+
+# 	def fit(self, y):
+# 		self._tokenizer.fit_on_texts([' '.join(y)])
+# 		return self
+
+# 	def transform(self, y):
+# 		return self._tokenizer.texts_to_sequences([' '.join(y)])
+
+# 	def fit_transform(self, y):
+# 		self.fit(y)
+# 		self.transform(y)
+
+# 	def transform_sequences(self, yy):
+# 		return self._tokenizer.texts_to_sequences([' '.join(y) for y in yy])
+
+# 	@property
+# 	def classes_(self):
+# 		return np.asarray(list(self._tokenizer.word_index.keys()))
+
+
+class Padder():
+
+	def pad(self, yy, dtype='int64', padding='pre', value=0.):
+		numy   = len(yy)
+		maxlen = max(map(len, yy))
+		retval = (np.ones((numy, maxlen)) * value).astype(dtype)
+		for idx, y in enumerate(yy):
+			if not len(y):
+				continue
+
+			assert value not in y
+
+			if padding == 'post':
+				retval[idx, :len(y)] = y
+			elif padding == 'pre':
+				retval[idx, -len(y):] = y
+			else:
+				raise ValueError(f'Padding type "{padding}" not understood')
+		return retval
+
+	def __call__(self, *args, **kwargs):
+		return self.pad(*args, **kwargs)
+
+
 class DatasetMeta:
 
-	def __init__(self, repo, corpus, emb_file):
+	class Core:
 
-		# Save pathes
-		self.repo_path    = repo.path
-		self.article_path = corpus.article_set.path
-		self.mention_path = corpus.mention_set.path
+		def __init__(self, repo, corpus, emb_file):
 
-		# Load word vectors
-		self.keyed_vectors = KeyedVectors.load_word2vec_format(emb_file, binary=True)
+			# Save pathes
+			self.repo_path    = repo.path
+			self.article_path = corpus.article_set.path
+			self.mention_path = corpus.mention_set.path
+
+			# Save word vectors
+			self.keyed_vectors = KeyedVectors.load_word2vec_format(emb_file, binary=True)
+
+			# Save product ID and brand names
+			self.pids   = list(repo.id_to_product.keys())
+			self.bnames = list(b[0] for b in repo.brand_set)
+
+	@staticmethod
+	def new(repo, corpus, emb_file):
+		return DatasetMeta(DatasetMeta.Core(repo, corpus, emb_file))
+
+	def __init__(self, core):
+
+		# Initlaize core
+		self.core = core
+		for k, v in vars(self.core).items():
+			setattr(self, k, v)
 
 		# Prepare tokenizer
-		self.tokenizer = Tokenizer()
-		self.tokenizer.fit(self.keyed_vectors.index2word[1:])
+		self.tokenizer = Tokenizer(self.keyed_vectors.index2word[1:])
 		num_vocab = len(self.tokenizer.classes_)+1
 		print(f'num_vocab   = {num_vocab}')
 
+		# Prepare padder
+		self.padder = Padder()
+
 		# Prepare product encoder
 		self.p_encoder = LabelEncoder()
-		self.p_encoder.fit(['OSP', 'GP'] + list(repo.id_to_product.keys()))
+		self.p_encoder.fit(['OSP', 'GP'] + self.pids)
 		num_product = len(self.p_encoder.classes_)
 		print(f'num_product = {num_product}')
 
 		# Prepare brand encoder
 		self.b_encoder = LabelEncoder()
-		self.b_encoder.fit(list(repo.bname_to_brand.keys()))
+		self.b_encoder.fit(self.bnames)
 		num_brand = len(self.b_encoder.classes_)
 		print(f'num_brand   = {num_brand}')
 
@@ -151,10 +228,10 @@ class DatasetMeta:
 		os.makedirs(os.path.dirname(file), exist_ok=True)
 		print(f'Dump data meta into {file}')
 		with open(file, 'wb') as fout:
-			pickle.dump(self, fout, protocol=4)
+			pickle.dump(self.core, fout, protocol=4)
 
 	@staticmethod
 	def load(file):
 		print(f'Load data meta from {file}')
 		with open(file, 'rb') as fin:
-			return pickle.load(fin)
+			return DatasetMeta(pickle.load(fin))

@@ -21,8 +21,10 @@ from meta import *
 def model_accuracy(pred_gid_code, true_gid_code, mask=slice(None,None), name='accuracy'):
 	assert (np.shape(pred_gid_code) == np.shape(true_gid_code))
 	correct = (pred_gid_code[mask] == true_gid_code[mask])
-	accuracy = correct.sum() / correct.size
-	print(f'{name} = {accuracy} ({correct.sum()}/{correct.size})')
+	csum = correct.sum()
+	clen = correct.size
+	accuracy = csum / clen
+	print(f'{name} = {accuracy} ({csum}/{clen})')
 
 if __name__ == '__main__':
 
@@ -40,7 +42,7 @@ if __name__ == '__main__':
 	argparser.add_argument('-w', '--weight', metavar='<weight_name>', required=True, \
 			help='model weight path; load model weight from "[<dir>]<weight_name>.<model_type>.weight.pt"')
 	argparser.add_argument('-m', '--model', metavar='<model_type>', required=True, \
-		  choices=['model0', 'model2c', 'model2cd', 'model2cn', 'model2cdn'], help='use model <model_type>')
+		  help='use model <model_type>')
 	argparser.add_argument('--meta', metavar='<meta_name>', \
 			help='dataset meta path; default is "[<dir>/]meta.pkl"')
 
@@ -63,16 +65,9 @@ if __name__ == '__main__':
 	data_file     = f'{result_root}{args.data}.list.txt'
 	model_file    = f'{result_root}{args.weight}.{args.model}.pt'
 
-	if   args.model == 'model0':
-		from module.model0    import Model0    as Model
-	elif args.model == 'model2c':
-		from module.model2c   import Model2c   as Model
-	elif args.model == 'model2cd':
-		from module.model2cd  import Model2cd  as Model
-	elif args.model == 'model2cn':
-		from module.model2cn  import Model2cp  as Model
-	elif args.model == 'model2cdn':
-		from module.model2cdn import Model2cdp as Model
+	model_pkg_name = args.model
+	model_cls_name = args.model.capitalize()
+	Model = getattr(__import__('module.'+model_pkg_name, fromlist=model_cls_name), model_cls_name)
 
 	meta_file     = f'{result_root}meta.pkl'
 	if args.meta != None:
@@ -101,12 +96,13 @@ if __name__ == '__main__':
 
 	# Load dataset
 	asmid_list = AsmidList.load(data_file)
+	print()
 	dataset    = model.dataset(asmid_list)
 
 	# Set batch size
 	num_test = len(dataset)
 	num_step = num_test // 500
-	print(f'num_test      = {num_test}')
+	print(f'num_test = {num_test}')
 
 	# Apply model
 	pred_batch_gid = []

@@ -40,25 +40,21 @@ class CoreDataSet:
 		self.model = model
 		self.meta  = model.meta
 
-	def __getitem__(self, idx):
-		return self.model.inputs(self.raw(idx))
-
 	def batch(self, num_step, shuffle=True, drop_last=True):
 
 		if shuffle:
-			idxs     = np.random.permutation(len(self))
+			idxs = np.random.permutation(len(self))
 		else:
-			idxs     = range(len(self))
-
-		batch_size = len(self) // num_step
-		batch_idxs = np.split(idxs, range(batch_size, len(self), batch_size))
+			idxs = range(len(self))
 
 		if drop_last:
-			it = zip(range(num_step), batch_idxs)
+			batch_size = len(self) // num_step
 		else:
-			it = enumerate(batch_idxs)
+			batch_size = int(np.ceil(len(self) / num_step))
 
-		for _, idx in it:
+		batch_idxs = np.split(idxs, range(batch_size, len(self), batch_size))[:num_step]
+
+		for idx in batch_idxs:
 			yield self[idx]
 
 
@@ -84,6 +80,9 @@ class MentionDataSet(CoreDataSet):
 
 	def __len__(self):
 		return len(self.mention_list)
+
+	def __getitem__(self, idx):
+		return self.model.inputs(self.raw(idx))
 
 	def raw(self, idx=None):
 
@@ -136,6 +135,9 @@ class ProductDataSet(CoreDataSet):
 
 	def __len__(self):
 		return len(self.product_list)
+
+	def __getitem__(self, idx):
+		return self.model.inputs(self.raw(idx))
 
 	def raw(self, idx=None):
 

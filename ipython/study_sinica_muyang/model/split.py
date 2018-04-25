@@ -103,30 +103,36 @@ if __name__ == '__main__':
 	print()
 
 	# Prepare dataset meta
-	meta = DatasetMeta(repo, corpus, emb_file)
+	meta = DatasetMeta.new(repo, corpus, emb_file)
 	meta.dump(meta_file)
 
-	# Load mention list
-	pid_asmid_list = [json.dumps({'aid': m.aid, 'sid': m.sid, 'mid': m.mid, 'use_gid': False}) \
-			for m in corpus.mention_set if m.pid]
-	gid_asmid_list = [json.dumps({'aid': m.aid, 'sid': m.sid, 'mid': m.mid, 'use_gid': True}) \
-			for m in corpus.mention_set if m.gid]
+	if len(corpus.mention_set) == 0:
 
-	pid_asmid_train_list, pid_asmid_test_list = train_test_split(pid_asmid_list, test_size=0.3, random_state=0, shuffle=True)
-	gid_asmid_train_list, gid_asmid_test_list = train_test_split(gid_asmid_list, test_size=0.3, random_state=0, shuffle=True)
+		print('\nIgnore asmid list generation.')
 
-	def dump_asmid_list(file, asmid_list):
-		os.makedirs(os.path.dirname(file), exist_ok=True)
-		print(f'Dump data into {file}')
-		with open(file, 'w') as fout:
-			for j in asmid_list:
-				fout.write(j+'\n')
+	else:
 
-	dump_asmid_list(pid_asmid_file,       pid_asmid_list)
-	dump_asmid_list(gid_asmid_file,       gid_asmid_list)
-	dump_asmid_list(pid_asmid_train_file, pid_asmid_train_list)
-	dump_asmid_list(pid_asmid_test_file,  pid_asmid_test_list)
-	dump_asmid_list(gid_asmid_train_file, gid_asmid_train_list)
-	dump_asmid_list(gid_asmid_test_file,  gid_asmid_test_list)
+		# Load mention list
+		pid_asmid_list = [json.dumps({'aid': m.aid, 'sid': m.sid, 'mid': m.mid, 'use_gid': False}) \
+				for m in corpus.mention_set if m.pid]
+		gid_asmid_list = [json.dumps({'aid': m.aid, 'sid': m.sid, 'mid': m.mid, 'use_gid': True}) \
+				for m in corpus.mention_set if m.gid]
+
+		pid_asmid_train_list, pid_asmid_test_list = train_test_split(pid_asmid_list, test_size=0.3, random_state=0, shuffle=True)
+		gid_asmid_train_list, gid_asmid_test_list = train_test_split(gid_asmid_list, test_size=0.3, random_state=0, shuffle=True)
+
+		def dump_asmid_list(file, asmid_list):
+			os.makedirs(os.path.dirname(file), exist_ok=True)
+			print(f'Dump data into {file}')
+			with open(file, 'w') as fout:
+				for j in asmid_list:
+					fout.write(j+'\n')
+
+		dump_asmid_list(pid_asmid_file,       pid_asmid_list)
+		dump_asmid_list(gid_asmid_file,       gid_asmid_list)
+		dump_asmid_list(pid_asmid_train_file, pid_asmid_train_list)
+		dump_asmid_list(pid_asmid_test_file,  pid_asmid_test_list)
+		dump_asmid_list(gid_asmid_train_file, gid_asmid_train_list)
+		dump_asmid_list(gid_asmid_test_file,  gid_asmid_test_list)
 
 	pass
