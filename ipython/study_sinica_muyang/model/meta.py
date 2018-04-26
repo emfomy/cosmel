@@ -203,7 +203,7 @@ class DataSetMeta:
 
 		# Prepare product encoder
 		self.p_encoder = LabelEncoder()
-		self.p_encoder.fit(['GP' + 'OSP'] + self.pids)
+		self.p_encoder.fit(self.pids)
 		num_product = len(self.p_encoder.classes_)
 		print(f'num_product = {num_product}')
 
