@@ -38,11 +38,15 @@ if __name__ == '__main__':
 	argparser.add_argument('-p', '--pretrain', metavar='<pretrained_name>', \
 			help='pretrained weight path; load model weight from "[<dir>/]<pretrained_name>.weight.pt"')
 	argparser.add_argument('-m', '--model', metavar='<model_type>', required=True, \
-		  help='use model <model_type>')
+			help='use model <model_type>')
+	argparser.add_argument('-t', '--data-type', metavar='<data_type>', \
+			choices=['sp', 'mtype'], help='process data type preprocessing')
 	argparser.add_argument('--meta', metavar='<meta_name>', \
 			help='dataset meta path; default is "[<dir>/]meta.pkl"')
 
-	argparser.add_argument('-c', '--check', action='store_true', help='Check arguments.')
+	argparser.add_argument('--xargs', help='Extra arguments for the model')
+
+	argparser.add_argument('-c', '--check', action='store_true', help='Check arguments')
 
 	args = argparser.parse_args()
 
@@ -73,6 +77,12 @@ if __name__ == '__main__':
 	model_cls_name = args.model.capitalize()
 	Model = getattr(__import__('module.'+model_pkg_name, fromlist=model_cls_name), model_cls_name)
 
+	data_type = args.data_type
+
+	xargs = []
+	if args.xargs != None:
+		xargs = args.xargs.split()
+
 	# Print arguments
 	print()
 	print(args)
@@ -82,13 +92,16 @@ if __name__ == '__main__':
 	print(f'model_file    = {model_file}')
 	print(f'pretrain_file = {pretrain_file}')
 	print(f'meta_file     = {meta_file}')
+	print(f'data_type     = {data_type}')
+	print()
+	print(f'xargs         = {xargs}')
 	print()
 
 	if args.check: exit()
 
 	# Create model
-	meta  = DatasetMeta.load(meta_file)
-	model = Model(meta)
+	meta  = DataSetMeta.load(meta_file)
+	model = Model(meta, xargs)
 	model.cuda()
 	print()
 	print(model)
@@ -96,12 +109,16 @@ if __name__ == '__main__':
 
 	# Load dataset
 	asmid_list = AsmidList.load(data_file)
+	if data_type == 'sp':
+		asmid_list.filter_sp()
+	if data_type == 'mtype':
+		asmid_list.gid_to_mtype()
 	print()
-	dataset    = model.dataset(asmid_list)
+	dataset = model.dataset(asmid_list)
 
 	# Set batch size
 	num_train = len(dataset)
-	num_step  = num_train // 500
+	num_step  = max(num_train // 500, 1)
 	print(f'num_train = {num_train}')
 
 	# Create optimizer
@@ -111,10 +128,10 @@ if __name__ == '__main__':
 	num_epoch = 20
 	for epoch in range(num_epoch):
 
-		for step, inputs in enumerate(dataset.batch(num_step)):
+		for step, batch in enumerate(dataset.batch(num_step)):
 
 			# Forward and compute loss
-			inputs.cuda()
+			inputs = model.inputs(batch).cuda()
 			losses = model(inputs)
 			loss = sum(losses.values())
 			printr( \

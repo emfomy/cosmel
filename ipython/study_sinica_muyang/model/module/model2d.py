@@ -13,13 +13,15 @@ from .model2 import Model2
 
 class Model2d(Model2):
 
-	from .dataset import ProductDataSet as DataSet
+	def __init__(self, meta, xargs):
 
-	def __init__(self, meta):
+		import argparse
+		parser = argparse.ArgumentParser(description='Model 2d')
+		args, xargs_unk = parser.parse_known_args(xargs)
 
 		from .module import DescriptionEncoder
 
-		super().__init__(meta)
+		super().__init__(meta, xargs_unk)
 
 		# Set dimensions
 		cnn_emb_size = 100
@@ -40,7 +42,7 @@ class Model2d(Model2):
 	def forward(self, inputs):
 
 		desc_1hot = inputs._1hot
-		desc_emb  = self.desc_encoder(inputs._desc)
+		desc_emb  = self.desc_encoder(inputs.desc)
 		desc_softmax = torch.nn.functional.log_softmax(self.entity_emb(desc_emb), dim=1)
 		desc_loss = -torch.mean(torch.bmm(desc_softmax.unsqueeze(dim=1), desc_1hot.unsqueeze(dim=2)))
 

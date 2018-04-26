@@ -13,22 +13,26 @@ from .model2c import Model2c
 from .model2d import Model2d
 from .model2n import Model2n
 
-class Model2cdp(Model2c, Model2d, Model2n):
+class Model2cdn(Model2c, Model2d, Model2n):
 
 	from .dataset import MentionProductDataSet as DataSet
 
-	def __init__(self, meta):
+	def __init__(self, meta, xargs):
 
-		super().__init__(meta)
+		import argparse
+		parser = argparse.ArgumentParser(description='Model 2cdn')
+		args, xargs_unk = parser.parse_known_args(xargs)
+
+		super().__init__(meta, xargs_unk)
 
 	def inputs(self, raws):
 
 		# Combine inputs
 		from .dataset import Inputs
 		inputs = Inputs()
-		inputs._2c = Model2c.inputs(raws[0])
-		inputs._2d = Model2d.inputs(raws[1])
-		inputs._2n = Model2d.inputs(raws[1])
+		inputs._2c = Model2c.inputs(self, raws[0])
+		inputs._2d = Model2d.inputs(self, raws[1])
+		inputs._2n = Model2d.inputs(self, raws[1])
 		return inputs
 
 	def forward(self, inputs):

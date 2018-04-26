@@ -13,13 +13,15 @@ from .model2 import Model2
 
 class Model2n(Model2):
 
-	from .dataset import ProductDataSet as DataSet
+	def __init__(self, meta, xargs):
 
-	def __init__(self, meta):
+		import argparse
+		parser = argparse.ArgumentParser(description='Model 2n')
+		args, xargs_unk = parser.parse_known_args(xargs)
 
 		from .module import NameEncoder
 
-		super().__init__(meta)
+		super().__init__(meta, xargs_unk)
 
 		# Set dimensions
 		cnn_emb_size = 100

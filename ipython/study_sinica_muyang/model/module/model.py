@@ -11,7 +11,11 @@ import torch
 
 class Model(torch.nn.Module):
 
-	def __init__(self, meta):
+	def __init__(self, meta, xargs):
+
+		import argparse
+		parser = argparse.ArgumentParser(description='Core Model')
+		args = parser.parse_args(xargs)
 
 		super().__init__()
 
@@ -34,6 +38,9 @@ class Model(torch.nn.Module):
 
 	def dataset(self, asm_list):
 		return self.DataSet(self, asm_list)
+
+	def dataset_predict(self, asm_list):
+		return self.DataSetPredict(self, asm_list)
 
 	def save(self, file):
 		os.makedirs(os.path.dirname(file), exist_ok=True)

@@ -26,7 +26,7 @@ if __name__ == '__main__':
 	argparser = argparse.ArgumentParser(description='Split StyleMe training/testing data.')
 
 	argparser.add_argument('-v', '--ver', metavar='<ver>#<date>', required=True, \
-			help='StyleMe corpus version; load data from "data/<ver>", and load mention from "data/<ver1>/pruned_article_gid_<date>"')
+			help='StyleMe corpus version; load data from "data/<ver>", and load mention from "data/<ver>/pruned_article_gid_<date>"')
 	argparser.add_argument('-D', '--dir', metavar='<dir>', \
 			help='data path prefix; output data into "<dir>/"; default is "result/<ver>_<date>"')
 	argparser.add_argument('-e', '--embedding', metavar='<embedding_path>', \
@@ -103,7 +103,7 @@ if __name__ == '__main__':
 	print()
 
 	# Prepare dataset meta
-	meta = DatasetMeta.new(repo, corpus, emb_file)
+	meta = DataSetMeta.new(repo, corpus, emb_file)
 	meta.dump(meta_file)
 
 	if len(corpus.mention_set) == 0:
@@ -113,9 +113,9 @@ if __name__ == '__main__':
 	else:
 
 		# Load mention list
-		pid_asmid_list = [json.dumps({'aid': m.aid, 'sid': m.sid, 'mid': m.mid, 'use_gid': False}) \
+		pid_asmid_list = [json.dumps({'aid': m.aid, 'sid': m.sid, 'mid': m.mid, 'gid': m.pid, 'pid': m.pid}) \
 				for m in corpus.mention_set if m.pid]
-		gid_asmid_list = [json.dumps({'aid': m.aid, 'sid': m.sid, 'mid': m.mid, 'use_gid': True}) \
+		gid_asmid_list = [json.dumps({'aid': m.aid, 'sid': m.sid, 'mid': m.mid, 'gid': m.gid, 'pid': m.pid}) \
 				for m in corpus.mention_set if m.gid]
 
 		pid_asmid_train_list, pid_asmid_test_list = train_test_split(pid_asmid_list, test_size=0.3, random_state=0, shuffle=True)

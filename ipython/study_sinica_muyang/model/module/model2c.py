@@ -16,12 +16,17 @@ from .model2 import Model2
 class Model2c(Model2):
 
 	from .dataset import MentionDataSet as DataSet
+	from .dataset import MentionDataSet as DataSetPredict
 
-	def __init__(self, meta):
+	def __init__(self, meta, xargs):
+
+		import argparse
+		parser = argparse.ArgumentParser(description='Model 2c')
+		args, xargs_unk = parser.parse_known_args(xargs)
 
 		from .module import ContextEncoder
 
-		super().__init__(meta)
+		super().__init__(meta, xargs_unk)
 
 		# Set dimensions
 		lstm_emb_size = 100
@@ -46,6 +51,15 @@ class Model2c(Model2):
 		text_loss    = -torch.mean(torch.bmm(text_softmax.unsqueeze(dim=1), text_1hot.unsqueeze(dim=2)))
 
 		return {'text_loss': text_loss}
+
+	def inputs_predict(self, raw):
+
+		# Combine inputs
+		from .dataset import Inputs
+		inputs = Inputs()
+		inputs._1hot = torch.autograd.Variable(torch.from_numpy(self.meta.p_binarizer.transform(raw.gid)).float())
+		inputs.text  = self.text_encoder.inputs(raw)
+		return inputs
 
 	def predict(self, inputs):
 

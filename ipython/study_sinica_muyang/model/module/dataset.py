@@ -40,6 +40,9 @@ class CoreDataSet:
 		self.model = model
 		self.meta  = model.meta
 
+	def __getitem__(self, idx):
+		return self.raw(idx)
+
 	def batch(self, num_step, shuffle=True, drop_last=True):
 
 		if shuffle:
@@ -72,17 +75,15 @@ class MentionDataSet(CoreDataSet):
 		self.corpus = Corpus(self.meta.article_path, self.meta.mention_path, parts=parts)
 
 		self.mention_list = [self.corpus.id_to_mention[asmid.asmid] for asmid in asmid_list]
+		for m, asmid in zip(self.mention_list, asmid_list):
+			m.set_gid(asmid.gid)
+			m.set_pid(asmid.pid)
 		for m in self.mention_list:
 			if m.gid == 'NAP': m.set_gid('GP')
 			if m.pid == 'NAP': m.set_pid('GP')
-		for m, asmid in zip(self.mention_list, asmid_list):
-			if not asmid.use_gid: m.set_gid(m.pid)
 
 	def __len__(self):
 		return len(self.mention_list)
-
-	def __getitem__(self, idx):
-		return self.model.inputs(self.raw(idx))
 
 	def raw(self, idx=None):
 
@@ -108,18 +109,6 @@ class MentionDataSet(CoreDataSet):
 
 
 ################################################################################################################################
-# Mention Type Data Set
-#
-class MentionTypeDataSet(MentionDataSet):
-
-	def __init__(self, model, asmid_list):
-
-		super().__init__(model, asmid_list)
-		for m in self.mention_list:
-			if m.gid.isdigit(): m.set_gid('PID')
-
-
-################################################################################################################################
 # Product Data Set
 #
 class ProductDataSet(CoreDataSet):
@@ -134,9 +123,6 @@ class ProductDataSet(CoreDataSet):
 
 	def __len__(self):
 		return len(self.product_list)
-
-	def __getitem__(self, idx):
-		return self.model.inputs(self.raw(idx))
 
 	def raw(self, idx=None):
 
@@ -153,7 +139,7 @@ class ProductDataSet(CoreDataSet):
 		retval.sublist = sublist
 
 		# Load Data
-		retval.pid  = np.asarray([p.pid for p in sublist])
+		retval.pid = np.asarray([p.pid for p in sublist])
 
 		return retval
 
@@ -173,5 +159,9 @@ class MentionProductDataSet(CoreDataSet):
 	def __len__(self):
 		return len(self.mention_dataset)
 
-	def batch(self, num_step):
-		return zip(self.mention_dataset.batch(num_step), self.product_dataset.batch(num_step))
+	def __getitem__(self, idx):
+		return self.model.inputs(self.mention_dataset.raw(idx))
+
+	def batch(self, num_step, shuffle=True, drop_last=True):
+		return zip(self.mention_dataset.batch(num_step, shuffle, drop_last),
+				self.product_dataset.batch(num_step, shuffle, drop_last))

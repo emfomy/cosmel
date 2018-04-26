@@ -6,6 +6,7 @@ __author__    = 'Mu Yang <emfomy@gmail.com>'
 __copyright__ = 'Copyright 2017-2018'
 
 
+import collections.abc
 import itertools
 import json
 import os
@@ -34,10 +35,11 @@ class Asmid:
 
 	def __init__(self, json_str):
 		data = json.loads(json_str)
-		self.aid     = data['aid']
-		self.sid     = data['sid']
-		self.mid     = data['mid']
-		self.use_gid = data['use_gid']
+		self.aid = data['aid']
+		self.sid = data['sid']
+		self.mid = data['mid']
+		self.pid = data['pid']
+		self.gid = data['gid']
 
 	def __str__(self):
 		return str(self.__dict__)
@@ -50,13 +52,35 @@ class Asmid:
 		return (self.aid, self.sid, self.mid,)
 
 
-class AsmidList(list):
+class AsmidList(collections.abc.Sequence):
+
+	def __init__(self, data):
+		super().__init__()
+		self.__data = list(data)
+
+	def __contains__(self, item):
+		return item in self.__data
+
+	def __getitem__(self, key):
+		return self.__data[key]
+
+	def __iter__(self):
+		return iter(self.__data)
+
+	def __len__(self):
+		return len(self.__data)
+
+	def __str__(self):
+		return str(self.__data)
+
+	def __repr__(self):
+		return str(self)
 
 	def dump(self, file):
 		os.makedirs(os.path.dirname(file), exist_ok=True)
 		print(f'Dump asmid list into {file}')
 		with open(file, 'w') as fout:
-			for asmid in self:
+			for asmid in self.__data:
 				fout.write(asmid+'\n')
 
 	@staticmethod
@@ -64,6 +88,17 @@ class AsmidList(list):
 		print(f'Load asmid list from {file}')
 		with open(file) as fin:
 			return AsmidList(Asmid(s) for s in fin)
+
+	def gid_to_mtype(self):
+		for asmid in self.__data:
+			if asmid.gid.isdigit(): asmid.gid = 'PID'
+
+	def pid_to_mtype(self):
+		for asmid in self.__data:
+			if asmid.pid.isdigit(): asmid.pid = 'PID'
+
+	def filter_sp(self):
+		self.__data = [asmid for asmid in self.__data if asmid.gid.isdigit()]
 
 
 class Tokenizer(BaseEstimator, TransformerMixin):
@@ -105,32 +140,6 @@ class Tokenizer(BaseEstimator, TransformerMixin):
 		return [self.inverse_transform(y) for y in yy]
 
 
-# class Tokenizer():
-
-# 	def __init__(self, classes=None):
-# 		from keras.preprocessing.text import Tokenizer as _Tokenizer
-# 		self._tokenizer = _Tokenizer()
-# 		if classes: self.fit(classes)
-
-# 	def fit(self, y):
-# 		self._tokenizer.fit_on_texts([' '.join(y)])
-# 		return self
-
-# 	def transform(self, y):
-# 		return self._tokenizer.texts_to_sequences([' '.join(y)])
-
-# 	def fit_transform(self, y):
-# 		self.fit(y)
-# 		self.transform(y)
-
-# 	def transform_sequences(self, yy):
-# 		return self._tokenizer.texts_to_sequences([' '.join(y) for y in yy])
-
-# 	@property
-# 	def classes_(self):
-# 		return np.asarray(list(self._tokenizer.word_index.keys()))
-
-
 class Padder():
 
 	def pad(self, yy, dtype='int64', padding='pre', value=0.):
@@ -155,7 +164,7 @@ class Padder():
 		return self.pad(*args, **kwargs)
 
 
-class DatasetMeta:
+class DataSetMeta:
 
 	class Core:
 
@@ -175,7 +184,7 @@ class DatasetMeta:
 
 	@staticmethod
 	def new(repo, corpus, emb_file):
-		return DatasetMeta(DatasetMeta.Core(repo, corpus, emb_file))
+		return DataSetMeta(DataSetMeta.Core(repo, corpus, emb_file))
 
 	def __init__(self, core):
 
@@ -194,7 +203,7 @@ class DatasetMeta:
 
 		# Prepare product encoder
 		self.p_encoder = LabelEncoder()
-		self.p_encoder.fit(['OSP', 'GP'] + self.pids)
+		self.p_encoder.fit(['GP' + 'OSP'] + self.pids)
 		num_product = len(self.p_encoder.classes_)
 		print(f'num_product = {num_product}')
 
@@ -234,4 +243,4 @@ class DatasetMeta:
 	def load(file):
 		print(f'Load data meta from {file}')
 		with open(file, 'rb') as fin:
-			return DatasetMeta(pickle.load(fin))
+			return DataSetMeta(pickle.load(fin))

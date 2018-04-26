@@ -43,10 +43,14 @@ if __name__ == '__main__':
 			help='model weight path; load model weight from "[<dir>]<weight_name>.<model_type>.weight.pt"')
 	argparser.add_argument('-m', '--model', metavar='<model_type>', required=True, \
 		  help='use model <model_type>')
+	argparser.add_argument('-t', '--data-type', metavar='<data_type>', \
+			choices=['sp', 'mtype'], help='process data type preprocessing')
 	argparser.add_argument('--meta', metavar='<meta_name>', \
 			help='dataset meta path; default is "[<dir>/]meta.pkl"')
 
-	argparser.add_argument('-c', '--check', action='store_true', help='Check arguments.')
+	argparser.add_argument('--xargs', help='Extra arguments for the model')
+
+	argparser.add_argument('-c', '--check', action='store_true', help='Check arguments')
 
 	args = argparser.parse_args()
 
@@ -65,13 +69,19 @@ if __name__ == '__main__':
 	data_file     = f'{result_root}{args.data}.list.txt'
 	model_file    = f'{result_root}{args.weight}.{args.model}.pt'
 
+	meta_file     = f'{result_root}meta.pkl'
+	if args.meta != None:
+		meta_file = args.meta
+
 	model_pkg_name = args.model
 	model_cls_name = args.model.capitalize()
 	Model = getattr(__import__('module.'+model_pkg_name, fromlist=model_cls_name), model_cls_name)
 
-	meta_file     = f'{result_root}meta.pkl'
-	if args.meta != None:
-		meta_file = args.meta
+	data_type = args.data_type
+
+	xargs = []
+	if args.xargs != None:
+		xargs = args.xargs.split()
 
 	# Print arguments
 	print()
@@ -81,13 +91,16 @@ if __name__ == '__main__':
 	print(f'data_file  = {data_file}')
 	print(f'model_file = {model_file}')
 	print(f'meta_file  = {meta_file}')
+	print(f'data_type  = {data_type}')
+	print()
+	print(f'xargs      = {xargs}')
 	print()
 
 	if args.check: exit()
 
 	# Load model
-	meta  = DatasetMeta.load(meta_file)
-	model = Model(meta)
+	meta  = DataSetMeta.load(meta_file)
+	model = Model(meta, xargs)
 	model.cuda()
 	print()
 	model.load(model_file)
@@ -96,18 +109,22 @@ if __name__ == '__main__':
 
 	# Load dataset
 	asmid_list = AsmidList.load(data_file)
+	if data_type == 'sp':
+		asmid_list.filter_sp()
+	if data_type == 'mtype':
+		asmid_list.gid_to_mtype()
 	print()
-	dataset    = model.dataset(asmid_list)
+	dataset = model.dataset_predict(asmid_list)
 
 	# Set batch size
 	num_test = len(dataset)
-	num_step = num_test // 500
+	num_step = max(num_test // 500, 1)
 	print(f'num_test = {num_test}')
 
 	# Apply model
 	pred_batch_gid = []
-	for step, inputs in enumerate(dataset.batch(num_step, shuffle=False, drop_last=False)):
-		inputs.cuda()
+	for step, batch in enumerate(dataset.batch(num_step, shuffle=False, drop_last=False)):
+		inputs = model.inputs_predict(batch).cuda()
 		pred_batch_gid.append(model.predict(inputs))
 		printr(f'Batch: {step+1:0{len(str(num_step))}}/{num_step}')
 
@@ -132,5 +149,8 @@ if __name__ == '__main__':
 
 	model_accuracy(pred_gid, true_gid, pred_gid == 'GP',                'precision (GP) ')
 	model_accuracy(pred_gid, true_gid, true_gid == 'GP',                'recall    (GP) ')
+
+	from sklearn.metrics import confusion_matrix
+	print(confusion_matrix(true_gid, pred_gid))
 
 	pass

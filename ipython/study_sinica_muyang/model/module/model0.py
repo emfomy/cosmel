@@ -17,13 +17,17 @@ from .model import Model
 
 class Model0(Model):
 
-	from .dataset import MentionTypeDataSet as DataSet
+	from .dataset import MentionDataSet as DataSet
 
-	def __init__(self, meta):
+	def __init__(self, meta, xargs):
+
+		import argparse
+		parser = argparse.ArgumentParser(description='Model 0')
+		args, xargs_unk = parser.parse_known_args(xargs)
 
 		from .module import ContextEncoder
 
-		super().__init__(meta)
+		super().__init__(meta, xargs_unk)
 
 		# Set dimensions
 		lstm_emb_size = 100
