@@ -11,7 +11,7 @@ import numpy as np
 
 import torch
 
-from sklearn import preprocessing
+from sklearn.preprocessing import LabelEncoder
 
 from .model import Model
 
@@ -33,7 +33,7 @@ class Model0(Model):
 		lstm_emb_size = 100
 
 		# Prepare mention type encoder
-		self.mtype_encoder = preprocessing.LabelEncoder()
+		self.mtype_encoder = LabelEncoder()
 		self.mtype_encoder.fit(['PID', 'OSP', 'GP'])
 
 		# Create modules
