@@ -22,14 +22,13 @@ class Model(torch.nn.Module):
 		self.meta = meta
 
 		# Get sizes
-		num_vocab = len(meta.keyed_vectors.vocab)
+		num_vocab = meta.word_vector.shape[0]
 
 		# Prepare embeddings
-		vocab_embedding = meta.keyed_vectors[meta.keyed_vectors.index2word]
-		vocab_embedding[0] = 0
+		vocab_embedding = meta.word_vector.copy()
 
 		# Set dimensions
-		self.w2v_emb_size = meta.keyed_vectors.vector_size
+		self.w2v_emb_size = meta.word_vector.shape[1]
 
 		# Create modules
 		self.word_emb = torch.nn.Embedding(num_vocab, self.w2v_emb_size)
