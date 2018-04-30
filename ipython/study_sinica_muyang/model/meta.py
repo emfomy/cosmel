@@ -25,8 +25,6 @@ from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.utils.validation import check_is_fitted
 from sklearn.utils.validation import column_or_1d
 
-from gensim.models.keyedvectors import KeyedVectors
-
 sys.path.insert(0, os.path.abspath('.'))
 from styleme import *
 
@@ -103,26 +101,29 @@ class AsmidList(collections.abc.Sequence):
 
 class Tokenizer(BaseEstimator, TransformerMixin):
 
-	def __init__(self, classes=None):
+	def __init__(self, index=None):
 
 		super().__init__()
 
-		if classes: self.classes_ = classes
-		self.__fit_index()
+		if index:
+			self.index_ = index
+
+			from collections import defaultdict
+			classes = defaultdict(list)
+			for w, i in self.index_.items():
+				classes[i].append(w)
+			self.classes_ = dict(classes)
 
 	def fit(self, y):
 		y = column_or_1d(y, warn=True)
 		self.classes_ = np.unique(y)
-		self.__fit_index()
+		self.index_ = {w: i+1 for i, w in enumerate(self.classes_)}
 		return self
-
-	def __fit_index(self):
-		self.index_ = {s: i+1 for i, s in enumerate(self.classes_)}
 
 	def transform(self, y):
 		check_is_fitted(self, 'index_')
 		y = column_or_1d(y, warn=True)
-		return [self.index_[s] for s in y if s in self.index_]
+		return [self.index_[w] for w in y if w in self.index_]
 
 	def fit_transform(self, y):
 		self.fit(y)
@@ -176,7 +177,23 @@ class DataSetMeta:
 			self.mention_path = corpus.mention_set.path
 
 			# Save word vectors
-			self.keyed_vectors = KeyedVectors.load_word2vec_format(emb_file, binary=True)
+			from gensim.models.keyedvectors import KeyedVectors
+			keyed_vectors = KeyedVectors.load_word2vec_format(emb_file, binary=True)
+			b_set = set(repo.bname_to_brand.keys())
+			w_set = set(keyed_vectors.index2word[1:])
+			o_set = w_set - b_set
+			assert b_set <= w_set
+
+			self.word_index = {w: i+1 for i, b in enumerate(repo.brand_set) for w in b}
+			n = len(repo.brand_set)+1
+			self.word_index.update({w: i+n for i, w in enumerate(o_set)})
+			n+=len(o_set)
+
+			self.word_vector = np.zeros((n, keyed_vectors.vector_size), dtype='float32')
+			for b in repo.brand_set:
+				self.word_vector[self.word_index[b[0]]] = np.mean(keyed_vectors[b], axis=0)
+			for w in o_set:
+				self.word_vector[self.word_index[w]] = keyed_vectors[w]
 
 			# Save product ID and brand names
 			self.pids   = list(repo.id_to_product.keys())
@@ -194,9 +211,10 @@ class DataSetMeta:
 			setattr(self, k, v)
 
 		# Prepare tokenizer
-		self.tokenizer = Tokenizer(self.keyed_vectors.index2word[1:])
+		self.tokenizer = Tokenizer(self.word_index)
 		num_vocab = len(self.tokenizer.classes_)+1
 		print(f'num_vocab   = {num_vocab}')
+		assert num_vocab == self.word_vector.shape[0]
 
 		# Prepare padder
 		self.padder = Padder()
