@@ -107,6 +107,11 @@ if __name__ == '__main__':
 	print(model)
 	print()
 
+	# Load pretrained weight
+	if pretrain_file:
+		model.load(pretrain_file)
+		print(f'Load pretrained model from "{pretrain_file}"')
+
 	# Load dataset
 	asmid_list = AsmidList.load(data_file)
 	if data_type == 'sp':
