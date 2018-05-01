@@ -7,14 +7,12 @@ __copyright__ = 'Copyright 2017-2018'
 
 
 import argparse
-import itertools
 import os
 import sys
 
 import numpy as np
 
 import torch
-import torch.utils.data
 
 sys.path.insert(0, os.path.abspath('.'))
 from styleme import *
@@ -27,7 +25,6 @@ def model_accuracy(pred_gid_code, true_gid_code, mask=slice(None,None), name='ac
 	clen = correct.size
 	accuracy = csum / clen
 	print(f'{name} = {accuracy} ({csum}/{clen})')
-
 
 if __name__ == '__main__':
 
@@ -46,8 +43,12 @@ if __name__ == '__main__':
 			help='model weight path; load model weight from "[<dir>]<weight_name>.<model_type>.weight.pt"')
 	argparser.add_argument('-m', '--model', metavar='<model_type>', required=True, \
 		  help='use model <model_type>')
+	argparser.add_argument('-t', '--data-type', metavar='<data_type>', \
+			choices=['sp', 'mtype'], help='process data type preprocessing')
 	argparser.add_argument('--meta', metavar='<meta_name>', \
 			help='dataset meta path; default is "[<dir>/]meta.pkl"')
+
+	argparser.add_argument('--xargs', help='Extra arguments for the model')
 
 	argparser.add_argument('-c', '--check', action='store_true', help='Check arguments')
 
@@ -76,74 +77,64 @@ if __name__ == '__main__':
 	model_cls_name = args.model.capitalize()
 	Model = getattr(__import__('module.'+model_pkg_name, fromlist=model_cls_name), model_cls_name)
 
+	data_type = args.data_type
+
+	xargs = []
+	if args.xargs != None:
+		xargs = args.xargs.split()
+
 	# Print arguments
 	print()
 	print(args)
 	print()
-	print(f'model         = {args.model}')
-	print(f'data_file     = {data_file}')
-	print(f'model_file    = {model_file}')
-	print(f'meta_file     = {meta_file}')
+	print(f'model      = {args.model}')
+	print(f'data_file  = {data_file}')
+	print(f'model_file = {model_file}')
+	print(f'meta_file  = {meta_file}')
+	print(f'data_type  = {data_type}')
+	print()
+	print(f'xargs      = {xargs}')
 	print()
 
 	if args.check: exit()
 
-	############################################################################################################################
-	# Load data
-	#
-
-	meta       = DataSetMeta.load(meta_file)
-	asmid_list = AsmidList.load(data_file)
-
-	############################################################################################################################
-	# Create model
-	#
-
-	model = Model(meta)
+	# Load model
+	meta  = DataSetMeta.load(meta_file)
+	model = Model(meta, xargs)
 	model.cuda()
-	print()
-	print(model)
 	print()
 	model.load(model_file)
 	print(f'Loaded model from "{model_file}"')
 	print()
 	model.eval()
 
-	############################################################################################################################
-	# DataSet
-	#
+	# Load dataset
+	asmid_list = AsmidList.load(data_file)
+	if data_type == 'sp':
+		asmid_list.filter_sp()
+	if data_type == 'mtype':
+		asmid_list.gid_to_mtype()
+	print()
+	dataset = model.dataset_predict(asmid_list)
 
-	inputs  = model.data_predict(asmid_list)
-	dataset = torch.utils.data.TensorDataset(*inputs)
-	print(f'nun_test = {len(dataset)}')
-	loader  = torch.utils.data.DataLoader(
-		dataset=dataset,
-		batch_size=32,
-		shuffle=False,
-		drop_last=False,
-	)
-
-	############################################################################################################################
-	# Training
-	#
+	# Set batch size
+	num_test = len(dataset)
+	num_step = max(num_test // 500, 1)
+	print(f'num_test = {num_test}')
 
 	# Apply model
-	pred_label_list = []
-	true_label_list = []
-	num_step = len(loader)
-
-	for step, inputs in enumerate(loader):
-		inputs_gpu = tuple(v.cuda() for v in inputs)
-		output = model(*inputs_gpu[:-1])
-		pred_label_list.append(model.predict(output))
-		true_label_list.append(inputs[-1].cpu().data.numpy())
+	pred_batch_gid = []
+	for step, batch in enumerate(dataset.batch(num_step, shuffle=False, drop_last=False)):
+		inputs = model.inputs_predict(batch).cuda()
+		pred_batch_gid.append(model.predict(inputs))
 		printr(f'Batch: {step+1:0{len(str(num_step))}}/{num_step}')
 
 	print()
 
 	# Concatenate result
-	pred_gid = meta.p_encoder.inverse_transform(np.concatenate(pred_label_list))
-	true_gid = meta.p_encoder.inverse_transform(np.concatenate(true_label_list))
+	pred_gid = np.concatenate(pred_batch_gid)
+	raw_data = dataset.raw(None)
+	true_gid = raw_data.gid
 
 	# Check accuracy
 	model_accuracy(pred_gid, true_gid, slice(None,None),                'accuracy       ')

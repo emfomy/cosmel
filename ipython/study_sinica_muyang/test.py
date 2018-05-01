@@ -10,15 +10,13 @@ import sys
 
 from styleme import *
 
-from gensim.models.keyedvectors import KeyedVectors
-
 if __name__ == '__main__':
 
 	assert len(sys.argv) == 2
 	ver = sys.argv[1]
 
 	target       = f'pruned_article'
-	target_ver   = f'_gid_20180409'
+	target_ver   = f'_gid_20180420'
 	data_root    = f'data/{ver}'
 	repo_root    = f'{data_root}/repo'
 	article_root = f'{data_root}/article/{target}_role'
@@ -34,6 +32,8 @@ if __name__ == '__main__':
 
 	repo   = Repo(repo_root)
 	corpus = Corpus(article_root, mention_root, parts=parts, skips=skip_list)
-	keyed_vectors = KeyedVectors.load_word2vec_format(emb_file, binary=True)
+
+	from gensim.models.keyedvectors import KeyedVectors
+	# keyed_vectors = KeyedVectors.load_word2vec_format(emb_file, binary=True)
 
 	pass

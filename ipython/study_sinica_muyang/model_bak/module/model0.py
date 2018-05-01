@@ -18,6 +18,7 @@ from .model import Model
 class Model0(Model):
 
 	from .dataset import MentionDataSet as DataSet
+	from .dataset import MentionDataSet as DataSetPredict
 
 	def __init__(self, meta, xargs):
 
@@ -58,6 +59,15 @@ class Model0(Model):
 		local_loss    = torch.nn.functional.cross_entropy(mtype_prob, mtype_label)
 
 		return {'local_loss': local_loss}
+
+	def inputs_predict(self, raw):
+
+		# Combine inputs
+		from .dataset import Inputs
+		inputs = Inputs()
+		inputs.label = torch.autograd.Variable(torch.from_numpy(self.mtype_encoder.transform(raw.gid)).long())
+		inputs.local = self.local_encoder.inputs(raw)
+		return inputs
 
 	def predict(self, inputs):
 

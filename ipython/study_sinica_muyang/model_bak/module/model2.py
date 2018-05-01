@@ -13,9 +13,13 @@ from .model import Model
 
 class Model2(Model):
 
-	def __init__(self, meta):
+	def __init__(self, meta, xargs):
 
-		super().__init__(meta)
+		import argparse
+		parser = argparse.ArgumentParser(description='Model 2')
+		args, xargs_unk = parser.parse_known_args(xargs)
+
+		super().__init__(meta, xargs_unk)
 
 		num_label = len(meta.p_encoder.classes_)
 

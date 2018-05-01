@@ -31,12 +31,13 @@ from styleme import *
 
 class Asmid:
 
-	def __init__(self, aid, sid, mid, pid, gid):
-		self.aid = aid
-		self.sid = sid
-		self.mid = mid
-		self.pid = pid
-		self.gid = gid
+	def __init__(self, json_str):
+		data = json.loads(json_str)
+		self.aid = data['aid']
+		self.sid = data['sid']
+		self.mid = data['mid']
+		self.pid = data['pid']
+		self.gid = data['gid']
 
 	def __str__(self):
 		return str(self.__dict__)
@@ -78,18 +79,13 @@ class AsmidList(collections.abc.Sequence):
 		print(f'Dump asmid list into {file}')
 		with open(file, 'w') as fout:
 			for asmid in self.__data:
-				fout.write(json.dumps(vars(asmid))+'\n')
+				fout.write(asmid+'\n')
 
 	@staticmethod
 	def load(file):
 		print(f'Load asmid list from {file}')
 		with open(file) as fin:
-			return AsmidList(Asmid(**json.loads(s)) for s in fin)
-
-	def train_test_split(self, **kwargs):
-		from sklearn.model_selection import train_test_split
-		train_list, test_list = train_test_split(self.__data, **kwargs)
-		return AsmidList(train_list), AsmidList(test_list)
+			return AsmidList(Asmid(s) for s in fin)
 
 	def gid_to_mtype(self):
 		for asmid in self.__data:

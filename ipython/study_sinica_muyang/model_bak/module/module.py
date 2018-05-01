@@ -42,13 +42,19 @@ class ContextEncoder(torch.nn.Module):
 
 		self.linear = torch.nn.Linear(self.local_encoder.output_size + self.docu_encoder.output_size, self.output_size)
 
-	def data(self, ment_list, repo, corpus):
-		return self.local_encoder.data(ment_list, repo, corpus) + self.docu_encoder.data(ment_list, repo, corpus)
+	def inputs(self, raw):
 
-	def forward(self, title_pad, pre_pad, post_pad, pid_bag, brand_bag):
+		# Combine inputs
+		from .dataset import Inputs
+		inputs = Inputs()
+		inputs.local = self.local_encoder.inputs(raw)
+		inputs.docu  = self.docu_encoder.inputs(raw)
+		return inputs
 
-		local_emb = self.local_encoder(title_pad, pre_pad, post_pad)
-		docu_emb  = self.docu_encoder(pid_bag, brand_bag)
+	def forward(self, inputs):
+
+		local_emb = self.local_encoder(inputs.local)
+		docu_emb  = self.docu_encoder(inputs.docu)
 		text_emb  = self.linear(torch.cat((local_emb, docu_emb), dim=1)).clamp(min=0)
 
 		return text_emb
@@ -77,13 +83,13 @@ class LocalContextEncoder(torch.nn.Module):
 		lstm_cat_size  = lstm_size(self.title_lstm) + lstm_size(self.pre_lstm) + lstm_size(self.post_lstm)
 		self.linear = torch.nn.Linear(lstm_cat_size, self.output_size)
 
-	def data(self, ment_list, repo, corpus):
+	def inputs(self, raw):
 
 		max_num_sentences = 5
 
 		# Load context
 		raw_title = [ \
-				mention.article[0].txts for mention in ment_list \
+				mention.article[0].txts for mention in raw.sublist \
 		]
 		raw_pre  = [ \
 				list(itertools.chain( \
@@ -91,7 +97,7 @@ class LocalContextEncoder(torch.nn.Module):
 								s.txts for s in mention.article[relu(mention.sid-max_num_sentences):mention.sid] \
 						), \
 						mention.sentence_pre_().txts \
-				)) for mention in ment_list \
+				)) for mention in raw.sublist \
 		]
 		raw_post = [ \
 				list(itertools.chain( \
@@ -99,7 +105,7 @@ class LocalContextEncoder(torch.nn.Module):
 						itertools.chain.from_iterable( \
 								s.txts for s in mention.article[mention.sid+1:mention.sid+1+max_num_sentences] \
 						) \
-				)) for mention in ment_list \
+				)) for mention in raw.sublist \
 		]
 
 		# Encode
@@ -113,12 +119,18 @@ class LocalContextEncoder(torch.nn.Module):
 		post_pad  = self.meta.padder(post_code,  padding='post')
 
 		# Combine inputs
-		title_pad_var = torch.from_numpy(title_pad).long()
-		pre_pad_var   = torch.from_numpy(pre_pad).long()
-		post_pad_var  = torch.from_numpy(post_pad).long()
-		return title_pad_var, pre_pad_var, post_pad_var
+		from .dataset import Inputs
+		inputs = Inputs()
+		inputs.title_pad = torch.autograd.Variable(torch.from_numpy(title_pad).long())
+		inputs.pre_pad   = torch.autograd.Variable(torch.from_numpy(pre_pad).long())
+		inputs.post_pad  = torch.autograd.Variable(torch.from_numpy(post_pad).long())
+		return inputs
 
-	def forward(self, title_pad, pre_pad, post_pad):
+	def forward(self, inputs):
+
+		title_pad = inputs.title_pad
+		pre_pad   = inputs.pre_pad
+		post_pad  = inputs.post_pad
 
 		title_pad_emb = self.word_emb(title_pad)
 		pre_pad_emb   = self.word_emb(pre_pad)
@@ -157,14 +169,14 @@ class DocumentEncoder(torch.nn.Module):
 
 		self.linear = torch.nn.Linear(num_label+num_brand, self.output_size)
 
-	def data(self, ment_list, repo, corpus):
+	def inputs(self, raw):
 
 		# Load bag
-		raw_pid_bag   = [set(m.pid for m in mention.bundle if m.rule == 'P_rule1') for mention in ment_list]
+		raw_pid_bag   = [set(m.pid for m in mention.bundle if m.rule == 'P_rule1') for mention in raw.sublist]
 		raw_brand_bag = [ \
-				set(repo.bname_to_brand[t[0]][0] \
+				set(raw.repo.bname_to_brand[t[0]][0] \
 						for t in itertools.chain.from_iterable(sentence.zip3 for sentence in mention.article) if t[2] == 'Brand' \
-				) for mention in ment_list \
+				) for mention in raw.sublist \
 		]
 
 		# Encode
@@ -172,11 +184,16 @@ class DocumentEncoder(torch.nn.Module):
 		brand_bag = self.meta.b_multibinarizer.transform(raw_brand_bag)
 
 		# Combine inputs
-		pid_bag_var   = torch.from_numpy(pid_bag).float()
-		brand_bag_var = torch.from_numpy(brand_bag).float()
-		return pid_bag_var, brand_bag_var
+		from .dataset import Inputs
+		inputs = Inputs()
+		inputs.pid_bag   = torch.autograd.Variable(torch.from_numpy(pid_bag).float())
+		inputs.brand_bag = torch.autograd.Variable(torch.from_numpy(brand_bag).float())
+		return inputs
 
-	def forward(self, pid_bag, brand_bag):
+	def forward(self, inputs):
+
+		pid_bag   = inputs.pid_bag
+		brand_bag = inputs.brand_bag
 
 		docu_emb = self.linear(torch.cat((pid_bag, brand_bag), dim=1)).clamp(min=0)
 
@@ -206,10 +223,10 @@ class DescriptionEncoder(torch.nn.Module):
 		self.conv1d = torch.nn.Conv1d(w2v_emb_size, cnn_emb_size, cnn_win_size)
 		self.linear = torch.nn.Linear(cnn_emb_size, w2v_emb_size)
 
-	def data(self, prod_list, repo, corpus):
+	def inputs(self, raw):
 
 		# Load context
-		raw_desc = [product.descr_ws.txts for product in prod_list]
+		raw_desc = [product.descr_ws.txts for product in raw.sublist]
 
 		# Encode
 		desc_code = self.meta.tokenizer.transform_sequences(raw_desc)
@@ -218,10 +235,14 @@ class DescriptionEncoder(torch.nn.Module):
 		desc_pad = self.meta.padder(desc_code, padding='post')
 
 		# Combine inputs
-		desc_pad_var = torch.from_numpy(desc_pad).long()
-		return desc_pad_var
+		from .dataset import Inputs
+		inputs = Inputs()
+		inputs.desc_pad = torch.autograd.Variable(torch.from_numpy(desc_pad).long())
+		return inputs
 
-	def forward(self, desc_pad):
+	def forward(self, inputs):
+
+		desc_pad = inputs.desc_pad
 
 		desc_pad_emb = self.word_emb(desc_pad)
 		desc_cnn     = self.conv1d(desc_pad_emb.permute(0, 2, 1))
@@ -237,10 +258,10 @@ class DescriptionEncoder(torch.nn.Module):
 
 class NameEncoder(DescriptionEncoder):
 
-	def data(self, prod_list, repo, corpus):
+	def inputs(self, raw):
 
 		# Load context
-		raw_name = [product.brand[0] + product.name_ws.txts for product in prod_list]
+		raw_name = [list(product.brand) + product.name_ws.txts for product in sublist]
 
 		# Encode
 		name_code = self.meta.tokenizer.transform_sequences(raw_name)
@@ -249,5 +270,7 @@ class NameEncoder(DescriptionEncoder):
 		name_pad = self.meta.padder(name_code, padding='post')
 
 		# Combine inputs
-		name_pad_var = torch.from_numpy(name_pad).long()
-		return name_pad_var
+		from .dataset import Inputs
+		inputs = Inputs()
+		inputs.desc_pad = torch.autograd.Variable(torch.from_numpy(name_pad).long())
+		return inputs

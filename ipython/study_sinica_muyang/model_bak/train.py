@@ -5,9 +5,7 @@
 __author__    = 'Mu Yang <emfomy@gmail.com>'
 __copyright__ = 'Copyright 2017-2018'
 
-
 import argparse
-import itertools
 import os
 import sys
 
@@ -15,6 +13,7 @@ import numpy as np
 
 import torch
 import torch.utils.data
+from torch.nn.utils.rnn import pack_padded_sequence
 
 sys.path.insert(0, os.path.abspath('.'))
 from styleme import *
@@ -40,8 +39,12 @@ if __name__ == '__main__':
 			help='pretrained weight path; load model weight from "[<dir>/]<pretrained_name>.weight.pt"')
 	argparser.add_argument('-m', '--model', metavar='<model_type>', required=True, \
 			help='use model <model_type>')
+	argparser.add_argument('-t', '--data-type', metavar='<data_type>', \
+			choices=['sp', 'mtype'], help='process data type preprocessing')
 	argparser.add_argument('--meta', metavar='<meta_name>', \
 			help='dataset meta path; default is "[<dir>/]meta.pkl"')
+
+	argparser.add_argument('--xargs', help='Extra arguments for the model')
 
 	argparser.add_argument('-c', '--check', action='store_true', help='Check arguments')
 
@@ -74,6 +77,12 @@ if __name__ == '__main__':
 	model_cls_name = args.model.capitalize()
 	Model = getattr(__import__('module.'+model_pkg_name, fromlist=model_cls_name), model_cls_name)
 
+	data_type = args.data_type
+
+	xargs = []
+	if args.xargs != None:
+		xargs = args.xargs.split()
+
 	# Print arguments
 	print()
 	print(args)
@@ -83,67 +92,65 @@ if __name__ == '__main__':
 	print(f'model_file    = {model_file}')
 	print(f'pretrain_file = {pretrain_file}')
 	print(f'meta_file     = {meta_file}')
+	print(f'data_type     = {data_type}')
+	print()
+	print(f'xargs         = {xargs}')
 	print()
 
 	if args.check: exit()
 
-	# Load data
-
-	meta       = DataSetMeta.load(meta_file)
-	asmid_list = AsmidList.load(data_file)
-
 	# Create model
-	model = Model(meta)
+	meta  = DataSetMeta.load(meta_file)
+	model = Model(meta, xargs)
 	model.cuda()
 	print()
 	print(model)
 	print()
 
-	# Create dataset and dataloader
-	inputs  = model.data(asmid_list)
-	dataset = torch.utils.data.TensorDataset(*inputs)
-	print(f'nun_train = {len(dataset)}')
-	loader  = torch.utils.data.DataLoader(
-		dataset=dataset,
-		batch_size=32,
-		shuffle=True,
-		drop_last=True,
-	)
+	# Load pretrained weight
+	if pretrain_file:
+		model.load(pretrain_file)
+		print(f'Load pretrained model from "{pretrain_file}"')
+
+	# Load dataset
+	asmid_list = AsmidList.load(data_file)
+	if data_type == 'sp':
+		asmid_list.filter_sp()
+	if data_type == 'mtype':
+		asmid_list.gid_to_mtype()
+	print()
+	dataset = model.dataset(asmid_list)
+
+	# Set batch size
+	num_train = len(dataset)
+	num_step  = max(num_train // 32, 1)
+	print(f'num_train = {num_train}')
 
 	# Create optimizer
-	optimizer = torch.optim.Adam(model.parameters())
+	optimizer = torch.optim.Adam(filter(lambda p: p.requires_grad, model.parameters()))
 
 	# Train
 	num_epoch = 20
-	num_step  = len(loader)
-
 	for epoch in range(num_epoch):
 
-		loss_sum = 0
-		for step, inputs in enumerate(loader):
+		for step, batch in enumerate(dataset.batch(num_step)):
 
-			inputs_gpu = tuple(v.cuda() for v in inputs)
-
-			label = inputs_gpu[-1]
-			output = model(*inputs_gpu[:-1])
-			loss = model.loss(output, label)
-			loss_item = loss.item()
-			loss_sum += loss_item
+			# Forward and compute loss
+			inputs = model.inputs(batch).cuda()
+			losses = model(inputs)
+			loss = sum(losses.values())
 			printr( \
-				f'Epoch: {epoch+1:0{len(str(num_epoch))}}/{num_epoch}' + \
-				f' | Batch: {step+1:0{len(str(num_step))}}/{num_step}' + \
-				f' | loss: {loss_item:.6f}' \
-			)
+					f'Epoch: {epoch+1:0{len(str(num_epoch))}}/{num_epoch}' + \
+					f' | Batch: {step+1:0{len(str(num_step))}}/{num_step}' + \
+					f' | loss: {loss.data.item():.6f}' + \
+					''.join([f' | {k}: {v.data.item():.6f}' for k, v in losses.items()]))
+			sys.stdout.flush()
 
 			optimizer.zero_grad()
 			loss.backward()
 			optimizer.step()
 
-		print( \
-			f'Epoch: {epoch+1:0{len(str(num_epoch))}}/{num_epoch}' + \
-			f' | Batch: {step+1:0{len(str(num_step))}}/{num_step}' + \
-			f' | loss: {loss_sum/num_step:.6f}' \
-		)
+		print()
 
 	# Save models
 	model.save(model_file)

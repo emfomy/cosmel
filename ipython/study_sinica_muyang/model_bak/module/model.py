@@ -11,7 +11,11 @@ import torch
 
 class Model(torch.nn.Module):
 
-	def __init__(self, meta):
+	def __init__(self, meta, xargs):
+
+		import argparse
+		parser = argparse.ArgumentParser(description='Core Model')
+		args = parser.parse_args(xargs)
 
 		super().__init__()
 
@@ -31,20 +35,11 @@ class Model(torch.nn.Module):
 		self.word_emb.weight.data = torch.from_numpy(vocab_embedding)
 		# self.word_emb.weight.requires_grad = False
 
-	def forward(self, *args, **kwargs):
-		raise NotImplementedError
+	def dataset(self, asm_list):
+		return self.DataSet(self, asm_list)
 
-	def loss(self, *args, **kwargs):
-		raise NotImplementedError
-
-	def predict(self, *args, **kwargs):
-		raise NotImplementedError
-
-	def data(self, asmid_list):
-		raise NotImplementedError
-
-	def data_predict(self, asmid_list):
-		return self.data(asmid_list)
+	def dataset_predict(self, asm_list):
+		return self.DataSetPredict(self, asm_list)
 
 	def save(self, file):
 		os.makedirs(os.path.dirname(file), exist_ok=True)

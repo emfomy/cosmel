@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
+# -*- coding:utf-8 -*-
 #
 # StyleMe documentation build configuration file, created by
 # sphinx-quickstart on Thu Dec 14 11:06:54 2017.
