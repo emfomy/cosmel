@@ -142,8 +142,8 @@ if __name__ == '__main__':
 	print()
 
 	# Concatenate result
-	pred_gid = meta.p_encoder.inverse_transform(np.concatenate(pred_label_list))
-	true_gid = meta.p_encoder.inverse_transform(np.concatenate(true_label_list))
+	pred_gid = model.label_encoder.inverse_transform(np.concatenate(pred_label_list))
+	true_gid = model.label_encoder.inverse_transform(np.concatenate(true_label_list))
 
 	# Check accuracy
 	model_accuracy(pred_gid, true_gid, slice(None,None),                'accuracy       ')

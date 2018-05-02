@@ -99,6 +99,12 @@ if __name__ == '__main__':
 	print(model)
 	print()
 
+	# Load pretrained model
+	if pretrain_file:
+		model.load(pretrain_file)
+		print(f'Loaded pretrained model from "{pretrain_file}"')
+		print()
+
 	# Create dataset and dataloader
 	inputs  = model.data(asmid_list)
 	dataset = torch.utils.data.TensorDataset(*inputs)
