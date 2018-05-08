@@ -36,8 +36,8 @@ class Model0(Model):
 
 		# Create modules
 		self.text_encoder = ContextEncoder(meta, self.word_emb, lstm_emb_size)
-		self.linear1       = torch.nn.Linear(self.text_encoder.output_size, 100)
-		self.linear2       = torch.nn.Linear(100, len(self.label_encoder.classes_))
+		self.linear1      = torch.nn.Linear(self.text_encoder.output_size, 100)
+		self.linear2      = torch.nn.Linear(100, len(self.label_encoder.classes_))
 
 	def data(self, asmid_list):
 

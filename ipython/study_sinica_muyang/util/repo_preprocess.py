@@ -30,10 +30,10 @@ class RawData:
 		if self.bname == '80': self.bname = '080'
 		if self.bname == 'babaria 西班牙babaria': self.bname = '西班牙Babaria'
 
-		if self.pid == '2761':  self.pname = '水感透顏粉底精華spf30□pa'
+		if self.pid == '2761':  self.pname = '水感透顏粉底精華spf30pa'
 		if self.pid == '7750':  self.pname = '巴黎時尚伸展台高級訂製濃翹美睫膏'
 		if self.pid == '11449': self.pname = '魚子高效活氧亮白精華液'
-		if self.pid == '12502': self.pname = '無瑕娃娃粉餅spf18□pa'
+		if self.pid == '12502': self.pname = '無瑕娃娃粉餅spf18pa'
 		if self.pid == '12877': self.pname = '愛麗絲完美勾勒眼線膠筆'
 		if self.pid == '13315': self.pname = '保濕修復膠囊面膜a'
 		if self.pid == '13324': self.pname = '保濕舒緩膠囊面膜b'

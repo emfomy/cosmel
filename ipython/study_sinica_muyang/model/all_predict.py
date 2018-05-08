@@ -20,14 +20,7 @@ import torch.utils.data
 sys.path.insert(0, os.path.abspath('.'))
 from styleme import *
 from meta import *
-
-def model_accuracy(pred_gid_code, true_gid_code, mask=slice(None,None), name='accuracy'):
-	assert (np.shape(pred_gid_code) == np.shape(true_gid_code))
-	correct = (pred_gid_code[mask] == true_gid_code[mask])
-	csum = correct.sum()
-	clen = correct.size
-	accuracy = csum / clen
-	print(f'{name} = {accuracy} ({csum}/{clen})')
+from predict import model_accuracy
 
 
 if __name__ == '__main__':
@@ -47,6 +40,10 @@ if __name__ == '__main__':
 			help='model weight path; load model weight from "[<dir>]<weight_name>.<model_type>.weight.pt"')
 	argparser.add_argument('-m', '--model', metavar='<model_type>', required=True, \
 		  help='use model <model_type>')
+	argparser.add_argument('-w0', '--weight0', metavar='<weight0_name>', \
+		  help='use model <weight0_name>; default is "<weight_name>"')
+	argparser.add_argument('-m0', '--model0', metavar='<model0_type>', default='model0', \
+		  help='use model <model0_type>; default is "model0"')
 	argparser.add_argument('--meta', metavar='<meta_name>', \
 			help='dataset meta path; default is "[<dir>/]meta.pkl"')
 
@@ -68,6 +65,10 @@ if __name__ == '__main__':
 
 	data_file     = f'{result_root}{args.data}.list.txt'
 	model_file    = f'{result_root}{args.weight}.{args.model}.pt'
+	weight0 = args.weight
+	if args.weight0 != None:
+		weight0 = args.weight0
+	model0_file   = f'{result_root}{weight0}.{args.model0}.pt'
 
 	meta_file     = f'{result_root}meta.pkl'
 	if args.meta != None:
@@ -77,6 +78,10 @@ if __name__ == '__main__':
 	model_cls_name = args.model.capitalize()
 	Model = getattr(__import__('module.'+model_pkg_name, fromlist=model_cls_name), model_cls_name)
 
+	model0_pkg_name = args.model0
+	model0_cls_name = args.model0.capitalize()
+	Model0 = getattr(__import__('module.'+model0_pkg_name, fromlist=model0_cls_name), model0_cls_name)
+
 	# Print arguments
 	print()
 	print(args)
@@ -84,6 +89,7 @@ if __name__ == '__main__':
 	print(f'model         = {args.model}')
 	print(f'data_file     = {data_file}')
 	print(f'model_file    = {model_file}')
+	print(f'model0_file   = {model0_file}')
 	print(f'meta_file     = {meta_file}')
 	print()
 
@@ -93,8 +99,9 @@ if __name__ == '__main__':
 	# Load data
 	#
 
-	meta       = DataSetMeta.load(meta_file)
-	asmid_list = AsmidList.load(data_file)
+	meta        = DataSetMeta.load(meta_file)
+	asmid_list  = AsmidList.load(data_file)
+	asmid_list0 = AsmidList(asmid_list)
 
 	############################################################################################################################
 	# Create model
@@ -111,14 +118,42 @@ if __name__ == '__main__':
 	model.eval()
 
 	############################################################################################################################
+	# Create model of Model0
+	#
+
+	model0 = Model0(meta)
+	model0.cuda()
+	print()
+	print(model0)
+	print()
+	model0.load(model0_file)
+	print(f'Loaded model0 from "{model0_file}"')
+	print()
+	model0.eval()
+
+	############################################################################################################################
 	# DataSet
 	#
 
-	data    = model.data_predict(asmid_list)
+	data    = model.data_predict_all(asmid_list)
 	dataset = torch.utils.data.TensorDataset(*data)
 	print(f'nun_test = {len(dataset)}')
 	loader  = torch.utils.data.DataLoader(
 		dataset=dataset,
+		batch_size=32,
+		shuffle=False,
+		drop_last=False,
+	)
+
+	############################################################################################################################
+	# DataSet of Model0
+	#
+
+	data0    = model0.data_predict_all(asmid_list0)
+	dataset0 = torch.utils.data.TensorDataset(*data0)
+	print(f'nun_test = {len(dataset0)}')
+	loader0  = torch.utils.data.DataLoader(
+		dataset=dataset0,
 		batch_size=32,
 		shuffle=False,
 		drop_last=False,
@@ -144,7 +179,39 @@ if __name__ == '__main__':
 	pred_gid = model.label_encoder.inverse_transform(np.concatenate(pred_label_list))
 	true_gid = model.label_encoder.inverse_transform(np.concatenate(true_label_list))
 
+	############################################################################################################################
+	# Predicting Model0
+	#
+
+	# Apply model
+	pred_label0_list = []
+	true_label0_list = []
+	num_step0 = len(loader0)
+
+	pbar0 = tqdm.trange(num_step0)
+	for step, inputs0 in zip(pbar0, loader0):
+		inputs0_gpu = tuple(v.cuda() for v in inputs0)
+		output0 = model0(*inputs0_gpu[:-1])
+		pred_label0_list.append(model0.predict(output0))
+		true_label0_list.append(inputs0_gpu[-1].cpu().data.numpy())
+
+	# Concatenate result
+	pred_gid0 = model0.label_encoder.inverse_transform(np.concatenate(pred_label0_list))
+	true_gid0 = model0.label_encoder.inverse_transform(np.concatenate(true_label0_list))
+
+	############################################################################################################################
+	# Merge result
+	#
+
+	pred_idx0 = (pred_gid0 != 'PID')
+	pred_gid[pred_idx0] = pred_gid0[pred_idx0]
+
+	true_idx0 = (true_gid0 != 'PID')
+	true_gid[true_idx0] = true_gid0[true_idx0]
+
+	############################################################################################################################
 	# Check accuracy
+	#
 	model_accuracy(pred_gid, true_gid, slice(None,None),                'accuracy       ')
 
 	if 'PID' not in pred_gid and 'PID' not in true_gid:

@@ -21,9 +21,9 @@ if __name__ == '__main__':
 	target       = f'pruned_article'
 	tmp_root     = f'data/tmp'
 	data_root    = f'data/{ver}'
-	base_root    = f'{data_root}/mention/{target}_gid_20180315'
-	input_root   = f'{data_root}/mention/{target}_gid_20180409_6.0'
-	output_root  = f'{data_root}/mention/{target}_gid_20180409'
+	base_root    = f'{data_root}/mention/{target}_gid_20180420'
+	input_root   = '/home/emfomy/corpus/pixnet/raw/20180502/json'
+	output_root  = f'{data_root}/mention/{target}_gid_20180502'
 	parts        = ['']
 	# parts        = list(f'part-{x:05}' for x in range(1))
 	if len(sys.argv) > 2: parts = list(f'part-{x:05}' for x in range(int(sys.argv[2]), 128, 8))

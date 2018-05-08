@@ -33,7 +33,7 @@ if __name__ == '__main__':
 	repo   = Repo(repo_root)
 	corpus = Corpus(article_root, mention_root, parts=parts, skips=skip_list)
 
-	from gensim.models.keyedvectors import KeyedVectors
+	# from gensim.models.keyedvectors import KeyedVectors
 	# keyed_vectors = KeyedVectors.load_word2vec_format(emb_file, binary=True)
 
 	pass

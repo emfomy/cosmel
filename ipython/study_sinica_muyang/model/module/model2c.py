@@ -5,17 +5,11 @@
 __author__    = 'Mu Yang <emfomy@gmail.com>'
 __copyright__ = 'Copyright 2017-2018'
 
-import os
-import sys
-
 import numpy as np
 
 import torch
 
 from .model2 import Model2
-
-sys.path.insert(0, os.path.abspath('.'))
-from styleme import *
 
 class Model2c(Model2):
 
@@ -36,27 +30,20 @@ class Model2c(Model2):
 
 	def data(self, asmid_list):
 
-		asmid_list.filter_sp()
+		ment_list, repo, corpus, gid = self._data(asmid_list)
+		return self.text_encoder.data(ment_list, repo, corpus) + (gid,)
 
-		parts  = list(set(m.aid for m in asmid_list))
-		repo   = Repo(self.meta.repo_path)
-		corpus = Corpus(self.meta.article_path, self.meta.mention_path, parts=parts)
+	def data_predict(self, asmid_list):
+		ment_list, repo, corpus, gid = self._data(asmid_list)
+		return self.text_encoder.data(ment_list, repo, corpus) + (gid,)
 
-		ment_list = [corpus.id_to_mention[asmid.asmid] for asmid in asmid_list]
-		for m, asmid in zip(ment_list, asmid_list):
-			m.set_gid(asmid.gid)
-			m.set_pid(asmid.pid)
+	def data_predict_all(self, asmid_list):
+		ment_list, repo, corpus, gid = self._data(asmid_list, sp=False)
+		return self.text_encoder.data(ment_list, repo, corpus) + (gid,)
 
-		# Load label
-		raw_gid = [m.gid for m in ment_list]
-		gid     = self.meta.p_encoder.transform(raw_gid)
-		gid_var = torch.from_numpy(gid)
+	def forward(self, pre_pad, post_pad, title_pad, pid_bag, brand_bag):
 
-		return self.text_encoder.data(ment_list, repo, corpus) + (gid_var,)
-
-	def forward(self, title_pad, pre_pad, post_pad, pid_bag, brand_bag):
-
-		text_emb  = self.text_encoder(title_pad, pre_pad, post_pad, pid_bag, brand_bag)
+		text_emb  = self.text_encoder(pre_pad, post_pad, title_pad, pid_bag, brand_bag)
 		text_prob = self.entity_emb(text_emb)
 
 		return text_prob

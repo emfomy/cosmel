@@ -18,7 +18,6 @@ sys.path.insert(0, os.path.abspath('.'))
 from styleme import *
 from meta import *
 from predict import model_accuracy
-from module.dataset import MentionTypeDataSet as DataSet
 
 if __name__ == '__main__':
 
@@ -67,34 +66,37 @@ if __name__ == '__main__':
 
 	if args.check: exit()
 
-	# Load dataset
+	############################################################################################################################
+	# Load data
+	#
+
 	meta       = DataSetMeta.load(meta_file)
 	asmid_list = AsmidList.load(data_file)
 	print()
-	dataset    = DataSet(type('', (object,), {'meta': meta}), asmid_list)
+	pred_gid = np.asarray([asmid.pid for asmid in asmid_list])
+	true_gid = np.asarray([asmid.gid for asmid in asmid_list])
 
 	# Set batch size
-	num_test = len(dataset)
+	num_test = len(asmid_list)
 	print(f'num_test = {num_test}')
-
-	# Concatenate result
-	raw_data = dataset.raw(None)
-	pred_gid = raw_data.pid
-	true_gid = raw_data.gid
 
 	# Check accuracy
 	model_accuracy(pred_gid, true_gid, slice(None,None),                'accuracy       ')
 
-	model_accuracy(pred_gid, true_gid, [i.isdigit() for i in pred_gid], 'precision (ID) ')
-	model_accuracy(pred_gid, true_gid, [i.isdigit() for i in true_gid], 'recall    (ID) ')
+	if 'PID' not in pred_gid and 'PID' not in true_gid:
+		model_accuracy(pred_gid, true_gid, [i.isdigit() for i in pred_gid], 'precision (ID) ')
+		model_accuracy(pred_gid, true_gid, [i.isdigit() for i in true_gid], 'recall    (ID) ')
 
-	model_accuracy(pred_gid, true_gid, pred_gid == 'PID',               'precision (PID)')
-	model_accuracy(pred_gid, true_gid, true_gid == 'PID',               'recall    (PID)')
+	if 'PID' in pred_gid or 'PID' in true_gid:
+		model_accuracy(pred_gid, true_gid, pred_gid == 'PID',               'precision (PID)')
+		model_accuracy(pred_gid, true_gid, true_gid == 'PID',               'recall    (PID)')
 
-	model_accuracy(pred_gid, true_gid, pred_gid == 'OSP',               'precision (OSP)')
-	model_accuracy(pred_gid, true_gid, true_gid == 'OSP',               'recall    (OSP)')
+	if 'OSP' in pred_gid or 'OSP' in true_gid:
+		model_accuracy(pred_gid, true_gid, pred_gid == 'OSP',               'precision (OSP)')
+		model_accuracy(pred_gid, true_gid, true_gid == 'OSP',               'recall    (OSP)')
 
-	model_accuracy(pred_gid, true_gid, pred_gid == 'GP',                'precision (GP) ')
-	model_accuracy(pred_gid, true_gid, true_gid == 'GP',                'recall    (GP) ')
+	if 'GP' in pred_gid or 'GP' in true_gid:
+		model_accuracy(pred_gid, true_gid, pred_gid == 'GP',                'precision (GP) ')
+		model_accuracy(pred_gid, true_gid, true_gid == 'GP',                'recall    (GP) ')
 
 	pass

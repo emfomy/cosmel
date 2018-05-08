@@ -10,6 +10,7 @@ import argparse
 import itertools
 import os
 import sys
+import tqdm
 
 import numpy as np
 
@@ -126,7 +127,9 @@ if __name__ == '__main__':
 	for epoch in range(num_epoch):
 
 		loss_sum = 0
-		for step, inputs in enumerate(loader):
+		pbar = tqdm.trange(num_step, desc=f'Epoch {epoch+1:0{len(str(num_epoch))}}/{num_epoch}')
+		pbar.set_postfix(loss=f'{0.:.6f}')
+		for step, inputs in zip(pbar, loader):
 
 			inputs_gpu = tuple(v.cuda() for v in inputs)
 
@@ -135,21 +138,14 @@ if __name__ == '__main__':
 			loss = model.loss(output, label)
 			loss_item = loss.item()
 			loss_sum += loss_item
-			printr( \
-				f'Epoch: {epoch+1:0{len(str(num_epoch))}}/{num_epoch}' + \
-				f' | Batch: {step+1:0{len(str(num_step))}}/{num_step}' + \
-				f' | loss: {loss_item:.6f}' \
-			)
+
+			pbar.set_postfix(loss=f'{loss_item:.6f}')
 
 			optimizer.zero_grad()
 			loss.backward()
 			optimizer.step()
 
-		print( \
-			f'Epoch: {epoch+1:0{len(str(num_epoch))}}/{num_epoch}' + \
-			f' | Batch: {step+1:0{len(str(num_step))}}/{num_step}' + \
-			f' | loss: {loss_sum/num_step:.6f}' \
-		)
+		pbar.set_postfix(loss=f'{loss_sum/num_step:.6f}')
 
 	# Save models
 	model.save(model_file)

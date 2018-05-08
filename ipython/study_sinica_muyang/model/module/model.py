@@ -46,6 +46,9 @@ class Model(torch.nn.Module):
 	def data_predict(self, asmid_list):
 		return self.data(asmid_list)
 
+	def data_predict_all(self, asmid_list):
+		return self.data(asmid_list)
+
 	def save(self, file):
 		os.makedirs(os.path.dirname(file), exist_ok=True)
 		torch.save(self.state_dict(), file)

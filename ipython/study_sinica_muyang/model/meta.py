@@ -17,8 +17,8 @@ import numpy as np
 
 import torch
 
+from sklearn.preprocessing import LabelEncoder as _LabelEncoder
 from sklearn.preprocessing import LabelBinarizer
-from sklearn.preprocessing import LabelEncoder
 from sklearn.preprocessing import MultiLabelBinarizer
 
 from sklearn.base import BaseEstimator, TransformerMixin
@@ -28,6 +28,10 @@ from sklearn.utils.validation import column_or_1d
 sys.path.insert(0, os.path.abspath('.'))
 from styleme import *
 
+
+################################################################################################################################
+# ASMID
+#
 
 class Asmid:
 
@@ -103,6 +107,33 @@ class AsmidList(collections.abc.Sequence):
 		self.__data = [asmid for asmid in self.__data if asmid.gid.isdigit()]
 
 
+################################################################################################################################
+# Encoder * Binarizer
+#
+
+class LabelEncoder(_LabelEncoder):
+
+	def transform(self, y, unknown=False):
+		if not unknown:
+			return super().transform(y)
+		else:
+			y = column_or_1d(y, warn=True)
+			idx = np.in1d(y, self.classes_)
+			retval = -np.ones(y.shape, dtype='int64')
+			retval[idx] = super().transform(y[idx])
+			return retval
+
+	def inverse_transform(self, y):
+		y = column_or_1d(y, warn=True)
+		idx = (y != -1)
+		retval = np.empty(y.shape, dtype=self.classes_.dtype)
+		retval[idx] = super().inverse_transform(y[idx])
+		return retval
+
+################################################################################################################################
+# Tokenizer & Padder
+#
+
 class Tokenizer(BaseEstimator, TransformerMixin):
 
 	def __init__(self, index=None):
@@ -168,6 +199,10 @@ class Padder():
 	def __call__(self, *args, **kwargs):
 		return self.pad(*args, **kwargs)
 
+
+################################################################################################################################
+# Data Set Meta
+#
 
 class DataSetMeta:
 
