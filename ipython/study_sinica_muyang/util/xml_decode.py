@@ -34,15 +34,13 @@ if __name__ == '__main__':
 	assert len(sys.argv) > 1
 	ver = sys.argv[1]
 
-	textualized = True
+	textualized = False
 	get_mention = False
 
 	target        = f'pruned_article'
-	# target2       = f'parsed_article'
-	target2       = f'pruned_article'
+	target2       = f'parsed_article'
 	target_ver    = f''
-	# target_ver    = f'_pid'
-	target_ver    = f'_gid_20180409_6.0'
+	target_ver    = f'_pid'
 	tmp_root      = f'data/tmp'
 	data_root     = f'data/{ver}'
 	repo_root     = f'{data_root}/repo'
@@ -51,7 +49,7 @@ if __name__ == '__main__':
 	article_root  = f'{data_root}/article/{target}_role'
 	mention_root  = f'{data_root}/mention/{target}{target_ver}'
 	parts         = ['']
-	parts         = list(f'part-{x:05}' for x in range(1))
+	# parts         = list(f'part-{x:05}' for x in range(1))
 	if len(sys.argv) > 2: parts = list(f'part-{x:05}' for x in range(int(sys.argv[2]), 128, 8))
 
 	empty_file = tmp_root+'/empty.tmp'

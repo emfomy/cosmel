@@ -1,22 +1,9 @@
 #!/usr/bin/perl -w
 
+$ver = $ARGV[0]
+print "ver=$ver\n";
 
-
-
-
-
-
-#$t="#5:1.[0] S<p15>theme:NP<p9>property:VP‧的<p8>head:VP<p7>manner:S<p4>contrast:Cbb:但|experiencer:NP<p0>Head:Nh:我</p0>|manner:VH:想|goal:PP<p2>Head:P:有|DUMMY:NP<p1>property:Na:朋友|Head:Na:會</p1></p2>|Head:VK:喜歡|goal:NP<p3>property:Na:三角|Head:Na:眉筆</p3></p4>|reason:Cbb:因為|manner:PP<p6>Head:P:有|DUMMY:NP<p5>Head:Na:款</p5></p6>|Head:VC:大創</p7>|Head:DE:的</p8>|property:Na:三角|Head:Na:眉筆</p9>|Head:SHI:是|range:NP<p10>quantifier:Neqa:很多|Head:Na:網友</p10>|range:VP<p14>quantity:D:都|Head:VC:推薦|theme:NP<p13>property:VP‧的<p12>head:VP<p11>evaluation:D:也|evaluation:D:時常|Head:VH:缺貨</p11>|Head:DE:的</p12>|Head:Na:產品</p13></p14></p15>#";
-#@token=split(/\<\/?p[0-9]+\>|\|/,$t);
-#for ($i=0;$i<=$#token;$i++)
-#{
-#   print "$token[$i]\n";
-#}
-#die;
-
-
-
-$inputfile="data/7.1/repo/brand.txt";
+$inputfile="data/$ver/repo/brand.txt";
 open(IN,$inputfile);
 while (<IN>)
 {
@@ -29,7 +16,7 @@ while (<IN>)
 }
 close(IN);
 
-$inputfile="data/7.1/repo/head.txt";
+$inputfile="data/$ver/repo/head.txt";
 open(IN,$inputfile);
 while (<IN>)
 {
@@ -39,7 +26,7 @@ while (<IN>)
 }
 close(IN);
 
-$inputfile="data/7.1/repo/infix.lex";
+$inputfile="data/$ver/repo/infix.lex";
 open(IN,$inputfile);
 while (<IN>)
 {
@@ -50,7 +37,7 @@ while (<IN>)
 }
 close(IN);
 
-$inputfile="data/7.1/repo/infix.txt";
+$inputfile="data/$ver/repo/infix.txt";
 open(IN,$inputfile);
 while (<IN>)
 {
@@ -61,7 +48,7 @@ while (<IN>)
 close(IN);
 
 $count=0;
-$inputfile="data/7.1/repo/product.txt";
+$inputfile="data/$ver/repo/product.txt";
 open(IN,$inputfile);
 while (<IN>)
 {
@@ -94,7 +81,7 @@ close(IN);
 
 
 $count=0;
-$inputfile="data/7.1/repo/product.tag";
+$inputfile="data/$ver/repo/product.tag";
 open(IN,$inputfile);
 while (<IN>)
 {
@@ -137,9 +124,9 @@ $specifiedwordtable{"這款"}=1;
 $specifiedwordtable{"一款"}=1;
 
 
-$inputdir="data/7.1/article/parsed_article_parse/";
-$tmpdir="data/7.1/article/parsed_article_parse1/";
-$outputdir="data/7.1/xml/parsed_article_ws_pid/";
+$inputdir="data/$ver/article/parsed_article_parse/";
+$tmpdir="data/$ver/article/parsed_article_parse1/";
+$outputdir="data/$ver/xml/parsed_article_ws_pid/";
 
 mkdir($tmpdir) unless(-d $tmpdir);
 mkdir($outputdir) unless(-d $outputdir);
@@ -223,17 +210,17 @@ foreach $dir (@dirset)
 						$brand=$brandtable{$word};
 						$brandrecord{$brand}=1;
 					}
-					$breakrecord{$wordcount}+=0;
 					$wordcount++;
 				}
 			}
-			# $breakrecord{$wordcount}=1;
-			$breakrecord{$wordcount}++;
+			if (defined($breakrecord{$wordcount})){
+				$breakrecord{$wordcount}++;
+			} else {
+				$breakrecord{$wordcount}=1;
+			}
 		}
 		close(IN);
 		$contentsize=$wordcount;
-
-
 
 		# $outputfile=$inputfile.".label";
 		use File::Basename;
@@ -244,13 +231,15 @@ foreach $dir (@dirset)
 		%contenthead=();
 		for ($i=0;$i<$contentsize;$i++)
 		{
-			# if (defined($breakrecord{$i}))
-			# {
-			# 	print OUT "\n";
-			# }
-			for ($n=0;$n<$breakrecord{$i};$n++)
+			if (defined($breakrecord{$i}))
 			{
-				print OUT "\n";
+				if ($breakrecord{$i} != 1){
+					print "$file $breakrecord{$i}\n";
+				}
+				for ($n=0;$n<$breakrecord{$i};$n++)
+				{
+					print OUT "\n";
+				}
 			}
 
 			$id=-1;

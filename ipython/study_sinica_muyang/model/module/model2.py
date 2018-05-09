@@ -32,7 +32,7 @@ class Model2(Model):
 
 		parts  = list(set(m.aid for m in asmid_list))
 		repo   = Repo(self.meta.repo_path)
-		corpus = Corpus(self.meta.article_path, self.meta.mention_path, parts=parts)
+		corpus = Corpus(self.meta.article_path, mention_root=self.meta.mention_path, parts=parts)
 
 		ment_list = [corpus.id_to_mention[asmid.asmid] for asmid in asmid_list]
 		for m, asmid in zip(ment_list, asmid_list):

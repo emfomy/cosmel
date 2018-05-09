@@ -125,7 +125,7 @@ def pause():
 	input("Press Enter to continue...")
 
 
-def subprocess_call(command, *args, **kwargs):
+def subprocess_run(command, *args, **kwargs):
 	"""Print command before calling it."""
 	print(command)
-	subprocess.call(command, *args, **kwargs)
+	subprocess.run(command, *args, **kwargs)

@@ -76,8 +76,13 @@ class Article(collections.abc.Sequence):
 		return self.__path
 
 	@property
+	def parsed(self):
+		""":class:`.ParsedArticle`: the parsed article of this article."""
+		return self.__parsed
+
+	@property
 	def bundle(self):
-		""":class:`.MentionBundle`: the bundle of mentions in this article."""
+		""":class:`.MentionBundle`: the mention bundle of this article."""
 		return self.__bundle
 
 	def save(self, file_path, method):

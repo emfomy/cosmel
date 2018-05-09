@@ -9,6 +9,7 @@ __copyright__ = 'Copyright 2017-2018'
 from styleme.util import *
 from styleme.repo import *
 from styleme.corpus.article import *
+from styleme.corpus.parsed  import *
 from styleme.corpus.mention import *
 
 
@@ -17,24 +18,35 @@ class Corpus:
 
 	Args:
 		article_root (str):    the path to the folder containing word segmented article files.
+		parsed_root (str):     the path to the folder containing parsed article files.
 		mention_root (str):    the path to the folder containing mention files.
 		parts (list):          the list of article/mention parts.
 
 	Notes:
-		* Load all articles from ``article_root``/``part`` for all ``part`` in ``parts``.
-		* Load all mentions from ``mention_root``/``part`` for all ``part`` in ``parts``.
+		* Load all articles       from ``article_root``/``part`` for all ``part`` in ``parts``.
+		* Load all parsed article from ``parsed_root``/``part``  for all ``part`` in ``parts``.
+		* Load all mentions       from ``mention_root``/``part`` for all ``part`` in ``parts``.
 	"""
 
-	def __init__(self, article_root, mention_root, parts=[''], skips=[]):
-		self.__article_set               = ArticleSet(article_root, parts=parts, skips=skips)
-		self.__id_to_article             = Id2Article(self.__article_set)
+	def __init__(self, article_root, *args, parsed_root=None, mention_root=None, parts=[''], skips=[]):
 
-		self.__mention_bundle_set        = MentionBundleSet(article_root, mention_root, self.__article_set)
-		self.__mention_set               = MentionSet(self.__mention_bundle_set)
-		self.__id_to_mention             = Id2Mention(self.__mention_set)
-		self.__article_to_mention_bundle = Article2MentionBundle(self.__mention_bundle_set)
-		self.__id_to_mention_bundle      = Id2MentionBundle(self.__article_to_mention_bundle, self.__id_to_article)
-		self.__head_to_mention_list      = Head2MentionList(self.__mention_set)
+		if len(args) != 0:
+			print('Please mention_root=<mention_root> instead of using it directly.')
+			assert len(args) == 0
+
+		self.__article_set          = ArticleSet(article_root, parts=parts, skips=skips)
+		self.__id_to_article        = Id2Article(self.__article_set)
+
+		if parsed_root:
+			self.__parsed_article_set   = ParsedArticleSet(parsed_root, self.__article_set)
+			self.__id_to_parsed_article = Id2ParsedArticle(self.__id_to_article)
+
+		if mention_root:
+			self.__mention_bundle_set   = MentionBundleSet(mention_root, self.__article_set)
+			self.__mention_set          = MentionSet(self.__mention_bundle_set)
+			self.__id_to_mention        = Id2Mention(self.__mention_set)
+			self.__id_to_mention_bundle = Id2MentionBundle(self.__id_to_article)
+			self.__head_to_mention_list = Head2MentionList(self.__mention_set)
 
 	@property
 	def article_set(self):
@@ -45,6 +57,16 @@ class Corpus:
 	def id_to_article(self):
 		""":class:`.Id2Article`: the dictionary maps article ID to article object."""
 		return self.__id_to_article
+
+	@property
+	def parsed_article_set(self):
+		""":class:`.ParsedArticleSet`: the parsed article set."""
+		return self.__parsed_article_set
+
+	@property
+	def id_to_parsed_article(self):
+		""":class:`.Id2ParsedArticle`: the dictionary maps article ID to parsed article object."""
+		return self.__id_to_parsed_article
 
 	@property
 	def mention_set(self):
@@ -60,11 +82,6 @@ class Corpus:
 	def id_to_mention(self):
 		""":class:`.Id2Mention`: the dictionary maps article ID, sentence ID, and mention ID to mention object."""
 		return self.__id_to_mention
-
-	@property
-	def article_to_mention_bundle(self):
-		""":class:`.Article2MentionBundle`: the dictionary maps article object to mention bundle."""
-		return self.__article_to_mention_bundle
 
 	@property
 	def id_to_mention_bundle(self):

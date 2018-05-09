@@ -9,6 +9,7 @@ __copyright__ = 'Copyright 2017-2018'
 import collections.abc
 import itertools
 import json
+import operator
 import os
 
 from styleme.util import *
@@ -150,7 +151,7 @@ class Mention:
 
 	def slice_pre_(self, with_mention=True):
 		"""slice: the slice index of the words before this mention in the sentence (with/without mention)."""
-		return slice(None, self.__start) if with_mention else slice(None, self.__end)
+		return slice(None, self.__end) if with_mention else slice(None, self.__start)
 
 	@property
 	def slice_post(self):
@@ -159,7 +160,7 @@ class Mention:
 
 	def slice_post_(self, with_mention=True):
 		"""slice: the slice index of the words after this mention in the sentence (with/without mention)."""
-		return slice(self.__end, None) if with_mention else slice(None, self.__strat)
+		return slice(self.__start, None) if with_mention else slice(self.__end, None)
 
 	@property
 	def pid(self):
@@ -349,10 +350,10 @@ class MentionBundleSet(collections.abc.Collection):
 		article_set (:class:`.ArticleSet`): the set of articles.
 	"""
 
-	def __init__(self, article_root, mention_root, article_set):
+	def __init__(self, mention_root, article_set):
 		super().__init__()
 		n = str(len(article_set))
-		self.__data = [self.__mention_bundle(article, article_root, mention_root, i, n) for i, article in enumerate(article_set)]
+		self.__data = [self.__mention_bundle(article, article_set.path, mention_root, i, n) for i, article in enumerate(article_set)]
 		self.__path = mention_root
 		print()
 
@@ -415,34 +416,6 @@ class Id2Mention(collections.abc.Mapping):
 		return len(self.__data)
 
 
-class Article2MentionBundle(collections.abc.Mapping):
-	"""The dictionary maps article object to mention bundle.
-
-	* Key:  the article object (:class:`.Article`).
-	* Item: the mention bundle (:class:`.MentionBundle`).
-
-	Args:
-		mention_bundle_set (:class:`.MentionBundleSet`): the mention bundle set.
-	"""
-
-	def __init__(self, mention_bundle_set):
-		super().__init__()
-		self.__data = dict((mention_bundle.article, mention_bundle,) for mention_bundle in mention_bundle_set)
-		self.__empty_collection = ReadOnlyList()
-
-	def __contains__(self, key):
-		return key in self.__data
-
-	def __getitem__(self, key):
-		return self.__data.get(key, self.__empty_collection)
-
-	def __iter__(self):
-		return iter(self.__data)
-
-	def __len__(self):
-		return len(self.__data)
-
-
 class Id2MentionBundle(collections.abc.Mapping):
 	"""The dictionary maps article ID to mention bundle.
 
@@ -450,23 +423,21 @@ class Id2MentionBundle(collections.abc.Mapping):
 	* Item: the mention bundle (:class:`.MentionBundle`).
 
 	Args:
-		article_to_mention_bundle (:class:`.Article2MentionBundle`): the dictionary maps article object to mention bundle.
-		id_to_article             (:class:`.Id2Article`):            the dictionary maps article ID to article object.
+		id_to_article (:class:`.Id2Article`): the dictionary maps article ID to article object.
 	"""
 
-	def __init__(self, article_to_mention_bundle, id_to_article):
+	def __init__(self, id_to_article):
 		super().__init__()
-		self.__data = article_to_mention_bundle
-		self.__key  = id_to_article
+		self.__data  = id_to_article
 
 	def __contains__(self, key):
-		return self.__key[key] in self.__data
+		return key in self.__data
 
 	def __getitem__(self, key):
-		return self.__data[self.__key[key]]
+		return self.__data[key].bundle
 
 	def __iter__(self):
-		return iter(self.__key.keys())
+		return iter(map(self.__data, operator.attrgetter('bundle')))
 
 	def __len__(self):
 		return len(self.__data)

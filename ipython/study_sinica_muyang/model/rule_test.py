@@ -17,7 +17,7 @@ import torch
 sys.path.insert(0, os.path.abspath('.'))
 from styleme import *
 from meta import *
-from predict import model_accuracy
+from predict import check_accuracy
 
 if __name__ == '__main__':
 
@@ -80,23 +80,19 @@ if __name__ == '__main__':
 	num_test = len(asmid_list)
 	print(f'num_test = {num_test}')
 
+	# parts  = list(set(m.aid for m in asmid_list))
+	# repo   = Repo(meta.repo_path)
+	# corpus = Corpus(meta.article_path, mention_root=meta.mention_path, parts=parts)
+
+	# ment_list = [corpus.id_to_mention[asmid.asmid] for asmid in asmid_list]
+	# for m, asmid in zip(ment_list, asmid_list):
+	# 	m.set_gid(asmid.gid)
+	# 	m.set_pid(asmid.pid)
+
+	# rule_list = np.asarray([m.rule for m in ment_list])
+	# check_accuracy(true_gid[rule_list == 'P_rule1'], pred_gid[rule_list == 'P_rule1'])
+
 	# Check accuracy
-	model_accuracy(pred_gid, true_gid, slice(None,None),                'accuracy       ')
-
-	if 'PID' not in pred_gid and 'PID' not in true_gid:
-		model_accuracy(pred_gid, true_gid, [i.isdigit() for i in pred_gid], 'precision (ID) ')
-		model_accuracy(pred_gid, true_gid, [i.isdigit() for i in true_gid], 'recall    (ID) ')
-
-	if 'PID' in pred_gid or 'PID' in true_gid:
-		model_accuracy(pred_gid, true_gid, pred_gid == 'PID',               'precision (PID)')
-		model_accuracy(pred_gid, true_gid, true_gid == 'PID',               'recall    (PID)')
-
-	if 'OSP' in pred_gid or 'OSP' in true_gid:
-		model_accuracy(pred_gid, true_gid, pred_gid == 'OSP',               'precision (OSP)')
-		model_accuracy(pred_gid, true_gid, true_gid == 'OSP',               'recall    (OSP)')
-
-	if 'GP' in pred_gid or 'GP' in true_gid:
-		model_accuracy(pred_gid, true_gid, pred_gid == 'GP',                'precision (GP) ')
-		model_accuracy(pred_gid, true_gid, true_gid == 'GP',                'recall    (GP) ')
+	check_accuracy(true_gid, pred_gid)
 
 	pass

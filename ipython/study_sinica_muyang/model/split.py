@@ -99,7 +99,7 @@ if __name__ == '__main__':
 	with open(bad_article) as fin:
 		skip_list = fin.read().strip().split('\n')
 	repo   = Repo(repo_root)
-	corpus = Corpus(article_root, mention_root, parts=parts, skips=skip_list)
+	corpus = Corpus(article_root, mention_root=mention_root, parts=parts, skips=skip_list)
 	print()
 
 	# Prepare dataset meta
@@ -111,6 +111,11 @@ if __name__ == '__main__':
 		print('\nIgnore asmid list generation.')
 
 	else:
+
+		# Merge NAP and GP
+		for m in corpus.mention_set:
+			if m.gid == 'NAP': m.set_gid('GP')
+			if m.pid == 'NAP': m.set_pid('GP')
 
 		# Load mention list
 		pid_asmid_list = AsmidList([Asmid(aid=m.aid, sid=m.sid, mid=m.mid, gid=m.pid, pid=m.pid) \

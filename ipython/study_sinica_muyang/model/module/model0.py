@@ -45,15 +45,12 @@ class Model0(Model):
 
 		parts  = list(set(m.aid for m in asmid_list))
 		repo   = Repo(self.meta.repo_path)
-		corpus = Corpus(self.meta.article_path, self.meta.mention_path, parts=parts)
+		corpus = Corpus(self.meta.article_path, mention_root=self.meta.mention_path, parts=parts)
 
 		ment_list = [corpus.id_to_mention[asmid.asmid] for asmid in asmid_list]
 		for m, asmid in zip(ment_list, asmid_list):
 			m.set_gid(asmid.gid)
 			m.set_pid(asmid.pid)
-		for m in ment_list:
-			if m.gid == 'NAP': m.set_gid('GP')
-			if m.pid == 'NAP': m.set_pid('GP')
 
 		# Load label
 		raw_gid = [m.gid for m in ment_list]

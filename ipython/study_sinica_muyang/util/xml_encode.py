@@ -38,7 +38,7 @@ if __name__ == '__main__':
 	if len(sys.argv) > 2: parts = list(f'part-{x:05}' for x in range(int(sys.argv[2]), 128, 8))
 
 	# Load StyleMe repository and corpus
-	corpus = Corpus(article_root, mention_root, parts=parts)
+	corpus = Corpus(article_root, mention_root=mention_root, parts=parts)
 
 	# Extract html from json
 	n = str(len(corpus.mention_bundle_set))

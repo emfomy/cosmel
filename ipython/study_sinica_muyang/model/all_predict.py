@@ -20,7 +20,7 @@ import torch.utils.data
 sys.path.insert(0, os.path.abspath('.'))
 from styleme import *
 from meta import *
-from predict import model_accuracy
+from predict import check_accuracy
 
 
 if __name__ == '__main__':
@@ -212,25 +212,6 @@ if __name__ == '__main__':
 	############################################################################################################################
 	# Check accuracy
 	#
-	model_accuracy(pred_gid, true_gid, slice(None,None),                'accuracy       ')
-
-	if 'PID' not in pred_gid and 'PID' not in true_gid:
-		model_accuracy(pred_gid, true_gid, [i.isdigit() for i in pred_gid], 'precision (ID) ')
-		model_accuracy(pred_gid, true_gid, [i.isdigit() for i in true_gid], 'recall    (ID) ')
-
-	if 'PID' in pred_gid or 'PID' in true_gid:
-		model_accuracy(pred_gid, true_gid, pred_gid == 'PID',               'precision (PID)')
-		model_accuracy(pred_gid, true_gid, true_gid == 'PID',               'recall    (PID)')
-
-	if 'OSP' in pred_gid or 'OSP' in true_gid:
-		model_accuracy(pred_gid, true_gid, pred_gid == 'OSP',               'precision (OSP)')
-		model_accuracy(pred_gid, true_gid, true_gid == 'OSP',               'recall    (OSP)')
-
-	if 'GP' in pred_gid or 'GP' in true_gid:
-		model_accuracy(pred_gid, true_gid, pred_gid == 'GP',                'precision (GP) ')
-		model_accuracy(pred_gid, true_gid, true_gid == 'GP',                'recall    (GP) ')
-
-	from sklearn.metrics import confusion_matrix
-	print(confusion_matrix(true_gid, pred_gid))
+	check_accuracy(true_gid, pred_gid)
 
 	pass

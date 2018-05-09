@@ -17,17 +17,44 @@ import numpy as np
 import torch
 import torch.utils.data
 
+from sklearn.metrics import accuracy_score
+from sklearn.metrics import precision_score
+from sklearn.metrics import recall_score
+
 sys.path.insert(0, os.path.abspath('.'))
 from styleme import *
 from meta import *
 
-def model_accuracy(pred_gid_code, true_gid_code, mask=slice(None,None), name='accuracy'):
-	assert (np.shape(pred_gid_code) == np.shape(true_gid_code))
-	correct = (pred_gid_code[mask] == true_gid_code[mask])
-	csum = correct.sum()
-	clen = correct.size
-	accuracy = csum / clen
-	print(f'{name} = {accuracy} ({csum}/{clen})')
+def check_accuracy(true_gid, pred_gid):
+
+	def model_accuracy(true_gid, pred_gid, mask=slice(None,None), name='accuracy'):
+		assert (np.shape(true_gid) == np.shape(pred_gid))
+		correct = (true_gid[mask] == pred_gid[mask])
+		csum = correct.sum()
+		clen = correct.size
+		accuracy = csum / clen
+		print(f'{name} = {accuracy} ({csum}/{clen})')
+
+	model_accuracy(true_gid, pred_gid, slice(None,None),                'accuracy       ')
+
+	if 'PID' not in true_gid and 'PID' not in pred_gid:
+		model_accuracy(true_gid, pred_gid, [i.isdigit() for i in pred_gid], 'precision (ID) ')
+		model_accuracy(true_gid, pred_gid, [i.isdigit() for i in true_gid], 'recall    (ID) ')
+
+	if 'PID' in true_gid or 'PID' in pred_gid:
+		model_accuracy(true_gid, pred_gid, pred_gid == 'PID',               'precision (PID)')
+		model_accuracy(true_gid, pred_gid, true_gid == 'PID',               'recall    (PID)')
+
+	if 'OSP' in true_gid or 'OSP' in pred_gid:
+		model_accuracy(true_gid, pred_gid, pred_gid == 'OSP',               'precision (OSP)')
+		model_accuracy(true_gid, pred_gid, true_gid == 'OSP',               'recall    (OSP)')
+
+	if 'GP' in true_gid or 'GP' in pred_gid:
+		model_accuracy(true_gid, pred_gid, pred_gid == 'GP',                'precision (GP) ')
+		model_accuracy(true_gid, pred_gid, true_gid == 'GP',                'recall    (GP) ')
+
+	from sklearn.metrics import confusion_matrix
+	print(confusion_matrix(true_gid, pred_gid))
 
 
 if __name__ == '__main__':
@@ -145,25 +172,6 @@ if __name__ == '__main__':
 	true_gid = model.label_encoder.inverse_transform(np.concatenate(true_label_list))
 
 	# Check accuracy
-	model_accuracy(pred_gid, true_gid, slice(None,None),                'accuracy       ')
-
-	if 'PID' not in pred_gid and 'PID' not in true_gid:
-		model_accuracy(pred_gid, true_gid, [i.isdigit() for i in pred_gid], 'precision (ID) ')
-		model_accuracy(pred_gid, true_gid, [i.isdigit() for i in true_gid], 'recall    (ID) ')
-
-	if 'PID' in pred_gid or 'PID' in true_gid:
-		model_accuracy(pred_gid, true_gid, pred_gid == 'PID',               'precision (PID)')
-		model_accuracy(pred_gid, true_gid, true_gid == 'PID',               'recall    (PID)')
-
-	if 'OSP' in pred_gid or 'OSP' in true_gid:
-		model_accuracy(pred_gid, true_gid, pred_gid == 'OSP',               'precision (OSP)')
-		model_accuracy(pred_gid, true_gid, true_gid == 'OSP',               'recall    (OSP)')
-
-	if 'GP' in pred_gid or 'GP' in true_gid:
-		model_accuracy(pred_gid, true_gid, pred_gid == 'GP',                'precision (GP) ')
-		model_accuracy(pred_gid, true_gid, true_gid == 'GP',                'recall    (GP) ')
-
-	from sklearn.metrics import confusion_matrix
-	print(confusion_matrix(true_gid, pred_gid))
+	check_accuracy(true_gid, pred_gid)
 
 	pass
