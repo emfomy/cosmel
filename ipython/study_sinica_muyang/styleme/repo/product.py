@@ -315,9 +315,10 @@ class BrandHead2ProductList(collections.abc.Mapping):
 
 	def __init__(self, product_set):
 		super().__init__()
-		self.__data     = dict()
-		self.__by_brand = dict()
-		self.__by_head  = dict()
+		self.__product_set  = product_set
+		self.__data         = dict()
+		self.__by_brand     = dict()
+		self.__by_head      = dict()
 
 		data_dict     = dict()
 		by_brand_dict = dict()
@@ -340,12 +341,12 @@ class BrandHead2ProductList(collections.abc.Mapping):
 			else:
 				by_head_dict[product.head] += [product]
 
-		for pair, product_set in data_dict.items():
-			self.__data[pair] = ReadOnlyList(product_set)
-		for brand, product_set in by_brand_dict.items():
-			self.__by_brand[brand] = ReadOnlyList(product_set)
-		for head, product_set in by_head_dict.items():
-			self.__by_head[head] = ReadOnlyList(product_set)
+		for pair, products in data_dict.items():
+			self.__data[pair] = ReadOnlyList(products)
+		for brand, products in by_brand_dict.items():
+			self.__by_brand[brand] = ReadOnlyList(products)
+		for head, products in by_head_dict.items():
+			self.__by_head[head] = ReadOnlyList(products)
 
 		self.__empty_collection = ReadOnlyList()
 
@@ -356,7 +357,8 @@ class BrandHead2ProductList(collections.abc.Mapping):
 			return key in self.__data
 
 	def __getitem__(self, key):
-		assert key[0] != slice(None) or key[1] != slice(None)
+		if key[0] == slice(None) and key[1] == slice(None):
+			return ReadOnlyList(self.__product_set)
 		if key[0] == slice(None):
 			return self.__by_head.get(key[1], self.__empty_collection)
 		if key[1] == slice(None):

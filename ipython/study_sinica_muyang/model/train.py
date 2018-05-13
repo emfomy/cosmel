@@ -8,6 +8,7 @@ __copyright__ = 'Copyright 2017-2018'
 
 import argparse
 import itertools
+import math
 import os
 import sys
 import tqdm
@@ -16,6 +17,8 @@ import numpy as np
 
 import torch
 import torch.utils.data
+
+from sklearn.metrics import accuracy_score
 
 sys.path.insert(0, os.path.abspath('.'))
 from styleme import *
@@ -88,8 +91,11 @@ if __name__ == '__main__':
 
 	if args.check: exit()
 
-	# Load data
+	############################################################################################################################
+	# Initialize model
+	#
 
+	# Load data
 	meta       = DataSetMeta.load(meta_file)
 	asmid_list = AsmidList.load(data_file)
 
@@ -106,46 +112,70 @@ if __name__ == '__main__':
 		print(f'Loaded pretrained model from "{pretrain_file}"')
 		print()
 
-	# Create dataset and dataloader
-	inputs  = model.data(asmid_list)
-	dataset = torch.utils.data.TensorDataset(*inputs)
-	print(f'nun_train = {len(dataset)}')
-	loader  = torch.utils.data.DataLoader(
-		dataset=dataset,
+	############################################################################################################################
+	# Load data
+	#
+
+	# Create mention dataset and dataloader
+	ment_data    = model.ment_data(asmid_list)
+	ment_dataset = torch.utils.data.TensorDataset(*ment_data.inputs, ment_data.label)
+	print(f'#mention = {len(ment_dataset)}')
+	ment_loader  = torch.utils.data.DataLoader(
+		dataset=ment_dataset,
 		batch_size=32,
+		shuffle=True,
+		drop_last=(len(ment_dataset) >= 32),
+	)
+
+	# Create product dataset and dataloader
+	prod_data    = model.prod_data()
+	prod_dataset = torch.utils.data.TensorDataset(*prod_data.inputs, prod_data.label)
+	print(f'#product = {len(prod_dataset)}')
+	prod_loader  = torch.utils.data.DataLoader(
+		dataset=prod_dataset,
+		batch_size=max(1, math.ceil(len(prod_dataset) / len(ment_loader))),
 		shuffle=True,
 		drop_last=True,
 	)
 
+	assert(len(ment_loader) >= len(prod_loader))
+
+	############################################################################################################################
+	# Training
+	#
+
 	# Create optimizer
 	optimizer = torch.optim.Adam(model.parameters())
+	num_epoch = 10
+	num_step  = len(ment_loader)
 
-	# Train
-	num_epoch = 20
-	num_step  = len(loader)
+	from collections import defaultdict
 
 	for epoch in range(num_epoch):
 
-		loss_sum = 0
-		pbar = tqdm.trange(num_step, desc=f'Epoch {epoch+1:0{len(str(num_epoch))}}/{num_epoch}')
-		pbar.set_postfix(loss=f'{0.:.6f}')
-		for step, inputs in zip(pbar, loader):
+		# Training
+		losses_sum = defaultdict(lambda: 0.)
+		pbar = tqdm.trange(num_step, desc=f'Train {epoch+1:0{len(str(num_epoch))}}/{num_epoch}')
+		pbar.set_postfix(loss=f'{0.:09.6f}')
+		for step, ment_inputs_cpu, prod_inputs_cpu in zip(pbar, ment_loader, itertools.cycle(prod_loader)):
 
-			inputs_gpu = tuple(v.cuda() for v in inputs)
+			inputs  = tuple(v.cuda() for v in itertools.chain(ment_inputs_cpu[:-1], prod_inputs_cpu[:-1]))
+			labels  = (ment_inputs_cpu[-1].cuda(), prod_inputs_cpu[-1].cuda())
+			outputs = model(*inputs)
 
-			label = inputs_gpu[-1]
-			output = model(*inputs_gpu[:-1])
-			loss = model.loss(output, label)
-			loss_item = loss.item()
-			loss_sum += loss_item
+			losses  = model.loss(*outputs, *labels)
+			loss    = sum(losses.values())
 
-			pbar.set_postfix(loss=f'{loss_item:.6f}')
+			losses_sum['*loss'] += loss.item()
+			for k, v in losses.items():
+				losses_sum[k] += v.item()
+
+			postfix = {k: f'{v/(step+1):09.6f}' for k, v in losses_sum.items()}
+			pbar.set_postfix(**postfix)
 
 			optimizer.zero_grad()
 			loss.backward()
 			optimizer.step()
-
-		pbar.set_postfix(loss=f'{loss_sum/num_step:.6f}')
 
 	# Save models
 	model.save(model_file)

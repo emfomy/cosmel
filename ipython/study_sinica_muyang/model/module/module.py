@@ -46,10 +46,10 @@ class ContextEncoder(torch.nn.Module):
 
 	def data(self, ment_list, repo, corpus):
 
-		return \
-			self.local_encoder.data(ment_list, repo, corpus) + \
-			self.title_encoder.data(ment_list, repo, corpus) + \
-			self.docu_encoder.data(ment_list, repo, corpus)
+		return ( \
+			*self.local_encoder.data(ment_list, repo, corpus), \
+			*self.title_encoder.data(ment_list, repo, corpus), \
+			*self.docu_encoder.data(ment_list, repo, corpus), )
 
 	def forward(self, pre_pad, post_pad, title_pad, pid_bag, brand_bag):
 
@@ -119,7 +119,7 @@ class LocalContextEncoder(torch.nn.Module):
 		pre_pad_var   = torch.from_numpy(pre_pad).long()
 		post_pad_var  = torch.from_numpy(post_pad).long()
 
-		return pre_pad_var, post_pad_var,
+		return (pre_pad_var, post_pad_var,)
 
 	def forward(self, pre_pad, post_pad):
 
@@ -171,7 +171,7 @@ class TitleContextEncoder(torch.nn.Module):
 		# Combine inputs
 		title_pad_var = torch.from_numpy(title_pad).long()
 
-		return title_pad_var,
+		return (title_pad_var,)
 
 	def forward(self, title_pad):
 
@@ -221,7 +221,7 @@ class DocumentEncoder(torch.nn.Module):
 		pid_bag_var   = torch.from_numpy(pid_bag).float()
 		brand_bag_var = torch.from_numpy(brand_bag).float()
 
-		return pid_bag_var, brand_bag_var,
+		return (pid_bag_var, brand_bag_var,)
 
 	def forward(self, pid_bag, brand_bag):
 
@@ -253,7 +253,7 @@ class DescriptionEncoder(torch.nn.Module):
 		self.conv1d = torch.nn.Conv1d(w2v_emb_size, cnn_emb_size, cnn_win_size)
 		self.linear = torch.nn.Linear(cnn_emb_size, w2v_emb_size)
 
-	def data(self, prod_list, repo, corpus):
+	def data(self, prod_list, repo):
 
 		# Load context
 		raw_desc = [product.descr_ws.txts for product in prod_list]
@@ -267,7 +267,7 @@ class DescriptionEncoder(torch.nn.Module):
 		# Combine inputs
 		desc_pad_var = torch.from_numpy(desc_pad).long()
 
-		return desc_pad_var,
+		return (desc_pad_var,)
 
 	def forward(self, desc_pad):
 
@@ -283,12 +283,26 @@ class DescriptionEncoder(torch.nn.Module):
 # Product Encoder
 #
 
-class NameEncoder(DescriptionEncoder):
+class NameEncoder(torch.nn.Module):
 
-	def data(self, prod_list, repo, corpus):
+	def __init__(self, meta, word_emb_module):
+
+		super().__init__()
+		self.meta = meta
+
+		# Get dimensions
+		w2v_emb_size = word_emb_module.embedding_dim
+
+		# Set size
+		self.output_size = w2v_emb_size
+
+		# Create modules
+		self.word_emb = word_emb_module
+
+	def data(self, prod_list, repo):
 
 		# Load context
-		raw_name = [product.brand[0] + product.name_ws.txts for product in prod_list]
+		raw_name = [product.name_ws.txts for product in prod_list]
 
 		# Encode
 		name_code = self.meta.tokenizer.transform_sequences(raw_name)
@@ -299,4 +313,11 @@ class NameEncoder(DescriptionEncoder):
 		# Combine inputs
 		name_pad_var = torch.from_numpy(name_pad).long()
 
-		return name_pad_var,
+		return (name_pad_var,)
+
+	def forward(self, name_pad):
+
+		name_pad_emb = self.word_emb(name_pad)
+		name_emb     = torch.mean(name_pad_emb, dim=1)
+
+		return name_emb

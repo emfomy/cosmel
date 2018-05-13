@@ -11,6 +11,9 @@ import torch
 
 class Model(torch.nn.Module):
 
+	from .data import MentionData
+	from .data import ProductData
+
 	def __init__(self, meta):
 
 		super().__init__()
@@ -40,14 +43,14 @@ class Model(torch.nn.Module):
 	def predict(self, *args, **kwargs):
 		raise NotImplementedError
 
-	def data(self, asmid_list):
-		raise NotImplementedError
+	def ment_data(self, asmid_list):
+		return self.MentionData(self, asmid_list, _all=False)
 
-	def data_predict(self, asmid_list):
-		return self.data(asmid_list)
+	def prod_data(self):
+		return self.ProductData(self)
 
-	def data_predict_all(self, asmid_list):
-		return self.data(asmid_list)
+	def ment_data_all(self, asmid_list):
+		return self.MentionData(self, asmid_list, _all=True)
 
 	def save(self, file):
 		os.makedirs(os.path.dirname(file), exist_ok=True)

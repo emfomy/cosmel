@@ -135,8 +135,8 @@ if __name__ == '__main__':
 	# DataSet
 	#
 
-	data    = model.data_predict_all(asmid_list)
-	dataset = torch.utils.data.TensorDataset(*data)
+	data    = model.ment_data_all(asmid_list)
+	dataset = torch.utils.data.TensorDataset(*data.inputs)
 	print(f'nun_test = {len(dataset)}')
 	loader  = torch.utils.data.DataLoader(
 		dataset=dataset,
@@ -165,19 +165,16 @@ if __name__ == '__main__':
 
 	# Apply model
 	pred_label_list = []
-	true_label_list = []
 	num_step = len(loader)
 
 	pbar = tqdm.trange(num_step)
-	for step, inputs in zip(pbar, loader):
-		inputs_gpu = tuple(v.cuda() for v in inputs)
-		output = model(*inputs_gpu[:-1])
-		pred_label_list.append(model.predict(output))
-		true_label_list.append(inputs_gpu[-1].cpu().data.numpy())
+	for step, inputs_cpu in zip(pbar, loader):
+		inputs = tuple(v.cuda() for v in inputs_cpu)
+		pred_label_list.append(model.predict(*inputs))
 
 	# Concatenate result
 	pred_gid = model.label_encoder.inverse_transform(np.concatenate(pred_label_list))
-	true_gid = model.label_encoder.inverse_transform(np.concatenate(true_label_list))
+	true_gid = model.label_encoder.inverse_transform(data.label.cpu().data.numpy())
 
 	############################################################################################################################
 	# Predicting Model0
@@ -189,11 +186,11 @@ if __name__ == '__main__':
 	num_step0 = len(loader0)
 
 	pbar0 = tqdm.trange(num_step0)
-	for step, inputs0 in zip(pbar0, loader0):
-		inputs0_gpu = tuple(v.cuda() for v in inputs0)
-		output0 = model0(*inputs0_gpu[:-1])
+	for step, inputs0_cpu in zip(pbar0, loader0):
+		inputs0 = tuple(v.cuda() for v in inputs0_cpu)
+		output0 = model0(*inputs0[:-1])
 		pred_label0_list.append(model0.predict(output0))
-		true_label0_list.append(inputs0_gpu[-1].cpu().data.numpy())
+		true_label0_list.append(inputs0[-1].cpu().data.numpy())
 
 	# Concatenate result
 	pred_gid0 = model0.label_encoder.inverse_transform(np.concatenate(pred_label0_list))

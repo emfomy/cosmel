@@ -141,8 +141,8 @@ if __name__ == '__main__':
 	# DataSet
 	#
 
-	data    = model.data_predict(asmid_list)
-	dataset = torch.utils.data.TensorDataset(*data)
+	data    = model.ment_data(asmid_list)
+	dataset = torch.utils.data.TensorDataset(*data.inputs)
 	print(f'nun_test = {len(dataset)}')
 	loader  = torch.utils.data.DataLoader(
 		dataset=dataset,
@@ -157,19 +157,16 @@ if __name__ == '__main__':
 
 	# Apply model
 	pred_label_list = []
-	true_label_list = []
 	num_step = len(loader)
 
 	pbar = tqdm.trange(num_step)
-	for step, inputs in zip(pbar, loader):
-		inputs_gpu = tuple(v.cuda() for v in inputs)
-		output = model(*inputs_gpu[:-1])
-		pred_label_list.append(model.predict(output))
-		true_label_list.append(inputs_gpu[-1].cpu().data.numpy())
+	for step, inputs_cpu in zip(pbar, loader):
+		inputs = tuple(v.cuda() for v in inputs_cpu)
+		pred_label_list.append(model.predict(*inputs))
 
 	# Concatenate result
 	pred_gid = model.label_encoder.inverse_transform(np.concatenate(pred_label_list))
-	true_gid = model.label_encoder.inverse_transform(np.concatenate(true_label_list))
+	true_gid = model.label_encoder.inverse_transform(data.label.cpu().data.numpy())
 
 	# Check accuracy
 	check_accuracy(true_gid, pred_gid)

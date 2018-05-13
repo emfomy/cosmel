@@ -108,7 +108,7 @@ class AsmidList(collections.abc.Sequence):
 
 
 ################################################################################################################################
-# Encoder * Binarizer
+# Encoder
 #
 
 class LabelEncoder(_LabelEncoder):
