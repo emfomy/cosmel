@@ -26,7 +26,7 @@ class Model0(Model):
 
 			asmid_list.gid_to_mtype()
 
-			super().__init__(model, asmid_list, _all=True)
+			super().__init__(model, asmid_list, _all)
 
 			self.inputs += model.text_encoder.data(self.ment_list, self.repo, self.corpus)
 
@@ -46,14 +46,15 @@ class Model0(Model):
 		# Create modules
 		self.text_encoder = ContextEncoder(meta, self.word_emb, lstm_emb_size)
 
-		hidden_size = self.text_encoder.output_size
+		text_size   = self.text_encoder.output_size
+		hidden_size = text_size
+		label_size  = len(self.label_encoder.classes_)
 		self.linears = torch.nn.Sequential(
-			torch.nn.Linear(hidden_size, hidden_size),
+			torch.nn.Linear(text_size, hidden_size),
 			torch.nn.ReLU(),
 			torch.nn.Linear(hidden_size, hidden_size),
 			torch.nn.ReLU(),
-			torch.nn.Linear(hidden_size, len(self.label_encoder.classes_)),
-			torch.nn.ReLU(),
+			torch.nn.Linear(hidden_size, label_size),
 		)
 
 	def forward(self, title_pad, pre_pad, post_pad, pid_bag, brand_bag):

@@ -27,9 +27,6 @@ class MentionData(CoreData):
 
 		super().__init__(model)
 
-		if not _all:
-			asmid_list.filter_sp()
-
 		parts       = list(set(m.aid for m in asmid_list))
 		self.repo   = Repo(model.meta.repo_path)
 		self.corpus = Corpus(model.meta.article_path, mention_root=model.meta.mention_path, parts=parts)

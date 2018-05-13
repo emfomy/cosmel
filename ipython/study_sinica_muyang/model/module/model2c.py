@@ -17,6 +17,9 @@ class Model2c(Model2):
 
 		def __init__(self, model, asmid_list, _all):
 
+			if not _all:
+				asmid_list.filter_sp()
+
 			super().__init__(model, asmid_list, _all)
 
 			self.inputs += model.text_encoder.data(self.ment_list, self.repo, self.corpus)
