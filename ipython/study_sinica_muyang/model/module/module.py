@@ -73,7 +73,7 @@ class LocalContextEncoder(torch.nn.Module):
 
 		# Set size
 		self.output_size = w2v_emb_size
-		self.max_num_sentences = 5
+		self.max_num_sentences = 0
 
 		# Create modules
 		self.word_emb  = word_emb_module

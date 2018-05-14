@@ -45,22 +45,14 @@ class Model0(Model):
 
 		# Create modules
 		self.text_encoder = ContextEncoder(meta, self.word_emb, lstm_emb_size)
-
 		text_size   = self.text_encoder.output_size
-		hidden_size = text_size
 		label_size  = len(self.label_encoder.classes_)
-		self.linears = torch.nn.Sequential(
-			torch.nn.Linear(text_size, hidden_size),
-			torch.nn.ReLU(),
-			torch.nn.Linear(hidden_size, hidden_size),
-			torch.nn.ReLU(),
-			torch.nn.Linear(hidden_size, label_size),
-		)
+		self.linear = torch.nn.Linear(text_size, label_size)
 
 	def forward(self, title_pad, pre_pad, post_pad, pid_bag, brand_bag):
 
 		text_emb   = self.text_encoder(title_pad, pre_pad, post_pad, pid_bag, brand_bag)
-		mtype_prob = self.linears(text_emb)
+		mtype_prob = self.linear(text_emb)
 
 		return (mtype_prob,)
 

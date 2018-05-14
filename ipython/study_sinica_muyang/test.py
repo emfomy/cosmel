@@ -25,7 +25,7 @@ if __name__ == '__main__':
 	bad_article  = f'{data_root}/article/bad_article.txt'
 	emb_file     = f'{data_root}/embedding/pruned_article.dim300.emb.bin'
 	parts        = ['']
-	# parts        = list(f'part-{x:05}' for x in range(1))
+	parts        = list(f'part-{x:05}' for x in range(1))
 	if len(sys.argv) > 2: parts = list(f'part-{x:05}' for x in range(int(sys.argv[2]), 128, 8))
 
 	with open(bad_article) as fin:

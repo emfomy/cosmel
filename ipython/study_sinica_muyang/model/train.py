@@ -155,7 +155,7 @@ if __name__ == '__main__':
 
 		# Training
 		losses_sum = defaultdict(lambda: 0.)
-		pbar = tqdm.trange(num_step, desc=f'Train {epoch+1:0{len(str(num_epoch))}}/{num_epoch}')
+		pbar = tqdm.trange(num_step, desc=f'Epoch {epoch+1:0{len(str(num_epoch))}}/{num_epoch}')
 		pbar.set_postfix(loss=f'{0.:09.6f}')
 		for step, ment_inputs_cpu, prod_inputs_cpu in zip(pbar, ment_loader, itertools.cycle(prod_loader)):
 

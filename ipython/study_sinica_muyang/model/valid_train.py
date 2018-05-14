@@ -213,7 +213,7 @@ if __name__ == '__main__':
 			best_epoch      = epoch
 			best_state_dict = copy.deepcopy(model.state_dict())
 
-		print(f'Best: epoch={best_epoch+1} ({epoch-best_epoch} from now), acc={best_acc}')
+		print(f'Best: epoch={best_epoch+1} ({epoch-best_epoch} behind), acc={best_acc}')
 
 		if epoch-best_epoch >= 5:
 			print(f'Use {best_epoch+1}th epoch')
