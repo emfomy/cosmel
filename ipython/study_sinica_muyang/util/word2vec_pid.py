@@ -22,21 +22,39 @@ if __name__ == '__main__':
 
 	data_root    = f'data/{ver}'
 	target       = f'pruned_article'
+	target_ver   = f'_pid'
 	repo_root    = f'{data_root}/repo'
 	article_root = f'{data_root}/article/{target}_role'
-	txt_file     = f'{data_root}/embedding/{target}.txt'
+	mention_root = f'{data_root}/mention/{target}{target_ver}'
+	txt_file     = f'{data_root}/embedding/{target}_pid.txt'
 	parts        = ['']
 	# parts        = list(f'part-{x:05}' for x in range(1))
 	if len(sys.argv) > 2: parts = list(f'part-{x:05}' for x in range(int(sys.argv[2]), 128, 8))
 
-	repo     = Repo(repo_root)
-	articles = ArticleSet(article_root, parts=parts)
+	repo   = Repo(repo_root)
+	corpus = Corpus(article_root, mention_root=mention_root, parts=parts)
+
+	# Replace mention
+	n = str(len(corpus.mention_set))
+	for i, m in enumerate(corpus.mention_set):
+		printr(f'{i+1:0{len(n)}}/{n}\t{m.asmid}')
+		if m.pid.isdigit():
+			m.sentence.txts[m.start_idx] = 'PID'+m.pid
+	print()
 
 	N = 10
 
 	# Concatenate articles
 	os.makedirs(os.path.dirname(txt_file), exist_ok=True)
 	with open(txt_file, 'w') as fout:
+
+		# Product ID
+		n = str(len(repo.product_set))
+		for i, p in enumerate(repo.product_set):
+			printr(f'{i+1:0{len(n)}}/{n}\tProcessing {p}')
+			for _ in range(N):
+				fout.write(f'PID{p.pid}\n')
+		print()
 
 		# Brand Name
 		n = str(len(repo.brand_set))
@@ -78,8 +96,8 @@ if __name__ == '__main__':
 		print()
 
 		# Corpus
-		n = str(len(articles))
-		for i, article in enumerate(articles):
+		n = str(len(corpus.article_set))
+		for i, article in enumerate(corpus.article_set):
 			printr(f'{i+1:0{len(n)}}/{n}\tProcessing {article.path}')
 			for sentence in article:
 				fout.write(' '.join(sentence.txts)+'\n')

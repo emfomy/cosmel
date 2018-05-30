@@ -17,10 +17,12 @@ import numpy as np
 import torch
 import torch.utils.data
 
-sys.path.insert(0, os.path.abspath('.'))
+if __name__ == '__main__':
+	sys.path.insert(0, os.path.abspath('.'))
+
 from styleme import *
-from meta import *
-from predict import check_accuracy
+from model.module.meta import *
+from model.predict import check_accuracy
 
 
 if __name__ == '__main__':
@@ -44,6 +46,8 @@ if __name__ == '__main__':
 		  help='use model <weight0_name>; default is "<weight_name>"')
 	argparser.add_argument('-m0', '--model0', metavar='<model0_type>', default='model0', \
 		  help='use model <model0_type>; default is "model0"')
+	argparser.add_argument('-t', '--num-tests', metavar='<num>', type=int,
+			help='number of tests.')
 	argparser.add_argument('--meta', metavar='<meta_name>', \
 			help='dataset meta path; default is "[<dir>/]meta.pkl"')
 
@@ -74,6 +78,8 @@ if __name__ == '__main__':
 	if args.meta != None:
 		meta_file = args.meta
 
+	num_test = args.num_tests
+
 	model_pkg_name = args.model
 	model_cls_name = args.model.capitalize()
 	Model = getattr(__import__('module.'+model_pkg_name, fromlist=model_cls_name), model_cls_name)
@@ -91,6 +97,7 @@ if __name__ == '__main__':
 	print(f'model_file    = {model_file}')
 	print(f'model0_file   = {model0_file}')
 	print(f'meta_file     = {meta_file}')
+	print(f'num_test      = {num_test}')
 	print()
 
 	if args.check: exit()
@@ -112,9 +119,6 @@ if __name__ == '__main__':
 	print()
 	print(model)
 	print()
-	model.load(model_file)
-	print(f'Loaded model from "{model_file}"')
-	print()
 	model.eval()
 
 	############################################################################################################################
@@ -125,9 +129,6 @@ if __name__ == '__main__':
 	model0.cuda()
 	print()
 	print(model0)
-	print()
-	model0.load(model0_file)
-	print(f'Loaded model0 from "{model0_file}"')
 	print()
 	model0.eval()
 
@@ -163,49 +164,70 @@ if __name__ == '__main__':
 	# Predicting
 	#
 
-	# Apply model
-	pred_label_list = []
-	num_step = len(loader)
+	total_test = num_test if num_test else 1
+	acc        = np.zeros((total_test, 5,))
 
-	pbar = tqdm.trange(num_step)
-	for step, inputs_cpu in zip(pbar, loader):
-		inputs = tuple(v.cuda() for v in inputs_cpu)
-		pred_label_list.append(model.predict(*inputs))
+	for t in range(max(total_test, 1)):
 
-	# Concatenate result
-	pred_gid = model.label_encoder.inverse_transform(np.concatenate(pred_label_list))
-	true_gid = model.label_encoder.inverse_transform(data.label.cpu().data.numpy())
+		if num_test:
+			model_file  = f'{result_root}{args.weight}.{t}.{args.model}.pt'
+			model0_file = f'{result_root}{weight0}.{t}.{args.model0}.pt'
 
-	############################################################################################################################
-	# Predicting Model0
-	#
+		# Load model
+		model.load(model_file)
+		# print(f'Loaded model from "{model_file}"')
+		model0.load(model0_file)
+		# print(f'Loaded model0 from "{model0_file}"')
 
-	# Apply model
-	pred_label0_list = []
-	num_step0 = len(loader0)
+		# Apply model
+		pred_label_list = []
+		num_step = len(loader)
 
-	pbar0 = tqdm.trange(num_step0)
-	for step, inputs0_cpu in zip(pbar0, loader0):
-		inputs0 = tuple(v.cuda() for v in inputs0_cpu)
-		pred_label0_list.append(model0.predict(*inputs0))
+		pbar = tqdm.trange(num_step, desc=f'Test  {t+1:0{len(str(total_test))}}/{total_test}')
+		for step, inputs_cpu in zip(pbar, loader):
+			inputs = tuple(v.cuda() for v in inputs_cpu)
+			pred_label_list.append(model.predict(*inputs))
 
-	# Concatenate result
-	pred_gid0 = model0.label_encoder.inverse_transform(np.concatenate(pred_label0_list))
-	true_gid0 = model0.label_encoder.inverse_transform(data0.label.cpu().data.numpy())
+		# Concatenate result
+		pred_gid = model.label_encoder.inverse_transform(np.concatenate(pred_label_list))
+		true_gid = model.label_encoder.inverse_transform(data.label.cpu().data.numpy())
 
-	############################################################################################################################
-	# Merge result
-	#
+		# Apply model0
+		pred_label0_list = []
+		num_step0 = len(loader0)
 
-	pred_idx0 = (pred_gid0 != 'PID')
-	pred_gid[pred_idx0] = pred_gid0[pred_idx0]
+		pbar0 = tqdm.trange(num_step0, desc=f'Test0 {t+1:0{len(str(total_test))}}/{total_test}')
+		for step, inputs0_cpu in zip(pbar0, loader0):
+			inputs0 = tuple(v.cuda() for v in inputs0_cpu)
+			pred_label0_list.append(model0.predict(*inputs0))
 
-	true_idx0 = (true_gid0 != 'PID')
-	true_gid[true_idx0] = true_gid0[true_idx0]
+		# Concatenate result0
+		pred_gid0 = model0.label_encoder.inverse_transform(np.concatenate(pred_label0_list))
+		true_gid0 = model0.label_encoder.inverse_transform(data0.label.cpu().data.numpy())
 
-	############################################################################################################################
-	# Check accuracy
-	#
-	check_accuracy(true_gid, pred_gid)
+		# Merge result
+		pred_idx0 = (pred_gid0 != 'PID')
+		pred_gid[pred_idx0] = pred_gid0[pred_idx0]
+
+		true_idx0 = (true_gid0 != 'PID')
+		true_gid[true_idx0] = true_gid0[true_idx0]
+
+		# Check accuracy
+		from sklearn.metrics import accuracy_score, f1_score
+		acc[t, 0]  = accuracy_score(true_gid, pred_gid)
+		acc[t, 1]  = f1_score(true_gid, pred_gid, average='weighted')
+		acc[t, 2:] = f1_score(true_gid, pred_gid, average=None, labels=['PID', 'OSP', 'GP'])
+
+	acc = acc*100
+
+	np.set_printoptions(formatter={'float_kind': (lambda x: f'{x:05.2f}')})
+	print()
+	print('  acc   f1    PID   OSP   GP')
+	print(acc)
+	print()
+	print('mean')
+	print(np.mean(acc, axis=0))
+	print('std')
+	print(np.std(acc, axis=0))
 
 	pass

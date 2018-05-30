@@ -10,7 +10,9 @@ import json
 import os
 import sys
 
-sys.path.insert(0, os.path.abspath('.'))
+if __name__ == '__main__':
+	sys.path.insert(0, os.path.abspath('.'))
+
 from styleme import *
 
 def get_html_idx(html_data, word, start_idx, end_idx):

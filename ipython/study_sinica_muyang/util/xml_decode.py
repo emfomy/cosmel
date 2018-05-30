@@ -13,8 +13,9 @@ import sys
 
 from bs4 import BeautifulSoup
 
-os.chdir(os.path.join(os.path.dirname(__file__), '..'))
-sys.path.insert(0, os.path.abspath('.'))
+if __name__ == '__main__':
+	sys.path.insert(0, os.path.abspath('.'))
+
 from styleme import *
 
 def get_xml_idx(xml_data, word, start_idx):

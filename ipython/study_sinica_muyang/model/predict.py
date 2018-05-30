@@ -21,11 +21,25 @@ from sklearn.metrics import accuracy_score
 from sklearn.metrics import precision_score
 from sklearn.metrics import recall_score
 
-sys.path.insert(0, os.path.abspath('.'))
+if __name__ == '__main__':
+	sys.path.insert(0, os.path.abspath('.'))
+
 from styleme import *
-from meta import *
+from model.module.meta import *
 
 def check_accuracy(true_gid, pred_gid):
+
+	# from sklearn.metrics import classification_report
+	# print(classification_report(true_gid, pred_gid))
+	# return
+
+	# from sklearn.metrics import accuracy_score, f1_score
+	# print(f'accuracy = {accuracy_score(true_gid, pred_gid)}')
+	# print(f'F1 score = {f1_score(true_gid, pred_gid, average="weighted")}')
+	# print(f'F1 (PID) = {f1_score(true_gid, pred_gid, average=None, labels=["PID"])[0]}')
+	# print(f'F1 (OSP) = {f1_score(true_gid, pred_gid, average=None, labels=["OSP"])[0]}')
+	# print(f'F1 (GP)  = {f1_score(true_gid, pred_gid, average=None, labels=["GP"])[0]}')
+	# return
 
 	def model_accuracy(true_gid, pred_gid, mask=slice(None,None), name='accuracy'):
 		assert (np.shape(true_gid) == np.shape(pred_gid))
@@ -73,7 +87,9 @@ if __name__ == '__main__':
 	argparser.add_argument('-w', '--weight', metavar='<weight_name>', required=True, \
 			help='model weight path; load model weight from "[<dir>]<weight_name>.<model_type>.weight.pt"')
 	argparser.add_argument('-m', '--model', metavar='<model_type>', required=True, \
-		  help='use model <model_type>')
+			help='use model <model_type>')
+	argparser.add_argument('-t', '--num-tests', metavar='<num>', type=int,
+			help='number of tests.')
 	argparser.add_argument('--meta', metavar='<meta_name>', \
 			help='dataset meta path; default is "[<dir>/]meta.pkl"')
 
@@ -100,6 +116,8 @@ if __name__ == '__main__':
 	if args.meta != None:
 		meta_file = args.meta
 
+	num_test = args.num_tests
+
 	model_pkg_name = args.model
 	model_cls_name = args.model.capitalize()
 	Model = getattr(__import__('module.'+model_pkg_name, fromlist=model_cls_name), model_cls_name)
@@ -112,6 +130,7 @@ if __name__ == '__main__':
 	print(f'data_file     = {data_file}')
 	print(f'model_file    = {model_file}')
 	print(f'meta_file     = {meta_file}')
+	print(f'num_test      = {num_test}')
 	print()
 
 	if args.check: exit()
@@ -131,9 +150,6 @@ if __name__ == '__main__':
 	model.cuda()
 	print()
 	print(model)
-	print()
-	model.load(model_file)
-	print(f'Loaded model from "{model_file}"')
 	print()
 	model.eval()
 
@@ -155,20 +171,47 @@ if __name__ == '__main__':
 	# Predicting
 	#
 
-	# Apply model
-	pred_label_list = []
-	num_step = len(loader)
+	total_test = num_test if num_test else 1
+	acc        = np.zeros((total_test, 5,))
 
-	pbar = tqdm.trange(num_step)
-	for step, inputs_cpu in zip(pbar, loader):
-		inputs = tuple(v.cuda() for v in inputs_cpu)
-		pred_label_list.append(model.predict(*inputs))
+	for t in range(max(total_test, 1)):
 
-	# Concatenate result
-	pred_gid = model.label_encoder.inverse_transform(np.concatenate(pred_label_list))
-	true_gid = model.label_encoder.inverse_transform(data.label.cpu().data.numpy())
+		if num_test:
+			model_file = f'{result_root}{args.weight}.{t}.{args.model}.pt'
 
-	# Check accuracy
-	check_accuracy(true_gid, pred_gid)
+		# Load model
+		model.load(model_file)
+		# print(f'Loaded model from "{model_file}"')
+
+		# Apply model
+		pred_label_list = []
+		num_step = len(loader)
+		pbar = tqdm.trange(num_step, desc=f'Test {t+1:0{len(str(total_test))}}/{total_test}')
+
+		for step, inputs_cpu in zip(pbar, loader):
+			inputs = tuple(v.cuda() for v in inputs_cpu)
+			pred_label_list.append(model.predict(*inputs))
+
+		# Concatenate result
+		pred_gid = model.label_encoder.inverse_transform(np.concatenate(pred_label_list))
+		true_gid = model.label_encoder.inverse_transform(data.label.cpu().data.numpy())
+
+		# Check accuracy
+		from sklearn.metrics import accuracy_score, f1_score
+		acc[t, 0]  = accuracy_score(true_gid, pred_gid)
+		acc[t, 1]  = f1_score(true_gid, pred_gid, average='weighted')
+		acc[t, 2:] = f1_score(true_gid, pred_gid, average=None, labels=['PID', 'OSP', 'GP'])
+
+	acc = acc*100
+
+	np.set_printoptions(formatter={'float_kind': (lambda x: f'{x:05.2f}')})
+	print()
+	print('  acc   f1    PID   OSP   GP')
+	print(acc)
+	print()
+	print('mean')
+	print(np.mean(acc, axis=0))
+	print('std')
+	print(np.std(acc, axis=0))
 
 	pass

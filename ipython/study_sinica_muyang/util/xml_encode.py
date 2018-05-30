@@ -9,8 +9,9 @@
 import os
 import sys
 
-os.chdir(os.path.join(os.path.dirname(__file__), '..'))
-sys.path.insert(0, os.path.abspath('.'))
+if __name__ == '__main__':
+	sys.path.insert(0, os.path.abspath('.'))
+
 from styleme import *
 
 def add_start_xml(start, mention):

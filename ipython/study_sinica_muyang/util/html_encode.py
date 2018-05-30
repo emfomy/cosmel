@@ -10,11 +10,13 @@ import itertools
 import os
 import sys
 
-sys.path.insert(0, os.path.abspath('.'))
+if __name__ == '__main__':
+	sys.path.insert(0, os.path.abspath('.'))
+
 from styleme import *
 
-from xml_encode import add_start_xml
-from xml_encode import add_end_xml
+from util.xml_encode import add_start_xml
+from util.xml_encode import add_end_xml
 
 
 def get_html_idxs(mention):

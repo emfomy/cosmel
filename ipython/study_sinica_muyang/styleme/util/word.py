@@ -47,6 +47,8 @@ class WsWords(collections.abc.Sequence):
 		return key in self.zip2 or key in self.zip3
 
 	def __getitem__(self, idxs):
+		if isinstance(idxs, int):
+			idxs = slice(idxs, idxs+1)
 		retval = WsWords('')
 		retval.__txts  = self.__txts[idxs]
 		retval.__tags  = self.__tags[idxs]

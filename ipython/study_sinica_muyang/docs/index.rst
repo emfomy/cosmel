@@ -20,5 +20,6 @@ Contents
 
    _api/styleme
    _api/model
+   _api/util
    genindex
    py-modindex

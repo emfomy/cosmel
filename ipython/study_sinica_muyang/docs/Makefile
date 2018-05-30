@@ -14,6 +14,7 @@ DOCDIR     = .
 BUILDDIR   = _build
 SOURCEDIR1 = ../styleme
 SOURCEDIR2 = ../model
+SOURCEDIR3 = ../util
 APIDIR     = _api
 
 # Put it first so that "make" without argument is like "make help".
@@ -25,6 +26,7 @@ help:
 api:
 	@$(SPHINXAPI) -fMeT -o "$(APIDIR)" "$(SOURCEDIR1)" $(SPHINXAPIOPTS)
 	@$(SPHINXAPI) -fMeT -o "$(APIDIR)" "$(SOURCEDIR2)" $(SPHINXAPIOPTS)
+	@$(SPHINXAPI) -fMeT -o "$(APIDIR)" "$(SOURCEDIR3)" $(SPHINXAPIOPTS)
 
 clean: Makefile
 	@$(SPHINXBUILD) -M $@ "$(DOCDIR)" "$(BUILDDIR)" $(SPHINXBUILDOPTS)

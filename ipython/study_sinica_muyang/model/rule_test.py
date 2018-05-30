@@ -14,10 +14,12 @@ import numpy as np
 
 import torch
 
-sys.path.insert(0, os.path.abspath('.'))
+if __name__ == '__main__':
+	sys.path.insert(0, os.path.abspath('.'))
+
 from styleme import *
-from meta import *
-from predict import check_accuracy
+from model.module.meta import *
+from model.predict import check_accuracy
 
 if __name__ == '__main__':
 
@@ -72,6 +74,9 @@ if __name__ == '__main__':
 
 	meta       = DataSetMeta.load(meta_file)
 	asmid_list = AsmidList.load(data_file)
+	# asmid_list.pid_to_mtype()
+	# asmid_list.gid_to_mtype()
+	# asmid_list.filter_sp()
 	print()
 	pred_gid = np.asarray([asmid.pid for asmid in asmid_list])
 	true_gid = np.asarray([asmid.gid for asmid in asmid_list])
@@ -80,19 +85,32 @@ if __name__ == '__main__':
 	num_test = len(asmid_list)
 	print(f'num_test = {num_test}')
 
-	# parts  = list(set(m.aid for m in asmid_list))
-	# repo   = Repo(meta.repo_path)
-	# corpus = Corpus(meta.article_path, mention_root=meta.mention_path, parts=parts)
+	parts  = list(set(m.aid for m in asmid_list))
+	repo   = Repo(meta.repo_path)
+	corpus = Corpus(meta.article_path, mention_root=meta.mention_path, parts=parts)
 
-	# ment_list = [corpus.id_to_mention[asmid.asmid] for asmid in asmid_list]
-	# for m, asmid in zip(ment_list, asmid_list):
-	# 	m.set_gid(asmid.gid)
-	# 	m.set_pid(asmid.pid)
+	ment_list = [corpus.id_to_mention[asmid.asmid] for asmid in asmid_list]
+	for m, asmid in zip(ment_list, asmid_list):
+		m.set_gid(asmid.gid)
+		m.set_pid(asmid.pid)
 
-	# rule_list = np.asarray([m.rule for m in ment_list])
-	# check_accuracy(true_gid[rule_list == 'P_rule1'], pred_gid[rule_list == 'P_rule1'])
+	rule_list = np.asarray([m.rule for m in ment_list])
+	true_gid = true_gid[rule_list == 'P_rule1']
+	pred_gid = pred_gid[rule_list == 'P_rule1']
 
-	# Check accuracy
-	check_accuracy(true_gid, pred_gid)
+	# # Check accuracy
+	# check_accuracy(true_gid, pred_gid)
+
+	from sklearn.metrics import accuracy_score, f1_score
+	acc     = np.zeros((5,))
+	acc[0]  = accuracy_score(true_gid, pred_gid)
+	acc[1]  = f1_score(true_gid, pred_gid, average='weighted')
+	acc[2:] = f1_score(true_gid, pred_gid, average=None, labels=['PID', 'OSP', 'GP'])
+	acc = acc*100
+
+	np.set_printoptions(formatter={'float_kind': (lambda x: f'{x:05.2f}')})
+	print()
+	print('  acc   f1    PID   OSP   GP')
+	print(acc)
 
 	pass

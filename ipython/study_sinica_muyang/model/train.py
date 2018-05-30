@@ -20,9 +20,11 @@ import torch.utils.data
 
 from sklearn.metrics import accuracy_score
 
-sys.path.insert(0, os.path.abspath('.'))
+if __name__ == '__main__':
+	sys.path.insert(0, os.path.abspath('.'))
+
 from styleme import *
-from meta import *
+from model.module.meta import *
 
 
 if __name__ == '__main__':

@@ -11,7 +11,9 @@ import os
 import re
 import sys
 
-sys.path.insert(0, os.path.abspath('.'))
+if __name__ == '__main__':
+	sys.path.insert(0, os.path.abspath('.'))
+
 from styleme import *
 from parser import CKIPParser_Client as ckipparser
 

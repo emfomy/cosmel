@@ -12,7 +12,9 @@ import torch
 
 from .model import Model
 
-sys.path.insert(0, os.path.abspath('.'))
+if __name__ == '__main__':
+	sys.path.insert(0, os.path.abspath('.'))
+
 from styleme import *
 
 class Model2(Model):
