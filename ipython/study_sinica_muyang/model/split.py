@@ -18,17 +18,17 @@ from sklearn.model_selection import train_test_split
 if __name__ == '__main__':
 	sys.path.insert(0, os.path.abspath('.'))
 
-from styleme import *
+from cosmel import *
 from model.module.meta import *
 
 
 if __name__ == '__main__':
 
 	# Parse arguments
-	argparser = argparse.ArgumentParser(description='Split StyleMe training/testing data.')
+	argparser = argparse.ArgumentParser(description='Split CosmEL training/testing data.')
 
 	argparser.add_argument('-v', '--ver', metavar='<ver>#<date>', required=True, \
-			help='StyleMe corpus version; load data from "data/<ver>", and load mention from "data/<ver>/pruned_article_gid_<date>"')
+			help='CosmEL corpus version; load data from "data/<ver>", and load mention from "data/<ver>/pruned_article_gid_<date>"')
 	argparser.add_argument('-D', '--dir', metavar='<dir>', \
 			help='data path prefix; output data into "<dir>/"; default is "result/<ver>_<date>"')
 	argparser.add_argument('-e', '--embedding', metavar='<embedding_path>', \
@@ -97,7 +97,7 @@ if __name__ == '__main__':
 
 	if args.check: exit()
 
-	# Load StyleMe repository and corpus
+	# Load CosmEL repository and corpus
 	with open(bad_article) as fin:
 		skip_list = fin.read().strip().split('\n')
 	repo   = Repo(repo_root)

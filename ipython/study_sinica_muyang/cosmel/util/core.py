@@ -13,7 +13,7 @@ import re
 import shutil
 import subprocess
 
-from styleme.util.core import *
+from cosmel.util.core import *
 
 
 class ReadOnlyList(collections.abc.Sequence):

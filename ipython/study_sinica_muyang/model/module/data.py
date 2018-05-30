@@ -13,7 +13,7 @@ import torch
 if __name__ == '__main__':
 	sys.path.insert(0, os.path.abspath('.'))
 
-from styleme import *
+from cosmel import *
 
 class CoreData:
 

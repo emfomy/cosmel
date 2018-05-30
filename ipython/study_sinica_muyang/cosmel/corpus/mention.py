@@ -12,8 +12,8 @@ import json
 import operator
 import os
 
-from styleme.util import *
-from styleme.corpus.article import *
+from cosmel.util import *
+from cosmel.corpus.article import *
 
 
 class Mention:

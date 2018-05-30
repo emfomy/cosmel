@@ -8,7 +8,7 @@ __copyright__ = 'Copyright 2017-2018'
 
 import collections.abc
 
-from styleme.util import *
+from cosmel.util import *
 
 
 class Brand(collections.abc.Sequence):

@@ -16,7 +16,7 @@ import sys
 if __name__ == '__main__':
 	sys.path.insert(0, os.path.abspath('.'))
 
-from styleme import *
+from cosmel import *
 
 
 class RawData:
@@ -346,8 +346,8 @@ if __name__ == '__main__':
 	repo_root = f'{data_root}/repo'
 	tmp_root  = f'data/tmp'
 
-	csv_path     = f'{data_root}/styleme.csv'
-	csv_path_new = f'{data_root}/prune_styleme.csv'
+	csv_path     = f'{data_root}/cosmel.csv'
+	csv_path_new = f'{data_root}/prune_cosmel.csv'
 
 	ckipws_lib = 'libWordSeg.so'
 

@@ -1,7 +1,7 @@
 Input & Output:
 
 - repo_preprocess:
-  [i] styleme.scv
+  [i] cosmel.scv
   [o] data/repo
 
 - html_preprocess:

@@ -6,11 +6,11 @@ __author__    = 'Mu Yang <emfomy@gmail.com>'
 __copyright__ = 'Copyright 2017-2018'
 
 
-from styleme.util import *
-from styleme.repo import *
-from styleme.corpus.article import *
-from styleme.corpus.parsed  import *
-from styleme.corpus.mention import *
+from cosmel.util import *
+from cosmel.repo import *
+from cosmel.corpus.article import *
+from cosmel.corpus.parsed  import *
+from cosmel.corpus.mention import *
 
 
 class Corpus:

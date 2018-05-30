@@ -12,7 +12,7 @@ import os
 import re
 import sys
 
-from styleme.util.core import *
+from cosmel.util.core import *
 
 class PyWordSeg():
 

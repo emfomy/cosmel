@@ -16,7 +16,7 @@ from bs4 import BeautifulSoup
 if __name__ == '__main__':
 	sys.path.insert(0, os.path.abspath('.'))
 
-from styleme import *
+from cosmel import *
 
 def get_xml_idx(xml_data, word, start_idx):
 	return xml_data[(start_idx+1):].index(word)+(start_idx+1)

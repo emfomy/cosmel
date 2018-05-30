@@ -8,7 +8,7 @@ __copyright__ = 'Copyright 2017-2018'
 
 import collections.abc
 
-from styleme.util.core import *
+from cosmel.util.core import *
 
 
 class WsWords(collections.abc.Sequence):

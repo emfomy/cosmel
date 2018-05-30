@@ -10,8 +10,8 @@ import warnings
 
 import collections.abc
 
-from styleme.util import *
-from styleme.repo.brand import *
+from cosmel.util import *
+from cosmel.repo.brand import *
 
 
 class Product:

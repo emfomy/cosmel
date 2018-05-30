@@ -19,7 +19,7 @@ import os
 import time
 import operator
 
-from styleme import *
+from cosmel import *
 
 app = Flask(__name__)
 

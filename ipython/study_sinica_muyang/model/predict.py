@@ -24,7 +24,7 @@ from sklearn.metrics import recall_score
 if __name__ == '__main__':
 	sys.path.insert(0, os.path.abspath('.'))
 
-from styleme import *
+from cosmel import *
 from model.module.meta import *
 
 def check_accuracy(true_gid, pred_gid):
@@ -74,7 +74,7 @@ def check_accuracy(true_gid, pred_gid):
 if __name__ == '__main__':
 
 	# Parse arguments
-	argparser = argparse.ArgumentParser(description='Test StyleMe model.')
+	argparser = argparse.ArgumentParser(description='Test CosmEL model.')
 
 	arggroup = argparser.add_mutually_exclusive_group()
 	arggroup.add_argument('-v', '--ver', metavar='<ver>#<date>', \

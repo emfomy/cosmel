@@ -12,7 +12,7 @@ import sys
 if __name__ == '__main__':
 	sys.path.insert(0, os.path.abspath('.'))
 
-from styleme import *
+from cosmel import *
 
 
 def indices(lst, ele, start=0, end=None):

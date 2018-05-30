@@ -9,8 +9,8 @@ __copyright__ = 'Copyright 2017-2018'
 import collections.abc
 import os
 
-from styleme.util import *
-from styleme.corpus.article import *
+from cosmel.util import *
+from cosmel.corpus.article import *
 
 class ParsedArticle(collections.abc.Sequence):
 	"""The parsed article object (contains list of sentences).

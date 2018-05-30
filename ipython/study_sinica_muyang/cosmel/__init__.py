@@ -6,6 +6,6 @@ __author__    = 'Mu Yang <emfomy@gmail.com>'
 __copyright__ = 'Copyright 2017-2018'
 
 
-from styleme.util.core import *
-from styleme.util.word import *
-from styleme.util.ckipws import *
+from cosmel.util import *
+from cosmel.repo import *
+from cosmel.corpus import *

@@ -24,14 +24,14 @@ from sklearn.metrics import accuracy_score
 if __name__ == '__main__':
 	sys.path.insert(0, os.path.abspath('.'))
 
-from styleme import *
+from cosmel import *
 from model.module.meta import *
 
 
 if __name__ == '__main__':
 
 	# Parse arguments
-	argparser = argparse.ArgumentParser(description='Train StyleMe model.')
+	argparser = argparse.ArgumentParser(description='Train CosmEL model.')
 
 	arggroup = argparser.add_mutually_exclusive_group()
 	arggroup.add_argument('-v', '--ver', metavar='<ver>#<date>', \

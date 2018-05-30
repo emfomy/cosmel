@@ -6,10 +6,10 @@ __author__    = 'Mu Yang <emfomy@gmail.com>'
 __copyright__ = 'Copyright 2017-2018'
 
 
-from styleme.util import *
-from styleme.repo.word import *
-from styleme.repo.brand import *
-from styleme.repo.product import *
+from cosmel.util import *
+from cosmel.repo.word import *
+from cosmel.repo.brand import *
+from cosmel.repo.product import *
 
 
 class Repo:

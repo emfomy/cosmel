@@ -17,14 +17,14 @@ import torch
 if __name__ == '__main__':
 	sys.path.insert(0, os.path.abspath('.'))
 
-from styleme import *
+from cosmel import *
 from model.module.meta import *
 from model.predict import check_accuracy
 
 if __name__ == '__main__':
 
 	# Parse arguments
-	argparser = argparse.ArgumentParser(description='Test StyleMe model.')
+	argparser = argparse.ArgumentParser(description='Test CosmEL model.')
 
 	arggroup = argparser.add_mutually_exclusive_group()
 	arggroup.add_argument('-v', '--ver', metavar='<ver>#<date>', \

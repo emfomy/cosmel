@@ -12,7 +12,7 @@ import sys
 if __name__ == '__main__':
 	sys.path.insert(0, os.path.abspath('.'))
 
-from styleme import *
+from cosmel import *
 
 def add_start_xml(start, mention):
 	return mention.start_xml + start
@@ -38,7 +38,7 @@ if __name__ == '__main__':
 	parts        = list(f'part-{x:05}' for x in range(1))
 	if len(sys.argv) > 2: parts = list(f'part-{x:05}' for x in range(int(sys.argv[2]), 128, 8))
 
-	# Load StyleMe repository and corpus
+	# Load CosmEL repository and corpus
 	corpus = Corpus(article_root, mention_root=mention_root, parts=parts)
 
 	# Extract html from json

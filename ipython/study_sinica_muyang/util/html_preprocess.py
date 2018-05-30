@@ -17,7 +17,7 @@ from bs4 import BeautifulSoup
 if __name__ == '__main__':
 	sys.path.insert(0, os.path.abspath('.'))
 
-from styleme import *
+from cosmel import *
 
 def get_html_idx(html_data, html_idx, word):
 	try:

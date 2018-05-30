@@ -8,11 +8,11 @@ SPHINXAPI       = sphinx-apidoc
 SPHINXAPIENVS   = "SPHINX_APIDOC_OPTIONS=special-members"
 SPHINXAPIOPTS   =
 
-PROJ = StyleMe
+PROJ = CosmEL
 
 DOCDIR     = .
 BUILDDIR   = _build
-SOURCEDIR1 = ../styleme
+SOURCEDIR1 = ../cosmel
 SOURCEDIR2 = ../model
 SOURCEDIR3 = ../util
 APIDIR     = _api
@@ -25,8 +25,8 @@ help:
 
 api:
 	@$(SPHINXAPI) -fMeT -o "$(APIDIR)" "$(SOURCEDIR1)" $(SPHINXAPIOPTS)
-	@$(SPHINXAPI) -fMeT -o "$(APIDIR)" "$(SOURCEDIR2)" $(SPHINXAPIOPTS)
-	@$(SPHINXAPI) -fMeT -o "$(APIDIR)" "$(SOURCEDIR3)" $(SPHINXAPIOPTS)
+	# @$(SPHINXAPI) -fMeT -o "$(APIDIR)" "$(SOURCEDIR2)" $(SPHINXAPIOPTS)
+	# @$(SPHINXAPI) -fMeT -o "$(APIDIR)" "$(SOURCEDIR3)" $(SPHINXAPIOPTS)
 
 clean: Makefile
 	@$(SPHINXBUILD) -M $@ "$(DOCDIR)" "$(BUILDDIR)" $(SPHINXBUILDOPTS)
