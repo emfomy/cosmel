@@ -74,11 +74,11 @@ if __name__ == '__main__':
 
 	meta       = DataSetMeta.load(meta_file)
 	asmid_list = AsmidList.load(data_file)
-	# asmid_list.pid_to_mtype()
+	# asmid_list.rid_to_mtype()
 	# asmid_list.gid_to_mtype()
 	# asmid_list.filter_sp()
 	print()
-	pred_gid = np.asarray([asmid.pid for asmid in asmid_list])
+	pred_gid = np.asarray([asmid.rid for asmid in asmid_list])
 	true_gid = np.asarray([asmid.gid for asmid in asmid_list])
 
 	# Set batch size
@@ -92,7 +92,7 @@ if __name__ == '__main__':
 	ment_list = [corpus.id_to_mention[asmid.asmid] for asmid in asmid_list]
 	for m, asmid in zip(ment_list, asmid_list):
 		m.set_gid(asmid.gid)
-		m.set_pid(asmid.pid)
+		m.set_rid(asmid.rid)
 
 	rule_list = np.asarray([m.rule for m in ment_list])
 	true_gid = true_gid[rule_list == 'P_rule1']

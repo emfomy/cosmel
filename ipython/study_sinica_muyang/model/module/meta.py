@@ -37,11 +37,11 @@ from cosmel import *
 
 class Asmid:
 
-	def __init__(self, aid, sid, mid, pid, gid):
+	def __init__(self, aid, sid, mid, rid, gid):
 		self.aid = aid
 		self.sid = sid
 		self.mid = mid
-		self.pid = pid
+		self.rid = rid
 		self.gid = gid
 
 	def __str__(self):
@@ -101,9 +101,9 @@ class AsmidList(collections.abc.Sequence):
 		for asmid in self.__data:
 			if asmid.gid.isdigit(): asmid.gid = 'PID'
 
-	def pid_to_mtype(self):
+	def rid_to_mtype(self):
 		for asmid in self.__data:
-			if asmid.pid.isdigit(): asmid.pid = 'PID'
+			if asmid.rid.isdigit(): asmid.rid = 'PID'
 
 	def filter_sp(self):
 		self.__data = [asmid for asmid in self.__data if asmid.gid.isdigit()]

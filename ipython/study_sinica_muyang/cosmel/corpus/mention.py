@@ -23,19 +23,19 @@ class Mention:
 		article (:class:`.Article`): the article containing this mention.
 		sid     (int):               the sentence index in the aritcle.
 		mid     (int):               the mention index in the sentence.
-		pid     (str):               the product ID.
+		rid     (str):               the ruled product ID.
 		gid     (str):               the golden product ID.
 		rule    (str):               the rule.
 		idxs    (slice):             the indix slice of this mention.
 	"""
 
-	def __init__(self, article, sid, mid, pid='', gid='', rule='', start=None, end=None, **kwargs):
+	def __init__(self, article, sid, mid, rid='', gid='', rule='', start=None, end=None, **kwargs):
 		super().__init__()
 
 		self.__article = article
 		self.__sid     = int(sid)
 		self.__mid     = int(mid)
-		self.__pid     = pid
+		self.__rid     = rid
 		self.__gid     = gid
 		self.__rule    = rule
 		self.__start   = start if start else self.__mid
@@ -73,7 +73,7 @@ class Mention:
 		return self.sentence[self.slice_pre]
 
 	def sentence_pre_(self, with_mention=True):
-		""":class:`.WsWords`: the words before this mention in the sentence (with/without mention)."""
+		""":class:`.WsWords`: the words before this mention in the sentence (with/without mention itself)."""
 		return self.sentence[self.slice_pre_(with_mention)]
 
 	@property
@@ -82,7 +82,7 @@ class Mention:
 		return self.sentence[self.slice_post]
 
 	def sentence_post_(self, with_mention=True):
-		""":class:`.WsWords`: the words after this mention in the sentence (with/without mention)."""
+		""":class:`.WsWords`: the words after this mention in the sentence (with/without mention itself)."""
 		return self.sentence[self.slice_post_(with_mention)]
 
 	@property
@@ -163,9 +163,9 @@ class Mention:
 		return slice(self.__start, None) if with_mention else slice(self.__end, None)
 
 	@property
-	def pid(self):
-		"""str: the product ID."""
-		return self.__pid
+	def rid(self):
+		"""str: the ruled product ID."""
+		return self.__rid
 
 	@property
 	def gid(self):
@@ -205,7 +205,7 @@ class Mention:
 	@property
 	def attrs(self):
 		"""The xml attributes."""
-		return dict(self.__kwargs, sid=self.__sid, mid=self.__mid, pid=self.__pid, gid=self.__gid, rule=self.__rule)
+		return dict(self.__kwargs, sid=self.__sid, mid=self.__mid, rid=self.__rid, gid=self.__gid, rule=self.__rule)
 
 	@property
 	def start_xml(self):
@@ -228,9 +228,9 @@ class Mention:
 		"""Convert to json."""
 		return json.dumps(self.attrs)
 
-	def set_pid(self, pid):
-		"""Sets the product ID."""
-		self.__pid = pid
+	def set_rid(self, rid):
+		"""Sets the ruled product ID."""
+		self.__rid = rid
 
 	def set_gid(self, gid):
 		"""Sets the golden product ID."""

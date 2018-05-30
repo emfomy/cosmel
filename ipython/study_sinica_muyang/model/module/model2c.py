@@ -36,9 +36,9 @@ class Model2c(Model2):
 		# Create modules
 		self.text_encoder = ContextEncoder(meta, self.word_emb, lstm_emb_size)
 
-	def forward(self, pre_pad, post_pad, title_pad, pid_bag, brand_bag):
+	def forward(self, pre_pad, post_pad, title_pad, rid_bag, brand_bag):
 
-		text_emb  = self.text_encoder(pre_pad, post_pad, title_pad, pid_bag, brand_bag)
+		text_emb  = self.text_encoder(pre_pad, post_pad, title_pad, rid_bag, brand_bag)
 		text_prob = self.entity_emb(text_emb)
 
 		return (text_prob,)

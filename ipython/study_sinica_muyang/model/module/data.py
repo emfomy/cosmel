@@ -36,7 +36,7 @@ class MentionData(CoreData):
 		self.ment_list = [self.corpus.id_to_mention[asmid.asmid] for asmid in asmid_list]
 		for m, asmid in zip(self.ment_list, asmid_list):
 			m.set_gid(asmid.gid)
-			m.set_pid(asmid.pid)
+			m.set_rid(asmid.rid)
 
 		# Load label
 		raw_gid    = [m.gid for m in self.ment_list]

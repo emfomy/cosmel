@@ -23,7 +23,7 @@ if __name__ == '__main__':
 	target       = f'pruned_article'
 	tmp_root     = f'data/tmp'
 	data_root    = f'data/{ver}'
-	base_root    = f'{data_root}/mention/{target}_pid'
+	base_root    = f'{data_root}/mention/{target}_rid'
 	input_root   = f'{data_root}/mention/{target}_gid_20180502_7.1'
 	output_root  = f'{data_root}/mention/{target}_gid_20180502'
 	parts        = ['']

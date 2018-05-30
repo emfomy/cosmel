@@ -23,7 +23,7 @@ if __name__ == '__main__':
 	data_root    = f'data/{ver}'
 	parsed_root  = f'{data_root}/article/parsed_article_parse'
 	tmp_root     = f'{data_root}/article/parsed_article_parse1'
-	xml_root     = f'{data_root}/xml/parsed_article_ws_pid'
+	xml_root     = f'{data_root}/xml/parsed_article_ws_rid'
 	parts        = ['']
 	# parts        = list(f'part-{x:05}' for x in range(1))
 	if len(sys.argv) > 2: parts = list(f'part-{x:05}' for x in range(int(sys.argv[2]), 128, 8))

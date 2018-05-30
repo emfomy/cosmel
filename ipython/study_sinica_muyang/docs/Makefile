@@ -16,6 +16,7 @@ SOURCEDIR1 = ../cosmel
 SOURCEDIR2 = ../model
 SOURCEDIR3 = ../util
 APIDIR     = _api
+STATICDIR  = _static
 
 # Put it first so that "make" without argument is like "make help".
 help:
@@ -31,6 +32,7 @@ api:
 clean: Makefile
 	@$(SPHINXBUILD) -M $@ "$(DOCDIR)" "$(BUILDDIR)" $(SPHINXBUILDOPTS)
 	@$(SPHINXBUILD) -M $@ "$(DOCDIR)" "$(APIDIR)" $(SPHINXBUILDOPTS)
+	@$(SPHINXBUILD) -M $@ "$(DOCDIR)" "$(STATICDIR)" $(SPHINXBUILDOPTS)
 
 # Catch-all target: route all unknown targets to Sphinx using the new "make mode" option.
 %: api Makefile

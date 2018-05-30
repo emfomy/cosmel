@@ -68,12 +68,12 @@
 			product::after {
 				color: #aa0000;
 				/*content: "Here!";*/
-				content: "(" attr(pid) "?)";
+				content: "(" attr(rid) "?)";
 			}
 
 			product[gid]:not([gid=""])::after {
 				color: #00aa00;
-				content: attr(gid) "(" attr(pid) "?)";
+				content: attr(gid) "(" attr(rid) "?)";
 			}
 		</style>
 	</head>
@@ -260,7 +260,7 @@
 						e => $(e).click(function() {
 							try {
 								const text = this.innerText;
-								const pid  = $(this).attr('pid');
+								const rid  = $(this).attr('rid');
 								const gid  = $(this).attr('gid');
 								const sid  = $(this).attr('sid');
 								const mid  = $(this).attr('mid');
@@ -268,17 +268,17 @@
 								const hint_orig = $(this).attr('hint');
 								const hint = hint_orig ? hint_orig : '';
 
-								const pgh = pid+';'+gid+';'+hint;
+								const rgh = rid+';'+gid+';'+hint;
 
 								res = $.ajax({
-									url: '/repo/product?pid='+pgh,
+									url: '/repo/product?rid='+rgh,
 									type: 'get',
 									error: customStatusError
-								}).done(pgh_name => {
-									pgh_list  = pgh_name.split('<hr>');
-									pid_name  = pgh_list[0].replace(/<br>/g, '\n');
-									gid_name  = pgh_list[1].replace(/<br>/g, '\n');
-									hint_name = pgh_list[2].replace(/<br>/g, '\n');
+								}).done(rgh_name => {
+									rgh_list  = rgh_name.split('<hr>');
+									rid_name  = rgh_list[0].replace(/<br>/g, '\n');
+									gid_name  = rgh_list[1].replace(/<br>/g, '\n');
+									hint_name = rgh_list[2].replace(/<br>/g, '\n');
 
 									var buttons = {
 										'~': true,
@@ -288,7 +288,7 @@
 										delete: true,
 										cancel: true
 									}
-									for ( var h of (pid+','+gid+','+hint).split(',') ) {
+									for ( var h of (rid+','+gid+','+hint).split(',') ) {
 										if ( h && h != '~' ) {
 											buttons[h] = true;
 										}
@@ -297,7 +297,7 @@
 									swal({
 										title: text,
 										text:
-											'pid='+pid_name +'\n'+
+											'rid='+rid_name +'\n'+
 											'gid='+gid_name +'\n'+
 											'sid='+sid +'\n'+
 											'mid='+mid +'\n'+
@@ -321,7 +321,7 @@
 												updateCounter();
 
 												const data = {
-													pid:  pid,
+													rid:  rid,
 													gid:  value,
 													sid:  sid,
 													mid:  mid,

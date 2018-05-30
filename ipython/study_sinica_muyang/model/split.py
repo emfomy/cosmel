@@ -69,10 +69,10 @@ if __name__ == '__main__':
 		emb_file    = embedding.parts
 
 	meta_file            = f'{result_root}meta.pkl'
-	pid_asmid_file       = f'{result_root}pid.all.list.txt'
+	rid_asmid_file       = f'{result_root}rid.all.list.txt'
 	gid_asmid_file       = f'{result_root}gid.all.list.txt'
-	pid_asmid_train_file = f'{result_root}pid.train.list.txt'
-	pid_asmid_test_file  = f'{result_root}pid.test.list.txt'
+	rid_asmid_train_file = f'{result_root}rid.train.list.txt'
+	rid_asmid_test_file  = f'{result_root}rid.test.list.txt'
 	gid_asmid_train_file = f'{result_root}gid.train.list.txt'
 	gid_asmid_test_file  = f'{result_root}gid.test.list.txt'
 
@@ -87,10 +87,10 @@ if __name__ == '__main__':
 	print(f'parts               = {parts}')
 	print()
 	print(f'meta_file            = {meta_file}')
-	print(f'pid_asmid_file       = {pid_asmid_file}')
+	print(f'rid_asmid_file       = {rid_asmid_file}')
 	print(f'gid_asmid_file       = {gid_asmid_file}')
-	print(f'pid_asmid_train_file = {pid_asmid_train_file}')
-	print(f'pid_asmid_test_file  = {pid_asmid_test_file}')
+	print(f'rid_asmid_train_file = {rid_asmid_train_file}')
+	print(f'rid_asmid_test_file  = {rid_asmid_test_file}')
 	print(f'gid_asmid_train_file = {gid_asmid_train_file}')
 	print(f'gid_asmid_test_file  = {gid_asmid_test_file}')
 	print()
@@ -117,21 +117,21 @@ if __name__ == '__main__':
 		# Merge NAP and GP
 		for m in corpus.mention_set:
 			if m.gid == 'NAP': m.set_gid('GP')
-			if m.pid == 'NAP': m.set_pid('GP')
+			if m.rid == 'NAP': m.set_rid('GP')
 
 		# Load mention list
-		pid_asmid_list = AsmidList([Asmid(aid=m.aid, sid=m.sid, mid=m.mid, gid=m.pid, pid=m.pid) \
-				for m in corpus.mention_set if m.pid])
-		gid_asmid_list = AsmidList([Asmid(aid=m.aid, sid=m.sid, mid=m.mid, gid=m.gid, pid=m.pid) \
+		rid_asmid_list = AsmidList([Asmid(aid=m.aid, sid=m.sid, mid=m.mid, gid=m.rid, rid=m.rid) \
+				for m in corpus.mention_set if m.rid])
+		gid_asmid_list = AsmidList([Asmid(aid=m.aid, sid=m.sid, mid=m.mid, gid=m.gid, rid=m.rid) \
 				for m in corpus.mention_set if m.gid])
 
-		pid_asmid_train_list, pid_asmid_test_list = pid_asmid_list.train_test_split(test_size=0.3, random_state=0, shuffle=True)
+		rid_asmid_train_list, rid_asmid_test_list = rid_asmid_list.train_test_split(test_size=0.3, random_state=0, shuffle=True)
 		gid_asmid_train_list, gid_asmid_test_list = gid_asmid_list.train_test_split(test_size=0.3, random_state=0, shuffle=True)
 
-		pid_asmid_list.dump(pid_asmid_file)
+		rid_asmid_list.dump(rid_asmid_file)
 		gid_asmid_list.dump(gid_asmid_file)
-		pid_asmid_train_list.dump(pid_asmid_train_file)
-		pid_asmid_test_list.dump(pid_asmid_test_file)
+		rid_asmid_train_list.dump(rid_asmid_train_file)
+		rid_asmid_test_list.dump(rid_asmid_test_file)
 		gid_asmid_train_list.dump(gid_asmid_train_file)
 		gid_asmid_test_list.dump(gid_asmid_test_file)
 

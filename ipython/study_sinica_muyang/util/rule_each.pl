@@ -258,7 +258,7 @@ for ($i=0;$i<$contentsize;$i++)
 					if ($id>=0)
 					{
 							$contenthead{$headword}=$id;
-							print OUT "　<product pid=\"$id\" gid=\"\" rule=\"P_rule1\">$headword($headpostag)</product>";
+							print OUT "　<product rid=\"$id\" gid=\"\" rule=\"P_rule1\">$headword($headpostag)</product>";
 					}
 					else
 					{
@@ -289,11 +289,11 @@ for ($i=0;$i<$contentsize;$i++)
 						{
 							if ($brand ne "null")
 							{
-								print OUT "　<product pid=\"OSP\" gid=\"\" rule=\"OSP_rule1\">$headword($headpostag)</product>";
+								print OUT "　<product rid=\"OSP\" gid=\"\" rule=\"OSP_rule1\">$headword($headpostag)</product>";
 							}
 							else
 							{
-									print OUT "　<product pid=\"OSP\" gid=\"\" rule=\"OSP_rule2\">$headword($headpostag)</product>";
+									print OUT "　<product rid=\"OSP\" gid=\"\" rule=\"OSP_rule2\">$headword($headpostag)</product>";
 							}
 						}
 						else
@@ -301,11 +301,11 @@ for ($i=0;$i<$contentsize;$i++)
 							if (defined($contenthead{$headword}))
 							{
 								$id=$contenthead{$headword};
-								print OUT "　<product pid=\"$id\" gid=\"\" rule=\"P_rule2\">$headword($headpostag)</product>";
+								print OUT "　<product rid=\"$id\" gid=\"\" rule=\"P_rule2\">$headword($headpostag)</product>";
 							}
 							else
 							{
-								print OUT "　<product pid=\"GP\" gid=\"\" rule=\"GP_rule1\">$headword($headpostag)</product>";
+								print OUT "　<product rid=\"GP\" gid=\"\" rule=\"GP_rule1\">$headword($headpostag)</product>";
 							}
 
 						}
@@ -358,16 +358,16 @@ for ($i=0;$i<$contentsize;$i++)
 					$id=$contenthead{$headword};
 					if ($brand eq $ptableid{$id}->{"brand"})
 					{
-						print OUT "　<product pid=\"$id\" gid=\"\" rule=\"P_rule3\">$headword($headpostag)</product>";
+						print OUT "　<product rid=\"$id\" gid=\"\" rule=\"P_rule3\">$headword($headpostag)</product>";
 					}
 					else
 					{
-						print OUT "　<product pid=\"OSP\" gid=\"\" rule=\"OSP_rule3\">$headword($headpostag)</product>";
+						print OUT "　<product rid=\"OSP\" gid=\"\" rule=\"OSP_rule3\">$headword($headpostag)</product>";
 					}
 				}
 				else
 				{
-					print OUT "　<product pid=\"OSP\" gid=\"\" rule=\"OSP_rule4\">$headword($headpostag)</product>";
+					print OUT "　<product rid=\"OSP\" gid=\"\" rule=\"OSP_rule4\">$headword($headpostag)</product>";
 				}
 			}
 			else
@@ -375,17 +375,17 @@ for ($i=0;$i<$contentsize;$i++)
 				if (defined($contenthead{$headword}))
 				{
 					$id=$contenthead{$headword};
-					print OUT "　<product pid=\"$id\" gid=\"\" rule=\"P_rule4\">$headword($headpostag)</product>";
+					print OUT "　<product rid=\"$id\" gid=\"\" rule=\"P_rule4\">$headword($headpostag)</product>";
 				}
 				else
 				{
 					if ($specifiedstate==1)
 					{
-						print OUT "　<product pid=\"OSP\" gid=\"\" rule=\"OSP_rule5\">$headword($headpostag)</product>";
+						print OUT "　<product rid=\"OSP\" gid=\"\" rule=\"OSP_rule5\">$headword($headpostag)</product>";
 					}
 					else
 					{
-						print OUT "　<product pid=\"GP\" gid=\"\" rule=\"GP_rule2\">$headword($headpostag)</product>";
+						print OUT "　<product rid=\"GP\" gid=\"\" rule=\"GP_rule2\">$headword($headpostag)</product>";
 					}
 				}
 			}

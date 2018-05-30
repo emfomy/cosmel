@@ -18,10 +18,10 @@ class Model2cn(Model2c, Model2n):
 
 		super().__init__(meta)
 
-	def forward(self, pre_pad, post_pad, title_pad, pid_bag, brand_bag, name_pad):
+	def forward(self, pre_pad, post_pad, title_pad, rid_bag, brand_bag, name_pad):
 
 		return \
-			Model2c.forward(self, pre_pad, post_pad, title_pad, pid_bag, brand_bag) + \
+			Model2c.forward(self, pre_pad, post_pad, title_pad, rid_bag, brand_bag) + \
 			Model2n.forward(self, name_pad)
 
 	def loss(self, text_prob, name_prob, ment_label, prod_label):

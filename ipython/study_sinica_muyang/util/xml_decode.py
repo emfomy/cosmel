@@ -41,7 +41,7 @@ if __name__ == '__main__':
 	target        = f'pruned_article'
 	target2       = f'parsed_article'
 	target_ver    = f''
-	target_ver    = f'_pid'
+	target_ver    = f'_rid'
 	tmp_root      = f'data/tmp'
 	data_root     = f'data/{ver}'
 	repo_root     = f'{data_root}/repo'

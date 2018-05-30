@@ -22,10 +22,10 @@ class Model2cdn(Model2c, Model2d, Model2n):
 
 		super().__init__(meta)
 
-	def forward(self, pre_pad, post_pad, title_pad, pid_bag, brand_bag, desc_pad, name_pad):
+	def forward(self, pre_pad, post_pad, title_pad, rid_bag, brand_bag, desc_pad, name_pad):
 
 		return \
-			Model2c.forward(self, pre_pad, post_pad, title_pad, pid_bag, brand_bag) + \
+			Model2c.forward(self, pre_pad, post_pad, title_pad, rid_bag, brand_bag) + \
 			Model2d.forward(self, desc_pad) + \
 			Model2n.forward(self, name_pad)
 

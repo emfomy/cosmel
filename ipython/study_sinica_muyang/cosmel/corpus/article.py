@@ -105,6 +105,7 @@ class ArticleSet(collections.abc.Collection):
 	Args:
 		article_root (str): the path to the folder containing data files.
 		parts (list):       the list of article/mention parts.
+		skips (list):       the list of articles to be ignored.
 
 	Notes:
 		* Load all articles from ``article_root``/``part`` for all ``part`` in ``parts``.

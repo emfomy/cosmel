@@ -51,9 +51,9 @@ class Model0(Model):
 		label_size  = len(self.label_encoder.classes_)
 		self.linear = torch.nn.Linear(text_size, label_size)
 
-	def forward(self, title_pad, pre_pad, post_pad, pid_bag, brand_bag):
+	def forward(self, title_pad, pre_pad, post_pad, rid_bag, brand_bag):
 
-		text_emb   = self.text_encoder(title_pad, pre_pad, post_pad, pid_bag, brand_bag)
+		text_emb   = self.text_encoder(title_pad, pre_pad, post_pad, rid_bag, brand_bag)
 		mtype_prob = self.linear(text_emb)
 
 		return (mtype_prob,)

@@ -51,11 +51,11 @@ class ContextEncoder(torch.nn.Module):
 			*self.title_encoder.data(ment_list, repo, corpus), \
 			*self.docu_encoder.data(ment_list, repo, corpus), )
 
-	def forward(self, pre_pad, post_pad, title_pad, pid_bag, brand_bag):
+	def forward(self, pre_pad, post_pad, title_pad, rid_bag, brand_bag):
 
 		local_emb = self.local_encoder(pre_pad, post_pad)
 		title_emb = self.title_encoder(title_pad)
-		docu_emb  = self.docu_encoder(pid_bag, brand_bag)
+		docu_emb  = self.docu_encoder(rid_bag, brand_bag)
 		text_emb  = self.linear(torch.cat((local_emb, title_emb, docu_emb), dim=1)).clamp(min=0)
 
 		return text_emb
@@ -206,7 +206,7 @@ class DocumentEncoder(torch.nn.Module):
 	def data(self, ment_list, repo, corpus):
 
 		# Load bag
-		raw_pid_bag   = [set(m.pid for m in mention.bundle if m.rule == 'P_rule1') for mention in ment_list]
+		raw_rid_bag   = [set(m.rid for m in mention.bundle if m.rule == 'P_rule1') for mention in ment_list]
 		raw_brand_bag = [ \
 				set(repo.bname_to_brand[t[0]][0] \
 						for t in itertools.chain.from_iterable(sentence.zip3 for sentence in mention.article) if t[2] == 'Brand' \
@@ -214,18 +214,18 @@ class DocumentEncoder(torch.nn.Module):
 		]
 
 		# Encode
-		pid_bag   = self.meta.p_multibinarizer.transform(raw_pid_bag)
+		rid_bag   = self.meta.p_multibinarizer.transform(raw_rid_bag)
 		brand_bag = self.meta.b_multibinarizer.transform(raw_brand_bag)
 
 		# Combine inputs
-		pid_bag_var   = torch.from_numpy(pid_bag).float()
+		rid_bag_var   = torch.from_numpy(rid_bag).float()
 		brand_bag_var = torch.from_numpy(brand_bag).float()
 
-		return (pid_bag_var, brand_bag_var,)
+		return (rid_bag_var, brand_bag_var,)
 
-	def forward(self, pid_bag, brand_bag):
+	def forward(self, rid_bag, brand_bag):
 
-		docu_emb = self.linear(torch.cat((pid_bag, brand_bag), dim=1)).clamp(min=0)
+		docu_emb = self.linear(torch.cat((rid_bag, brand_bag), dim=1)).clamp(min=0)
 
 		return docu_emb
 

@@ -122,6 +122,9 @@ html_sidebars = {
     ]
 }
 
+html_logo    = 'image/logo.png'
+html_favicon = 'image/favicon.ico'
+
 
 # -- Options for HTMLHelp output:---------------------------------------
 

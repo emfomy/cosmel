@@ -21,6 +21,7 @@ class Corpus:
 		parsed_root (str):     the path to the folder containing parsed article files.
 		mention_root (str):    the path to the folder containing mention files.
 		parts (list):          the list of article/mention parts.
+		skips (list):          the list of articles to be ignored.
 
 	Notes:
 		* Load all articles       from ``article_root``/``part`` for all ``part`` in ``parts``.
@@ -31,7 +32,7 @@ class Corpus:
 	def __init__(self, article_root, *args, parsed_root=None, mention_root=None, parts=[''], skips=[]):
 
 		if len(args) != 0:
-			print('Please mention_root=<mention_root> instead of using it directly.')
+			print('Please use mention_root=<mention_root> instead of using it directly.')
 			assert len(args) == 0
 
 		self.__article_set          = ArticleSet(article_root, parts=parts, skips=skips)
