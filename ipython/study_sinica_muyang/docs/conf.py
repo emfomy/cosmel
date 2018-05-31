@@ -58,8 +58,8 @@ master_doc = 'index'
 
 # General information about the project.
 project   = 'CosmEL'
-copyright = '2017–2018, CKIP Lab, Institute of Information Science, Academia Sinica, Taiwan'
-author    = 'Mu Yang, Chi-Yen Chen, Yi-Hui Lee, and Wei-Yun Ma'
+author    = 'CKIP Lab, IIS, Academia Sinica, Taiwan'
+copyright = '2017–2018, '+author
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -122,8 +122,8 @@ html_sidebars = {
     ]
 }
 
-html_logo    = 'image/logo.png'
-html_favicon = 'image/favicon.ico'
+html_logo    = 'image/cosmel.png'
+html_favicon = 'image/comel_favicon.png'
 
 
 # -- Options for HTMLHelp output:---------------------------------------
@@ -134,14 +134,18 @@ htmlhelp_basename = 'CosmELDoc'
 
 # -- Options for LaTeX output:------------------------------------------
 
+latex_logo = 'image/cosmel.png'
+
+latex_engine = 'xelatex'
+
 latex_elements = {
     # The paper size ('letterpaper' or 'a4paper').
     #
-    # 'papersize': 'letterpaper',
+    'papersize': 'a4paper',
 
     # The font size ('10pt', '11pt' or '12pt').
     #
-    # 'pointsize': '10pt',
+    'pointsize': '10pt',
 
     # Additional stuff for the LaTeX preamble.
     #
@@ -149,7 +153,7 @@ latex_elements = {
 
     # Latex figure (float) alignment
     #
-    # 'figure_align': 'htbp',
+    'figure_align': 'htbp',
 }
 
 # Grouping the document tree into LaTeX files. List of tuples

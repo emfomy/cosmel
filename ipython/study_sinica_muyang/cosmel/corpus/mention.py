@@ -29,7 +29,7 @@ class Mention:
 		idxs    (slice):             the indix slice of this mention.
 	"""
 
-	def __init__(self, article, sid, mid, rid='', gid='', rule='', start=None, end=None, **kwargs):
+	def __init__(self, article, sid, mid, rid='', gid='', rule='', **kwargs):
 		super().__init__()
 
 		self.__article = article
@@ -38,8 +38,8 @@ class Mention:
 		self.__rid     = rid
 		self.__gid     = gid
 		self.__rule    = rule
-		self.__start   = start if start else self.__mid
-		self.__end     = end   if end   else self.__mid+1
+		self.__start   = self.__mid
+		self.__end     = self.__mid+1
 		self.__kwargs  = kwargs
 
 	def __str__(self):
@@ -353,7 +353,8 @@ class MentionBundleSet(collections.abc.Collection):
 	def __init__(self, mention_root, article_set):
 		super().__init__()
 		n = str(len(article_set))
-		self.__data = [self.__mention_bundle(article, article_set.path, mention_root, i, n) for i, article in enumerate(article_set)]
+		self.__data = [self.__mention_bundle(article, article_set.path, mention_root, i, n) \
+				for i, article in enumerate(article_set)]
 		self.__path = mention_root
 		print()
 

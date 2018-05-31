@@ -63,9 +63,19 @@ class Product:
 		return self.__name
 
 	@property
+	def name_ws(self):
+		""":class:`.WsWords`: the word-segmented name."""
+		return self.__name_ws
+
+	@property
 	def descr(self):
 		"""str: the description."""
 		return txtstr(self.__descr_ws)
+
+	@property
+	def descr_ws(self):
+		""":class:`.WsWords`: the word-segmented description."""
+		return self.__descr_ws
 
 	@property
 	def head(self):
@@ -73,14 +83,9 @@ class Product:
 		return self.__head
 
 	@property
-	def name_ws(self):
+	def head_ws(self):
 		""":class:`.WsWords`: the word-segmented name."""
-		return self.__name_ws
-
-	@property
-	def descr_ws(self):
-		""":class:`.WsWords`: the word-segmented description."""
-		return self.__descr_ws
+		return self.__name_ws[self.__head_idx]
 
 	@property
 	def infix_ws(self):

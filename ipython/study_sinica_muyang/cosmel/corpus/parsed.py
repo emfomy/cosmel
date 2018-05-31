@@ -15,7 +15,7 @@ from cosmel.corpus.article import *
 class ParsedArticle(collections.abc.Sequence):
 	"""The parsed article object (contains list of sentences).
 
-	* Item: the word-segmented sentence (:class:`.WsWords`)
+	* Item: the parsed sentence (str)
 
 	Args:
 		file_path (str): the path to the article.

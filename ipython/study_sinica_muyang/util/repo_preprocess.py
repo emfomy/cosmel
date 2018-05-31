@@ -272,7 +272,7 @@ class RawProductDict(collections.abc.Mapping):
 def load_csv(csv_path):
 	"""Load data from CSV file.
 
-	Load columns 編號\*, 品牌\*, 中文品名\*, 品項, 產品別名 (\*: reqired).
+	Load columns 編號*, 品牌*, 中文品名*, 品項, 產品別名 (*: required).
 
 	Args:
 		csv_path (str): the file path of the CSV file.
@@ -346,8 +346,8 @@ if __name__ == '__main__':
 	repo_root = f'{data_root}/repo'
 	tmp_root  = f'data/tmp'
 
-	csv_path     = f'{data_root}/cosmel.csv'
-	csv_path_new = f'{data_root}/prune_cosmel.csv'
+	csv_path     = f'{data_root}/styleme.csv'
+	csv_path_new = f'{data_root}/prune_styleme.csv'
 
 	ckipws_lib = 'libWordSeg.so'
 

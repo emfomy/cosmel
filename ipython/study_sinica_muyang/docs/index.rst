@@ -1,44 +1,58 @@
-.. CosmEL documentation master file, created by
-   sphinx-quickstart on Thu Dec 14 11:06:54 2017.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
-
+===============================
 CosmEL: Cosmetic Entity Linking
 ===============================
 
-Authors
--------
+Introduction
+------------
+
+Author
+^^^^^^
 
 * Mu Yang      <emfomy@gmail.com>
 * Chi-Yen Chen <jina199312@gmail.com>
 * Yi-Hui Lee   <lilyyhlee30@gmail.com>
 * Wei-Yun Ma   <ma@iis.sinica.edu.tw>
 
-Requirements
-------------
+Requirement
+^^^^^^^^^^^
 
-* `Python <https://www.python.org/>`_ 3.6.
+* `Python <http://www.python.org/>`_ 3.6.
 * `Pytorch <http://pytorch.org/>`_ 0.4.0.
+* `CKIPWS <http://otl.sinica.edu.tw/index.php?t=9&group_id=25&article_id=408>`_ Linux version.
+* `CKIPParser <http://otl.sinica.edu.tw/index.php?t=9&group_id=25&article_id=1653>`_ Windows version.
 * [optional] `sphinx_rtd_theme <https://github.com/rtfd/sphinx_rtd_theme/>`_.
 
-Tutorials
----------
+
+.. only:: latex
+
+   Tutorial
+   --------
 
 .. toctree::
+   :maxdepth: 1
+   :caption: Tutorial
 
+   tutorial/fs.rst
    tutorial/ds.rst
+   tutorial/guide.rst
 
-Packages
---------
+
+.. only:: latex
+
+   Package
+   -------
 
 .. toctree::
+   :maxdepth: 1
+   :caption: Package
 
    _api/cosmel
 
-Index
------
+.. only:: html
 
-.. toctree::
+   .. toctree::
+      :maxdepth: 1
+      :caption: Appendix
 
-   genindex
-   py-modindex
+      py-modindex
+      genindex
