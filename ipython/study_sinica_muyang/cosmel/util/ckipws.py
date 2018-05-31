@@ -106,7 +106,7 @@ class CkipWs():
 		for line in itertools.chain.from_iterable(map(open, compound_files)):
 			if line.strip() == '': continue
 			seg = line.strip().split('\t')
-			self.__regexes.append((re.compile(rf'(\A|(?<=\n|　)){re.escape(seg[0])}\([A-Za-z0-9]*\)'), seg[1], seg[0]))
+			self.__regexes.append((re.compile(rf'(\A|(?<=\n|　)){re.escape(seg[0])}\([A-Za-z0-9]*?\)'), seg[1], seg[0]))
 		self.__regexes.append((re.compile(r'　□\(SP\)'), '', '□'))
 
 		self.__core = CkipWsCore(lib_file, ini_file)
