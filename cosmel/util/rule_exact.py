@@ -48,8 +48,6 @@ def main():
 		[result.get() for result in results]
 		del results
 
-	# submain(ver, date)
-
 
 def submain(ver, cver, nth=None, thrank=0):
 
@@ -68,29 +66,21 @@ def submain(ver, cver, nth=None, thrank=0):
 	repo   = Repo(repo_root)
 	corpus = Corpus(article_root, mention_root=mention_root, parts=parts)
 
-	# from IPython import embed
-	# embed()
 
 	n = str(len(corpus.mention_bundle_set))
 	for i, bundle in enumerate(corpus.mention_bundle_set):
 		output_file = transform_path(bundle.path, mention_root, output_root, '.json')
 		printr(f'{i+1:0{len(n)}}/{n}\t{output_file}')
 		for mention in bundle:
-			# printr(f'current mention: {mention}\n')
 			if not 'Brand' in mention.sentence_pre.roles: continue
 
 			idx  = list(reversed(mention.sentence_pre.roles)).index('Brand')
 			brand = list(reversed(mention.sentence_pre.txts))[idx]
-			# print(f'mention: {mention}, idx: {idx}, brand: {brand}')
 			candidate = repo.bname_head_to_product_list[list(reversed(mention.sentence_pre.txts))[idx], mention.head]
-			# print(f'candidate: {candidate}')
 			prob_infix = ''.join(s for s in mention.sentence.txts[list(mention.sentence.txts).index(brand)+1 : list(mention.sentence.txts).index(mention.head)])
-			# print(f'prob_infix: {prob_infix}')
 			for c in candidate:
-				# printr(f'current candidate: {c}')
 				infix = ''.join(i for i in c.infix_ws.txts)
 				if prob_infix == infix:
-					# print(f'exact: {c}')
 					mention.set_rid(c.pid)
 					mention.set_rule('P_rule1')
 					break
