@@ -6,6 +6,7 @@
 	 Mu Yang <emfomy@gmail.com>
 """
 
+import argparse
 import itertools
 import os
 import re
@@ -18,40 +19,72 @@ if __name__ == '__main__':
 
 from cosmel import *
 
-def get_xml_idx(xml_data, word, start_idx):
-	return xml_data[(start_idx+1):].index(word)+(start_idx+1)
 
-def grep_mention(article, sid, mid, txt):
-	soup = BeautifulSoup(txt.split('>', 1)[0]+'>', 'lxml')
-	attrs = soup.product.attrs
-	attrs.pop('sid', None)
-	attrs.pop('mid', None)
-	attrs = dict((attr, value,) for attr, value in attrs.items() if value)
+def main():
 
-	return Mention(article, sid, mid, **attrs)
+	# Parse arguments
+	argparser = argparse.ArgumentParser(description='CosmEL: Decode XML.')
 
-if __name__ == '__main__':
+	argparser.add_argument('-v', '--ver', metavar='<ver>#<date>', required=True, \
+			help='load repo from "data/<ver>", and load/save corpus data from/into "data/<ver>/corpus/<date>"')
 
-	assert len(sys.argv) > 1
-	ver = sys.argv[1]
+	argparser.add_argument('-iw', '--input_ws', metavar='<in_ws_dir>', \
+			help='load word-segmented XML from "data/<ver>/xml/<in_ws_dir>"')
+	argparser.add_argument('-i', '--input', metavar='<in_dir>', required=True, \
+			help='load XML from "data/<ver>/xml/<in_dir>"')
+	argparser.add_argument('-o', '--output', metavar='<out_dir>', \
+			help='dump mention into "data/<ver>/mention/<out_dir>"; default is <in_dir>')
 
-	textualized = False
+	argparser.add_argument('-t', '--thread', metavar='<thread>', type=int, \
+			help='use <thread> threads; default is `os.cpu_count()`')
+
+	args = argparser.parse_args()
+
+	vers = args.ver.split('#')
+	assert len(vers) == 2, argparser.format_usage()
+	ver  = vers[0]
+	date = vers[1]
+	assert len(ver)  > 0
+	assert len(date) > 0
+
+	in_ws_dir = args.input_ws
+	in_dir    = args.input
+	out_dir   = args.output
+	if not out_dir:
+		out_dir = in_dir
+
+	nth     = args.thread
+	if not nth: nth = os.cpu_count()
+
+	print(args)
+	print(f'Use {nth} threads')
+
+	import multiprocessing
+	with multiprocessing.Pool(nth) as pool:
+		results = [pool.apply_async(submain, args=(ver, date, in_ws_dir, in_dir, out_dir, nth, thrank,)) for thrank in range(nth)]
+		[result.get() for result in results]
+		del results
+
+
+def submain(ver, date, in_ws_dir, in_dir, out_dir, nth=None, thrank=0):
+
+	textualized = (in_ws_dir == None)
 	get_mention = False
 
-	target        = f'pruned_article'
-	target2       = f'parsed_article'
-	target_ver    = f''
-	target_ver    = f'_rid'
-	tmp_root      = f'data/tmp'
-	data_root     = f'data/{ver}'
-	repo_root     = f'{data_root}/repo'
-	ws_xml_root   = f'{data_root}/xml/{target2}_ws{target_ver}'
-	xml_root      = f'{data_root}/xml/{target2}{target_ver}'
-	article_root  = f'{data_root}/article/{target}_role'
-	mention_root  = f'{data_root}/mention/{target}{target_ver}'
-	parts         = ['']
-	# parts         = list(f'part-{x:05}' for x in range(1))
-	if len(sys.argv) > 2: parts = list(f'part-{x:05}' for x in range(int(sys.argv[2]), 128, 8))
+	target       = f'purged_article'
+	tmp_root     = f'data/tmp'
+	data_root    = f'data/{ver}'
+	corpus_root  = f'data/{ver}/corpus/{date}'
+	repo_root    = f'{data_root}/repo'
+	ws_xml_root  = f'{corpus_root}/xml/{in_ws_dir}'
+	xml_root     = f'{corpus_root}/xml/{in_dir}'
+	article_root = f'{corpus_root}/article/{target}_role'
+	mention_root = f'{corpus_root}/mention/{out_dir}'
+	# parts        = ['']
+	# parts        = list(f'part-{x:05}' for x in range(1))
+	if in_ws_dir: parts = sorted(rm_ext_all(file) for file in os.listdir(ws_xml_root))
+	else:         parts = sorted(rm_ext_all(file) for file in os.listdir(xml_root))
+	if nth: parts = parts[thrank:len(parts):nth]
 
 	empty_file = tmp_root+'/empty.tmp'
 	with open(empty_file, 'w'): pass
@@ -67,7 +100,7 @@ if __name__ == '__main__':
 			os.makedirs(os.path.dirname(xml_file), exist_ok=True)
 			printr(f'{i+1:0{len(n)}}/{n}\t{xml_file}')
 			ws_xml.save(xml_file, roledtxtstr)
-		print()
+		if not thrank: print()
 
 	# Grep mention
 	if not get_mention:
@@ -75,12 +108,12 @@ if __name__ == '__main__':
 		def repl(m): return '□' * len(m.group())
 		regex = re.compile('<[^<>]*?>')
 
-		xml_files = grep_files(xml_root, parts)
+		xml_files = glob_files(xml_root, parts)
 		n = str(len(xml_files))
 		for i, xml_file in enumerate(xml_files):
 			article_file = transform_path(xml_file, xml_root, article_root, '.role')
 			mention_file = transform_path(xml_file, xml_root, mention_root, '.json')
-			article = Article(article_file)
+			article = Article(article_file, article_root)
 			bundle = MentionBundle(empty_file, article)
 			printr(f'{i+1:0{len(n)}}/{n}\t{mention_file}')
 
@@ -126,6 +159,25 @@ if __name__ == '__main__':
 						bundle._MentionBundle__data.append(grep_mention(article, sid, start_mid, xml_line[start_idx:end_idx+1]))
 
 			bundle.save(mention_file)
-		print()
+		if not thrank: print()
 
+
+def get_xml_idx(xml_data, word, start_idx):
+	return xml_data[(start_idx+1):].index(word)+(start_idx+1)
+
+
+def grep_mention(article, sid, mid, txt):
+	soup = BeautifulSoup(txt.split('>', 1)[0]+'>', 'lxml')
+	attrs = soup.product.attrs
+	attrs.pop('sid', None)
+	attrs.pop('mid', None)
+	attrs = dict((attr, value,) for attr, value in attrs.items() if value)
+
+	return Mention(article, sid, mid, **attrs)
+
+
+if __name__ == '__main__':
+
+	main()
+	print()
 	pass

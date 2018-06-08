@@ -6,6 +6,7 @@ __author__    = 'Mu Yang <emfomy@gmail.com>'
 __copyright__ = 'Copyright 2017-2018'
 
 
+import argparse
 import html
 import json
 import os
@@ -19,34 +20,59 @@ if __name__ == '__main__':
 
 from cosmel import *
 
-def get_html_idx(html_data, html_idx, word):
-	try:
-		return html_data[html_idx:].index(word)+html_idx
-	except ValueError:
-		return html_idx
+def main():
 
-if __name__ == '__main__':
+	# Parse arguments
+	argparser = argparse.ArgumentParser(description='CosmEL: Preprocesses HTML.')
+
+	argparser.add_argument('-v', '--ver', metavar='<ver>#<date>', required=True, \
+			help='load repo from "data/<ver>", and load/save corpus data from/into "data/<ver>/corpus/<date>"')
+	argparser.add_argument('-t', '--thread', metavar='<thread>', type=int, \
+			help='use <thread> threads; default is `os.cpu_count()`')
+
+	args = argparser.parse_args()
+
+	vers = args.ver.split('#')
+	assert len(vers) == 2, argparser.format_usage()
+	ver  = vers[0]
+	date = vers[1]
+	assert len(ver)  > 0
+	assert len(date) > 0
+
+	nth = args.thread
+	if not nth: nth = os.cpu_count()
+
+	print(args)
+	print(f'Use {nth} threads')
+
+	import multiprocessing
+	with multiprocessing.Pool(nth) as pool:
+		results = [pool.apply_async(submain, args=(ver, date, nth, thrank,)) for thrank in range(nth)]
+		[result.get() for result in results]
+		del results
+
+
+def submain(ver, date, nth=None, thrank=0):
 
 	extracted = False
 	replaced  = False
 	parsed    = False
 
-	assert len(sys.argv) > 1
-	ver = sys.argv[1]
-
 	etc_root     = f'etc'
 	data_root    = f'data/{ver}'
-	json_root    = f'{data_root}/html/article_filtered'
-	html_root    = f'{data_root}/html/html_article'
-	article_root = f'{data_root}/article/original_article'
-	notag_root   = f'{data_root}/html/html_article_notag'
-	parts        = ['']
-	parts        = list(f'part-{x:05}' for x in range(1))
-	if len(sys.argv) > 2: parts = list(f'part-{x:05}' for x in range(int(sys.argv[2]), 128, 8))
+	corpus_root  = f'data/{ver}/corpus/{date}'
+	json_root    = f'{corpus_root}/html/article_filtered'
+	html_root    = f'{corpus_root}/html/html_article'
+	article_root = f'{corpus_root}/article/original_article'
+	notag_root   = f'{corpus_root}/html/html_article_notag'
+	# parts        = ['']
+	# parts        = list(f'part-{x:05}' for x in range(1))
+	parts        = sorted(rm_ext_all(file) for file in os.listdir(json_root))
+	if nth: parts = parts[thrank:len(parts):nth]
 
 	# Extract html from json
 	if not extracted:
-		for json_file in grep_files(json_root, parts):
+		for json_file in glob_files(json_root, parts):
 			html_dir = json_file.replace(json_root, html_root)
 			os.makedirs(html_dir, exist_ok=True)
 			with open(json_file) as fin:
@@ -75,14 +101,14 @@ if __name__ == '__main__':
 								for ss in s('strong'):
 									ss.unwrap()
 						fout.write(soup.prettify())
-		print()
+		if not thrank: print()
 
 	# Replace html tags
 	if not replaced:
 		def repl(m): return '□' * len(m.group())
 		regex_tag = re.compile('<[^<>]*?>')
 		regex_url  = re.compile(r'(?:http[s]?:)?//(?:[a-z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+')
-		for html_file in grep_files(html_root, parts):
+		for html_file in glob_files(html_root, parts):
 			notag_file = html_file.replace(html_root, notag_root)
 			os.makedirs(os.path.dirname(notag_file), exist_ok=True)
 			printr(notag_file)
@@ -91,7 +117,7 @@ if __name__ == '__main__':
 				data = regex_tag.sub(repl, data)
 				data = regex_url.sub(repl, data)
 				fout.write(data)
-		print()
+		if not thrank: print()
 
 	# Parse html
 	if not parsed:
@@ -109,7 +135,7 @@ if __name__ == '__main__':
 				(re.compile(r'\n+'), '\n'), \
 		]
 
-		for html_file in grep_files(html_root, parts):
+		for html_file in glob_files(html_root, parts):
 			article_file = html_file.replace(html_root, article_root).replace('.html', '.txt')
 			os.makedirs(os.path.dirname(article_file), exist_ok=True)
 			printr(article_file)
@@ -125,6 +151,18 @@ if __name__ == '__main__':
 				for regex in regexes1:
 					text_data = regex[0].sub(regex[1], text_data)
 				fout.write(text_data)
-		print()
+		if not thrank: print()
 
+from cosmel import *
+
+def get_html_idx(html_data, html_idx, word):
+	try:
+		return html_data[html_idx:].index(word)+html_idx
+	except ValueError:
+		return html_idx
+
+if __name__ == '__main__':
+
+	main()
+	print()
 	pass

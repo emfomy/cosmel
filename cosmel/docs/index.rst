@@ -2,55 +2,57 @@
 CosmEL: Cosmetic Entity Linking
 ===============================
 
-Introduction
-------------
+.. raw:: latex
 
-Author
-^^^^^^
-
-* Mu Yang      <emfomy@gmail.com>
-* Chi-Yen Chen <jina199312@gmail.com>
-* Yi-Hui Lee   <lilyyhlee30@gmail.com>
-* Wei-Yun Ma   <ma@iis.sinica.edu.tw>
-
-Requirement
-^^^^^^^^^^^
-
-* `Python <http://www.python.org/>`_ 3.6.
-* `Pytorch <http://pytorch.org/>`_ 0.4.0.
-* `CKIPWS <http://otl.sinica.edu.tw/index.php?t=9&group_id=25&article_id=408>`_ Linux version.
-* `CKIPParser <http://otl.sinica.edu.tw/index.php?t=9&group_id=25&article_id=1653>`_ Windows version.
-* [optional] `sphinx_rtd_theme <https://github.com/rtfd/sphinx_rtd_theme/>`_.
-
-
-.. only:: latex
-
-   Tutorial
-   --------
+   \part{Introduction}
 
 .. toctree::
+   :caption: Introduction
    :maxdepth: 1
+
+   src/intro.rst
+
+
+.. raw:: latex
+
+   \part{Tutorial}
+
+.. toctree::
    :caption: Tutorial
+   :maxdepth: 1
 
-   tutorial/fs.rst
-   tutorial/ds.rst
-   tutorial/guide.rst
+   src/ds
+   src/xml
+   src/util_usage
+   src/util_guide
 
 
-.. only:: latex
+.. raw:: latex
 
-   Package
-   -------
+   \part{Model}
 
 .. toctree::
+   :caption: Model
    :maxdepth: 1
+
+   src/model_usage
+   src/model_guide
+
+
+.. raw:: latex
+
+   \part{Package}
+
+.. toctree::
    :caption: Package
+   :maxdepth: 1
 
    _api/cosmel
 
 .. only:: html
 
    .. toctree::
+      :hidden:
       :maxdepth: 1
       :caption: Appendix
 

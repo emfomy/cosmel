@@ -28,7 +28,7 @@ if __name__ == '__main__':
 
 	arggroup = argparser.add_mutually_exclusive_group()
 	arggroup.add_argument('-v', '--ver', metavar='<ver>#<date>', \
-			help='set <dir> as "result/<ver>_<date>"')
+			help='set <dir> as "data/<ver>/model/<date>"')
 	arggroup.add_argument('-D', '--dir', metavar='<dir>', \
 			help='prepend <dir> to data and model path')
 
@@ -42,20 +42,21 @@ if __name__ == '__main__':
 	args = argparser.parse_args()
 
 	vers          = args.ver.split('#')
+	assert len(vers) == 2, argparser.format_usage()
 	ver           = vers[0]
-	date          = ''
-	if len(vers) > 1:
-		date        = f'_{vers[1]}'
+	date          = vers[1]
+
+	data_root     = f'data/{ver}'
 
 	result_root = ''
 	if args.ver != None:
-		result_root = f'result/{ver}{date}/'
+		result_root = f'{data_root}/model/{date}'
 	if args.dir != None:
-		result_root = f'{args.dir}/'
+		result_root = f'{args.dir}'
 
-	data_file     = f'{result_root}{args.data}.list.txt'
+	data_file     = f'{result_root}/{args.data}.list.txt'
 
-	meta_file     = f'{result_root}meta.pkl'
+	meta_file     = f'{result_root}/meta.pkl'
 	if args.meta != None:
 		meta_file = args.meta
 
@@ -85,14 +86,8 @@ if __name__ == '__main__':
 	num_test = len(asmid_list)
 	print(f'num_test = {num_test}')
 
-	parts  = list(set(m.aid for m in asmid_list))
-	repo   = Repo(meta.repo_path)
-	corpus = Corpus(meta.article_path, mention_root=meta.mention_path, parts=parts)
-
-	ment_list = [corpus.id_to_mention[asmid.asmid] for asmid in asmid_list]
-	for m, asmid in zip(ment_list, asmid_list):
-		m.set_gid(asmid.gid)
-		m.set_rid(asmid.rid)
+	repo    _         = meta.new_repo()
+	corpus, ment_list = asmid_list.new_corpus()
 
 	rule_list = np.asarray([m.rule for m in ment_list])
 	true_gid = true_gid[rule_list == 'P_rule1']

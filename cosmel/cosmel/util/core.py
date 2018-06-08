@@ -42,15 +42,16 @@ class ReadOnlyList(collections.abc.Sequence):
 		return str(self.__data)
 
 
-def prune_string(chars):
+def purge_string(chars):
 	"""
 	* Convert to lower cases.
 	* Remove special symbols.
 	* Remove spaces near non-alphabets.
+	* Replace spaces by '□'s.
 	"""
-	return PruneString.sub(chars)
+	return PurgeString.sub(chars)
 
-class PruneString():
+class PurgeString():
 
 	__regexes = [ \
 			(re.compile(r'[^\S\n]'), r'□'), \
@@ -79,8 +80,8 @@ def check_contain_chinese(chars):
 	return False
 
 
-def grep_files(root, parts=['']):
-	"""Grep all files in the directory."""
+def glob_files(root, parts=['']):
+	"""Glob all files in the directory."""
 
 	retval = set()
 	for part in parts:
@@ -92,6 +93,11 @@ def grep_files(root, parts=['']):
 		else:
 			retval.update(glob.glob(f'{subroot}.*'))
 	return sorted(retval)
+
+
+def rm_ext_all(path):
+	"""Remove all file extension"""
+	return os.path.join(os.path.dirname(path), os.path.basename(path).split('.')[0])
 
 
 def rm_files(root, parts=['']):

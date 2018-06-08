@@ -231,7 +231,7 @@ class BrandPName2Product(collections.abc.Mapping):
 		return len(self.__data)
 
 	def __keytransform__(self, key):
-		return (key[0], prune_string(key[1]),)
+		return (key[0], purge_string(key[1]),)
 
 
 class BNamePName2Product(collections.abc.Sequence):
@@ -263,7 +263,7 @@ class BNamePName2Product(collections.abc.Sequence):
 		return len(self.__data)
 
 	def __keytransform__(self, key):
-		return (self.__key[key[0]], prune_string(key[1]),)
+		return (self.__key[key[0]], purge_string(key[1]),)
 
 
 class PName2ProductList(collections.abc.Mapping):
@@ -305,7 +305,7 @@ class PName2ProductList(collections.abc.Mapping):
 		return len(self.__data)
 
 	def __keytransform__(self, key):
-		return prune_string(key)
+		return purge_string(key)
 
 
 class BrandHead2ProductList(collections.abc.Mapping):

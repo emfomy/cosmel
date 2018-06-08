@@ -12,11 +12,7 @@ PROJ = CosmEL
 
 DOCDIR     = .
 BUILDDIR   = _build
-SOURCEDIR1 = ../cosmel
-SOURCEDIR2 = ../model
-SOURCEDIR3 = ../util
 APIDIR     = _api
-STATICDIR  = _static
 
 # Put it first so that "make" without argument is like "make help".
 help:
@@ -25,14 +21,24 @@ help:
 .PHONY: help Makefile api clean
 
 api:
-	@$(SPHINXAPI) -fMeT -o "$(APIDIR)" "$(SOURCEDIR1)" $(SPHINXAPIOPTS)
-	# @$(SPHINXAPI) -fMeT -o "$(APIDIR)" "$(SOURCEDIR2)" $(SPHINXAPIOPTS)
-	# @$(SPHINXAPI) -fMeT -o "$(APIDIR)" "$(SOURCEDIR3)" $(SPHINXAPIOPTS)
+	@$(SPHINXAPI) -feTM -o "$(APIDIR)" "../cosmel" $(SPHINXAPIOPTS)
+	# @$(SPHINXAPI) -feTM -o "$(APIDIR)" "../model"  $(SPHINXAPIOPTS)
+	# @$(SPHINXAPI) -feTM -o "$(APIDIR)" "../parser" $(SPHINXAPIOPTS)
+	@perl -i -0pe 's/Subpackages\n-----------//g;s/Submodules\n----------//g' $(APIDIR)/*
 
 clean: Makefile
 	@$(SPHINXBUILD) -M $@ "$(DOCDIR)" "$(BUILDDIR)" $(SPHINXBUILDOPTS)
 	@$(SPHINXBUILD) -M $@ "$(DOCDIR)" "$(APIDIR)" $(SPHINXBUILDOPTS)
-	@$(SPHINXBUILD) -M $@ "$(DOCDIR)" "$(STATICDIR)" $(SPHINXBUILDOPTS)
+
+html: api Makefile
+	@$(SPHINXBUILD) -M $@ "$(DOCDIR)" "$(BUILDDIR)" $(SPHINXBUILDOPTS)
+
+latex: api Makefile
+	@$(SPHINXBUILD) -M $@ "$(DOCDIR)" "$(BUILDDIR)" $(SPHINXBUILDOPTS)
+	@$(SPHINXBUILD) -M latexpdf "$(DOCDIR)" "$(BUILDDIR)" $(SPHINXBUILDOPTS)
+
+latexpdf: Makefile
+	$(error "Use make latex instead!")
 
 # Catch-all target: route all unknown targets to Sphinx using the new "make mode" option.
 %: api Makefile

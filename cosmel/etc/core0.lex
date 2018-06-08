@@ -1,5 +1,3 @@
-□	SP
-
 pa	A
 spf	A
 

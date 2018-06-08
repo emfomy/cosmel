@@ -16,9 +16,9 @@ from cosmel.util.core import *
 
 class PyWordSeg():
 
-	def __init__(self, lib_file, ini_file):
-		self.__lib = ctypes.cdll.LoadLibrary(lib_file)
-		self.__obj = self.__lib.WordSeg_New()
+	def __init__(self, ini_file):
+		self.__lib = ctypes.CDLL('libWordSeg.so')
+		self.__lib.WordSeg_New.restype            = ctypes.c_void_p
 		self.__lib.WordSeg_InitData.restype       = ctypes.c_bool
 		self.__lib.WordSeg_ApplyFile.restype      = ctypes.c_bool
 		self.__lib.WordSeg_ApplyList.restype      = ctypes.c_bool
@@ -27,6 +27,7 @@ class PyWordSeg():
 		self.__lib.WordSeg_GetResultNext.restype  = ctypes.c_wchar_p
 		self.__lib.WordSeg_GetUWBegin.restype     = ctypes.c_wchar_p
 		self.__lib.WordSeg_GetUWNext.restype      = ctypes.c_wchar_p
+		self.__obj = self.__lib.WordSeg_New()
 		ret = self.__lib.WordSeg_InitData(self.__obj, ini_file.encode('utf-8'))
 		if not ret:
 			raise IOError(f'Loading {ini_file} failed.')
@@ -60,14 +61,13 @@ class PyWordSeg():
 class CkipWsCore():
 	"""The word segmentation driver core."""
 
-	def __init__(self, lib_file, ini_file):
-		self.__lib_file = lib_file
+	def __init__(self, ini_file):
 		self.__ini_file = ini_file
-		self.__data = PyWordSeg(self.__lib_file, self.__ini_file)
+		self.__data = PyWordSeg(self.__ini_file)
 
 	def reload(self):
 		del self.__data
-		self.__data = PyWordSeg(self.__lib_file, self.__ini_file)
+		self.__data = PyWordSeg(self.__ini_file)
 
 	def apply_file(self, input_file, output_file):
 		return self.__data.ApplyFile(input_file, output_file)
@@ -82,7 +82,7 @@ class CkipWsCore():
 class CkipWs():
 	"""The word segmentation driver."""
 
-	def __init__(self, lib_file, ini_file, lex_files, compound_files, input_encoding=None, output_encoding=None):
+	def __init__(self, ini_file, lex_files, compound_files, input_encoding=None, output_encoding=None):
 
 		with open(ini_file, encoding=input_encoding) as fin:
 			lines = fin.read().splitlines()
@@ -109,7 +109,7 @@ class CkipWs():
 			self.__regexes.append((re.compile(rf'(\A|(?<=\n|　)){re.escape(seg[0])}\([A-Za-z0-9]*?\)'), seg[1], seg[0]))
 		self.__regexes.append((re.compile(r'　□\(SP\)'), '', '□'))
 
-		self.__core = CkipWsCore(lib_file, ini_file)
+		self.__core = CkipWsCore(ini_file)
 		print(f'Initialize CKIPWS with INI "{ini_file}" using lexicon "{lex_file}"')
 
 		self.__ini_file = ini_file

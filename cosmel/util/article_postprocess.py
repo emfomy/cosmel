@@ -6,6 +6,7 @@ __author__    = 'Mu Yang <emfomy@gmail.com>'
 __copyright__ = 'Copyright 2017-2018'
 
 
+import argparse
 import os
 import sys
 
@@ -15,23 +16,54 @@ if __name__ == '__main__':
 from cosmel import *
 
 
-if __name__ == '__main__':
+def main():
 
-	assert len(sys.argv) > 1
-	ver = sys.argv[1]
+	# Parse arguments
+	argparser = argparse.ArgumentParser(description='CosmEL: Postprocesses Article.')
+
+	argparser.add_argument('-v', '--ver', metavar='<ver>#<date>', required=True, \
+			help='load repo from "data/<ver>", and load/save corpus data from/into "data/<ver>/corpus/<date>"')
+	argparser.add_argument('-t', '--thread', metavar='<thread>', type=int, \
+			help='use <thread> threads; default is `os.cpu_count()`')
+
+	args = argparser.parse_args()
+
+	vers = args.ver.split('#')
+	assert len(vers) == 2, argparser.format_usage()
+	ver  = vers[0]
+	date = vers[1]
+	assert len(ver)  > 0
+	assert len(date) > 0
+
+	nth = args.thread
+	if not nth: nth = os.cpu_count()
+
+	print(args)
+	print(f'Use {nth} threads')
+
+	import multiprocessing
+	with multiprocessing.Pool(nth) as pool:
+		results = [pool.apply_async(submain, args=(ver, date, nth, thrank,)) for thrank in range(nth)]
+		[result.get() for result in results]
+		del results
+
+
+def submain(ver, date, nth=None, thrank=0):
 
 	replaced_pname = False
 	added_role     = False
 
-	target       = f'pruned_article'
+	target       = f'purged_article'
 	data_root    = f'data/{ver}'
+	corpus_root  = f'data/{ver}/corpus/{date}'
 	repo_root    = f'{data_root}/repo'
-	ws_re_root   = f'{data_root}/article/{target}_ws_re2'
-	ws_root      = f'{data_root}/article/{target}_ws'
-	role_root    = f'{data_root}/article/{target}_role'
-	parts        = ['']
-	parts        = list(f'part-{x:05}' for x in range(1))
-	if len(sys.argv) > 2: parts = list(f'part-{x:05}' for x in range(int(sys.argv[2]), 128, 8))
+	ws_re_root   = f'{corpus_root}/article/{target}_ws_re2'
+	ws_root      = f'{corpus_root}/article/{target}_ws'
+	role_root    = f'{corpus_root}/article/{target}_role'
+	# parts        = ['']
+	# parts        = list(f'part-{x:05}' for x in range(1))
+	parts        = sorted(rm_ext_all(file) for file in os.listdir(ws_re_root))
+	if nth: parts = parts[thrank:len(parts):nth]
 
 	repo = Repo(repo_root)
 
@@ -62,7 +94,7 @@ if __name__ == '__main__':
 			printr(f'{i+1:0{len(n)}}/{n}\t{ws_file}')
 			article.save(ws_file, str)
 
-		print()
+		if not thrank: print()
 
 	# Add Role
 	if not added_role:
@@ -87,6 +119,11 @@ if __name__ == '__main__':
 			printr(f'{i+1:0{len(n)}}/{n}\t{role_file}')
 			article.save(role_file, roledstr)
 
-		print()
+		if not thrank: print()
 
+
+if __name__ == '__main__':
+
+	main()
+	print()
 	pass

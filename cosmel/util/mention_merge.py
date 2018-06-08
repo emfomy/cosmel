@@ -6,6 +6,7 @@ __author__    = 'Mu Yang <emfomy@gmail.com>'
 __copyright__ = 'Copyright 2017-2018'
 
 
+import argparse
 import os
 import sys
 
@@ -15,23 +16,66 @@ if __name__ == '__main__':
 from cosmel import *
 
 
-if __name__ == '__main__':
+def main():
 
-	assert len(sys.argv) > 1
-	ver = sys.argv[1]
+	# Parse arguments
+	argparser = argparse.ArgumentParser(description='CosmEL: Merge Mention.')
 
-	target       = f'pruned_article'
+	argparser.add_argument('-v', '--ver', metavar='<ver>#<date>', required=True, \
+			help='load repo from "data/<ver>", and load/save corpus data from/into "data/<ver>/corpus/<date>"')
+
+	argparser.add_argument('-b', '--base', metavar='<base_dir>', required=True, \
+			help='load mention from "data/<ver>/mention/<base_dir>"')
+	argparser.add_argument('-i', '--input', metavar='<in_dir>', required=True, \
+			help='load mention from "data/<ver>/mention/<in_dir>"')
+	argparser.add_argument('-o', '--output', metavar='<out_dir>', required=True, \
+			help='dump XML into "data/<ver>/html/<out_dir>"; default is <in_dir>')
+
+	argparser.add_argument('-t', '--thread', metavar='<thread>', type=int, \
+			help='use <thread> threads; default is `os.cpu_count()`')
+
+	args = argparser.parse_args()
+
+	vers = args.ver.split('#')
+	assert len(vers) == 2, argparser.format_usage()
+	ver  = vers[0]
+	date = vers[1]
+	assert len(ver)  > 0
+	assert len(date) > 0
+
+	base_dir = args.base
+	in_dir   = args.input
+	out_dir  = args.output
+
+	nth      = args.thread
+	if not nth: nth = os.cpu_count()
+
+	print(args)
+	print(f'Use {nth} threads')
+
+	import multiprocessing
+	with multiprocessing.Pool(nth) as pool:
+		results = [pool.apply_async(submain, args=(ver, date, base_dir, in_dir, out_dir, nth, thrank,)) for thrank in range(nth)]
+		[result.get() for result in results]
+		del results
+
+
+def submain(ver, date, base_dir, in_dir, out_dir, nth=None, thrank=0):
+
+	target       = f'purged_article'
 	tmp_root     = f'data/tmp'
 	data_root    = f'data/{ver}'
-	base_root    = f'{data_root}/mention/{target}_rid'
-	input_root   = f'{data_root}/mention/{target}_gid_20180502_7.1'
-	output_root  = f'{data_root}/mention/{target}_gid_20180502'
-	parts        = ['']
+	corpus_root  = f'data/{ver}/corpus/{date}'
+	base_root    = f'{corpus_root}/mention/{base_dir}'
+	input_root   = f'{corpus_root}/mention/{in_dir}'
+	output_root  = f'{corpus_root}/mention/{out_dir}'
+	# parts        = ['']
 	# parts        = list(f'part-{x:05}' for x in range(1))
-	if len(sys.argv) > 2: parts = list(f'part-{x:05}' for x in range(int(sys.argv[2]), 128, 8))
+	parts        = sorted(rm_ext_all(file) for file in os.listdir(base_root))
+	if nth: parts = parts[thrank:len(parts):nth]
 
 	# Embed input mention
-	base_files = grep_files(base_root, parts)
+	base_files = glob_files(base_root, parts)
 	n = str(len(base_files))
 	for i, base_file in enumerate(base_files):
 		input_file  = transform_path(base_file, base_root, input_root)
@@ -50,16 +94,12 @@ if __name__ == '__main__':
 				for line in fin:
 					data = json.loads(line)
 					key = (int(data['sid']), int(data['mid']),)
-					# data.pop('sid', None)
-					# data.pop('mid', None)
+					data.pop('sid', None)
+					data.pop('mid', None)
 
-					# data.pop('hint', None)
-					# data.pop('hint_orio', None)
-
-					if 'gid' not in data or not data['gid']:
-						print(colored('1;33', f'[No GID] Remove {input_file}:{key[0]}:{key[1]}'))
-						continue
-					data = {'gid': data['gid']}
+					# if 'gid' not in data or not data['gid']:
+					# 	print(colored('1;33', f'[No GID] Remove {input_file}:{key[0]}:{key[1]}'))
+					# 	continue
 
 					data = dict((attr, value,) for attr, value in data.items() if value)
 
@@ -76,6 +116,11 @@ if __name__ == '__main__':
 			for data in data_dict.values():
 				fout.write(json.dumps(data)+'\n')
 
-	print()
+	if not thrank: print()
 
+
+if __name__ == '__main__':
+
+	main()
+	print()
 	pass

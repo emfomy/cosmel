@@ -43,11 +43,14 @@ class Corpus:
 			self.__id_to_parsed_article = Id2ParsedArticle(self.__id_to_article)
 
 		if mention_root:
-			self.__mention_bundle_set   = MentionBundleSet(mention_root, self.__article_set)
-			self.__mention_set          = MentionSet(self.__mention_bundle_set)
-			self.__id_to_mention        = Id2Mention(self.__mention_set)
-			self.__id_to_mention_bundle = Id2MentionBundle(self.__id_to_article)
-			self.__head_to_mention_list = Head2MentionList(self.__mention_set)
+			self.reload_mention(mention_root)
+
+	def reload_mention(self, mention_root):
+		self.__mention_bundle_set   = MentionBundleSet(mention_root, self.__article_set)
+		self.__mention_set          = MentionSet(self.__mention_bundle_set)
+		self.__id_to_mention        = Id2Mention(self.__mention_set)
+		self.__id_to_mention_bundle = Id2MentionBundle(self.__id_to_article)
+		self.__head_to_mention_list = Head2MentionList(self.__mention_set)
 
 	@property
 	def article_set(self):

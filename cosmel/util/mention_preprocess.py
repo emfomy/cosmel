@@ -6,6 +6,7 @@ __author__    = 'Mu Yang <emfomy@gmail.com>'
 __copyright__ = 'Copyright 2017-2018'
 
 
+import argparse
 import os
 import sys
 
@@ -15,24 +16,51 @@ if __name__ == '__main__':
 from cosmel import *
 
 
-def indices(lst, ele, start=0, end=None):
-	return [i+start for i, val in enumerate(lst[start:end]) if val == ele]
+def main():
+
+	# Parse arguments
+	argparser = argparse.ArgumentParser(description='CosmEL: Merge Mention.')
+
+	argparser.add_argument('-v', '--ver', metavar='<ver>#<date>', required=True, \
+			help='load repo from "data/<ver>", and load/save corpus data from/into "data/<ver>/corpus/<date>"')
+	argparser.add_argument('-t', '--thread', metavar='<thread>', type=int, \
+			help='use <thread> threads; default is `os.cpu_count()`')
+
+	args = argparser.parse_args()
+
+	vers = args.ver.split('#')
+	assert len(vers) == 2, argparser.format_usage()
+	ver  = vers[0]
+	date = vers[1]
+	assert len(ver)  > 0
+	assert len(date) > 0
+
+	nth = args.thread
+	if not nth: nth = os.cpu_count()
+
+	print(args)
+	print(f'Use {nth} threads')
+
+	import multiprocessing
+	with multiprocessing.Pool(nth) as pool:
+		results = [pool.apply_async(submain, args=(ver, date, nth, thrank,)) for thrank in range(nth)]
+		[result.get() for result in results]
+		del results
 
 
-if __name__ == '__main__':
+def submain(ver, date, nth=None, thrank=0):
 
-	assert len(sys.argv) > 1
-	ver = sys.argv[1]
-
-	target       = f'pruned_article'
+	target       = f'purged_article'
 	tmp_root     = f'data/tmp'
 	data_root    = f'data/{ver}'
-	article_root = f'{data_root}/article/{target}_role'
-	mention_root = f'{data_root}/mention/{target}'
+	corpus_root  = f'data/{ver}/corpus/{date}'
 	repo_root    = f'{data_root}/repo'
-	parts        = ['']
+	article_root = f'{corpus_root}/article/{target}_role'
+	mention_root = f'{corpus_root}/mention/{target}'
+	# parts        = ['']
 	# parts        = list(f'part-{x:05}' for x in range(1))
-	if len(sys.argv) > 2: parts = list(f'part-{x:05}' for x in range(int(sys.argv[2]), 128, 8))
+	parts        = sorted(rm_ext_all(file) for file in os.listdir(article_root))
+	if nth: parts = parts[thrank:len(parts):nth]
 
 	articles = ArticleSet(article_root, parts=parts)
 
@@ -50,6 +78,15 @@ if __name__ == '__main__':
 		bundle._MentionBundle__data = [Mention(article, sid, mid) \
 				for sid, line in enumerate(article) for mid in indices(line.roles, 'Head')]
 		bundle.save(mention_file)
-	print()
+	if not thrank: print()
 
+
+def indices(lst, ele, start=0, end=None):
+	return [i+start for i, val in enumerate(lst[start:end]) if val == ele]
+
+
+if __name__ == '__main__':
+
+	main()
+	print()
 	pass

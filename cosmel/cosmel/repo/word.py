@@ -25,9 +25,8 @@ class WordSet(collections.abc.Collection):
 		self.__data = set()
 		with open(lex_file) as fin:
 			for line in fin:
-				line = line.strip()
-				assert not line == ''
-				self.__data.add(line.split('\t')[0])
+				if line.strip() == '': continue
+				self.__data.add(line.strip().split('\t')[0])
 
 	def __contains__(self, item):
 		return item in self.__data

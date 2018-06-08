@@ -96,10 +96,10 @@ class BName2Brand(collections.abc.Mapping):
 				self.__data[bname] = brand
 
 	def __contains__(self, key):
-		return prune_string(key) in self.__data
+		return purge_string(key) in self.__data
 
 	def __getitem__(self, key):
-		return self.__data[prune_string(key)]
+		return self.__data[purge_string(key)]
 
 	def __iter__(self):
 		return iter(self.__data)

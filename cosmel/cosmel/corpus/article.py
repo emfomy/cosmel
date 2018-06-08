@@ -17,22 +17,22 @@ class Article(collections.abc.Sequence):
 	* Item: the word-segmented sentence (:class:`.WsWords`)
 
 	Args:
+		root_path (str): the root path of the articles.
 		file_path (str): the path to the article.
 	"""
 
 	@staticmethod
-	def path_to_aid(path):
+	def path_to_aid(path, root):
 		"""str: Convert file path to article ID."""
-		norm_path = os.path.normpath(path)
-		return os.path.basename(os.path.dirname(norm_path)) + '/' + os.path.basename(norm_path).split('.')[0]
+		return rm_ext_all(os.path.relpath(path, root))
 
-	def __init__(self, file_path):
+	def __init__(self, file_path, root_path):
 		super().__init__()
 
 		with open(file_path) as fin:
 			self.__data = [WsWords(line) for line in fin]
 
-		self.__aid = Article.path_to_aid(file_path)
+		self.__aid = Article.path_to_aid(file_path, root_path)
 		self.__path = file_path
 
 	def __contains__(self, item):
@@ -113,17 +113,17 @@ class ArticleSet(collections.abc.Collection):
 
 	def __init__(self, article_root, parts=[''], skips=[]):
 		super().__init__()
-		files = grep_files(article_root, parts)
-		files = [file for file in files if Article.path_to_aid(file) not in skips]
+		files = glob_files(article_root, parts)
+		files = [file for file in files if Article.path_to_aid(file, article_root) not in skips]
 		n = str(len(files))
-		self.__data = [self.__article(file, i, n) for i, file in enumerate(files)]
+		self.__data = [self.__article(file, article_root, i, n) for i, file in enumerate(files)]
 		self.__path = article_root
 		print()
 
 	@classmethod
-	def __article(self, file, i, n):
+	def __article(self, file, root, i, n):
 		printr(f'{i+1:0{len(n)}}/{n}\tReading {file}')
-		return Article(file)
+		return Article(file, root)
 
 	def __contains__(self, item):
 		return item in self.__data

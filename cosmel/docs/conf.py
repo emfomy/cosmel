@@ -42,6 +42,7 @@ extensions = [
     'sphinx.ext.viewcode',
     'sphinx.ext.githubpages',
     'sphinx.ext.napoleon',
+    'sphinxcontrib.programoutput',
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -149,7 +150,7 @@ latex_elements = {
 
     # Additional stuff for the LaTeX preamble.
     #
-    # 'preamble': '',
+    'preamble': '\\usepackage{cosmel}',
 
     # Latex figure (float) alignment
     #
@@ -162,6 +163,10 @@ latex_elements = {
 latex_documents = [
     (master_doc, 'CosmEL.tex', 'CosmEL: Cosmetic Entity Linking',
      author, 'manual'),
+]
+
+latex_additional_files = [
+    'latex/cosmel.sty'
 ]
 
 

@@ -23,20 +23,25 @@ class Mention:
 		article (:class:`.Article`): the article containing this mention.
 		sid     (int):               the sentence index in the aritcle.
 		mid     (int):               the mention index in the sentence.
-		rid     (str):               the ruled product ID.
 		gid     (str):               the golden product ID.
+		nid     (str):               the network-predicted product ID.
+		rid     (str):               the rule-labeled product ID.
 		rule    (str):               the rule.
 		idxs    (slice):             the indix slice of this mention.
 	"""
 
-	def __init__(self, article, sid, mid, rid='', gid='', rule='', **kwargs):
+	def __init__(self, article, sid, mid, *args, gid='', nid='', rid='', rule='', **kwargs):
+
+		assert len(args) == 0
+
 		super().__init__()
 
 		self.__article = article
 		self.__sid     = int(sid)
 		self.__mid     = int(mid)
-		self.__rid     = rid
 		self.__gid     = gid
+		self.__nid     = nid
+		self.__rid     = rid
 		self.__rule    = rule
 		self.__start   = self.__mid
 		self.__end     = self.__mid+1
@@ -70,25 +75,25 @@ class Mention:
 	@property
 	def sentence_pre(self):
 		""":class:`.WsWords`: the words before this mention in the sentence."""
-		return self.sentence[self.slice_pre]
+		return self.sentence[self._slice_pre]
 
 	def sentence_pre_(self, with_mention=True):
 		""":class:`.WsWords`: the words before this mention in the sentence (with/without mention itself)."""
-		return self.sentence[self.slice_pre_(with_mention)]
+		return self.sentence[self._slice_pre_(with_mention)]
 
 	@property
 	def sentence_post(self):
 		""":class:`.WsWords`: the words after this mention in the sentence."""
-		return self.sentence[self.slice_post]
+		return self.sentence[self._slice_post]
 
 	def sentence_post_(self, with_mention=True):
 		""":class:`.WsWords`: the words after this mention in the sentence (with/without mention itself)."""
-		return self.sentence[self.slice_post_(with_mention)]
+		return self.sentence[self._slice_post_(with_mention)]
 
 	@property
 	def mention(self):
 		""":class:`.WsWords`: this mention."""
-		return self.sentence[self.slice]
+		return self.sentence[self._slice]
 
 	@property
 	def bundle(self):
@@ -140,37 +145,42 @@ class Mention:
 		return self.__mid
 
 	@property
-	def slice(self):
+	def _slice(self):
 		"""slice: the slice index of this mention in the sentence."""
 		return slice(self.__start, self.__end)
 
 	@property
-	def slice_pre(self):
+	def _slice_pre(self):
 		"""slice: the slice index of the words before this mention in the sentence."""
 		return slice(None, self.__start)
 
-	def slice_pre_(self, with_mention=True):
+	def _slice_pre_(self, with_mention=True):
 		"""slice: the slice index of the words before this mention in the sentence (with/without mention)."""
 		return slice(None, self.__end) if with_mention else slice(None, self.__start)
 
 	@property
-	def slice_post(self):
+	def _slice_post(self):
 		"""slice: the slice index of the words after this mention in the sentence."""
 		return slice(self.__end, None)
 
-	def slice_post_(self, with_mention=True):
+	def _slice_post_(self, with_mention=True):
 		"""slice: the slice index of the words after this mention in the sentence (with/without mention)."""
 		return slice(self.__start, None) if with_mention else slice(self.__end, None)
-
-	@property
-	def rid(self):
-		"""str: the ruled product ID."""
-		return self.__rid
 
 	@property
 	def gid(self):
 		"""str: the golden product ID."""
 		return self.__gid
+
+	@property
+	def nid(self):
+		"""str: the network-predicted product ID."""
+		return self.__nid
+
+	@property
+	def rid(self):
+		"""str: the rule-labeled product ID."""
+		return self.__rid
 
 	@property
 	def rule(self):
@@ -205,7 +215,8 @@ class Mention:
 	@property
 	def attrs(self):
 		"""The xml attributes."""
-		return dict(self.__kwargs, sid=self.__sid, mid=self.__mid, rid=self.__rid, gid=self.__gid, rule=self.__rule)
+		return dict(sid=self.__sid, mid=self.__mid, gid=self.__gid, nid=self.__nid, rid=self.__rid, \
+				rule=self.__rule, **self.__kwargs)
 
 	@property
 	def start_xml(self):
@@ -228,13 +239,17 @@ class Mention:
 		"""Convert to json."""
 		return json.dumps(self.attrs)
 
-	def set_rid(self, rid):
-		"""Sets the ruled product ID."""
-		self.__rid = rid
-
 	def set_gid(self, gid):
 		"""Sets the golden product ID."""
 		self.__gid = gid
+
+	def set_nid(self, nid):
+		"""Sets the network-predicted product ID."""
+		self.__nid = nid
+
+	def set_rid(self, rid):
+		"""Sets the rule-labeled product ID."""
+		self.__rid = rid
 
 	def set_rule(self, rule):
 		"""Sets the rule for the product ID."""

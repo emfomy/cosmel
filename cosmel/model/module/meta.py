@@ -32,17 +32,125 @@ from cosmel import *
 
 
 ################################################################################################################################
+# Data Set Meta
+#
+
+class DataSetMeta:
+
+	class Core:
+
+		def __init__(self, repo, emb_file):
+
+			# Save paths
+			self.repo_path = repo.path
+
+			# Save word vectors
+			from gensim.models.keyedvectors import KeyedVectors
+			keyed_vectors = KeyedVectors.load_word2vec_format(emb_file, binary=True)
+			b_set = set(repo.bname_to_brand.keys())
+			w_set = set(keyed_vectors.index2word[1:])
+			o_set = w_set - b_set
+			assert b_set <= w_set
+
+			self.word_index = {w: i+1 for i, b in enumerate(repo.brand_set) for w in b}
+			n = len(repo.brand_set)+1
+			self.word_index.update({w: i+n for i, w in enumerate(o_set)})
+			n+=len(o_set)
+
+			self.word_vector = np.zeros((n, keyed_vectors.vector_size), dtype='float32')
+			for b in repo.brand_set:
+				self.word_vector[self.word_index[b[0]]] = np.mean(keyed_vectors[b], axis=0)
+			for w in o_set:
+				self.word_vector[self.word_index[w]] = keyed_vectors[w]
+
+			# Save product ID and brand names
+			self.pids   = list(repo.id_to_product.keys())
+			self.bnames = list(b[0] for b in repo.brand_set)
+
+	@staticmethod
+	def new(repo, emb_file):
+		return DataSetMeta(DataSetMeta.Core(repo, emb_file))
+
+	def __init__(self, core):
+
+		# Initlaize core
+		self.core = core
+		for k, v in vars(self.core).items():
+			setattr(self, k, v)
+
+		# Prepare tokenizer
+		self.tokenizer = Tokenizer(self.word_index)
+		num_vocab = len(self.tokenizer.classes_)+1
+		print(f'num_vocab   = {num_vocab}')
+		assert num_vocab == self.word_vector.shape[0]
+
+		# Prepare padder
+		self.padder = Padder()
+
+		# Prepare product encoder
+		self.p_encoder = LabelEncoder()
+		self.p_encoder.fit(self.pids)
+		num_product = len(self.p_encoder.classes_)
+		print(f'num_product = {num_product}')
+
+		# Prepare brand encoder
+		self.b_encoder = LabelEncoder()
+		self.b_encoder.fit(self.bnames)
+		num_brand = len(self.b_encoder.classes_)
+		print(f'num_brand   = {num_brand}')
+
+		# Prepare product binarizer
+		self.p_binarizer = LabelBinarizer()
+		self.p_binarizer.fit(self.p_encoder.classes_)
+		np.testing.assert_array_equal(self.p_encoder.classes_, self.p_binarizer.classes_)
+
+		# Prepare brand binarizer
+		self.b_binarizer = LabelBinarizer()
+		self.b_binarizer.fit(self.b_encoder.classes_)
+		np.testing.assert_array_equal(self.b_encoder.classes_, self.b_binarizer.classes_)
+
+		# Prepare product multi-binarizer
+		self.p_multibinarizer = MultiLabelBinarizer(classes=self.p_encoder.classes_)
+		self.p_multibinarizer.fit([])
+		np.testing.assert_array_equal(self.p_encoder.classes_, self.p_multibinarizer.classes_)
+
+		# Prepare brand multi-binarizer
+		self.b_multibinarizer = MultiLabelBinarizer(classes=self.b_encoder.classes_)
+		self.b_multibinarizer.fit([])
+		np.testing.assert_array_equal(self.b_encoder.classes_, self.b_multibinarizer.classes_)
+
+	def dump(self, file):
+		os.makedirs(os.path.dirname(file), exist_ok=True)
+		print(f'Dump data meta into {file}')
+		with open(file, 'wb') as fout:
+			pickle.dump(self.core, fout, protocol=4)
+
+	@staticmethod
+	def load(file):
+		print(f'Load data meta from {file}')
+		with open(file, 'rb') as fin:
+			return DataSetMeta(pickle.load(fin))
+
+	def new_repo(self):
+		repo = Repo(self.repo_path)
+		prod_list = list(repo.product_set)
+		return repo, prod_list
+
+
+################################################################################################################################
 # ASMID
 #
 
 class Asmid:
 
-	def __init__(self, aid, sid, mid, rid, gid):
-		self.aid = aid
-		self.sid = sid
-		self.mid = mid
-		self.rid = rid
-		self.gid = gid
+	def __init__(self, aid, sid, mid, gid='', nid='', rid='', rule=''):
+		self.aid  = aid
+		self.sid  = int(sid)
+		self.mid  = int(mid)
+		self.gid  = gid
+		self.nid  = nid
+		self.rid  = rid
+		self.rule = rule
 
 	def __str__(self):
 		return str(self.__dict__)
@@ -57,9 +165,11 @@ class Asmid:
 
 class AsmidList(collections.abc.Sequence):
 
-	def __init__(self, data):
+	def __init__(self, article_path, mention_path, data):
 		super().__init__()
-		self.__data = list(data)
+		self.article_path = article_path
+		self.mention_path = mention_path
+		self.__data         = list(data)
 
 	def __contains__(self, item):
 		return item in self.__data
@@ -83,6 +193,8 @@ class AsmidList(collections.abc.Sequence):
 		os.makedirs(os.path.dirname(file), exist_ok=True)
 		print(f'Dump asmid list into {file}')
 		with open(file, 'w') as fout:
+			fout.write(self.article_path+'\n')
+			fout.write(self.mention_path+'\n')
 			for asmid in self.__data:
 				fout.write(json.dumps(vars(asmid))+'\n')
 
@@ -90,12 +202,29 @@ class AsmidList(collections.abc.Sequence):
 	def load(file):
 		print(f'Load asmid list from {file}')
 		with open(file) as fin:
-			return AsmidList(Asmid(**json.loads(s)) for s in fin)
+			article_path = fin.readline().strip()
+			mention_path = fin.readline().strip()
+			return AsmidList(article_path, mention_path, (Asmid(**json.loads(s)) for s in fin))
+
+	def copy(self):
+		return AsmidList(self.article_path, self.mention_path, self.__data)
 
 	def train_test_split(self, **kwargs):
 		from sklearn.model_selection import train_test_split
 		train_list, test_list = train_test_split(self.__data, **kwargs)
-		return AsmidList(train_list), AsmidList(test_list)
+		return AsmidList(self.article_path, self.mention_path, train_list), \
+				AsmidList(self.article_path, self.mention_path, test_list)
+
+	def new_corpus(self):
+		parts  = list(set(m.aid for m in self))
+		corpus = Corpus(self.article_path, mention_root=self.mention_path, parts=parts)
+		ment_list = [corpus.id_to_mention[asmid.asmid] for asmid in self]
+		for m, asmid in zip(ment_list, self):
+			m.set_gid(asmid.gid)
+			m.set_nid(asmid.nid)
+			m.set_rid(asmid.rid)
+			m.set_rule(asmid.rule)
+		return corpus, ment_list
 
 	def gid_to_mtype(self):
 		for asmid in self.__data:
@@ -200,106 +329,3 @@ class Padder():
 
 	def __call__(self, *args, **kwargs):
 		return self.pad(*args, **kwargs)
-
-
-################################################################################################################################
-# Data Set Meta
-#
-
-class DataSetMeta:
-
-	class Core:
-
-		def __init__(self, repo, corpus, emb_file):
-
-			# Save pathes
-			self.repo_path    = repo.path
-			self.article_path = corpus.article_set.path
-			self.mention_path = corpus.mention_set.path
-
-			# Save word vectors
-			from gensim.models.keyedvectors import KeyedVectors
-			keyed_vectors = KeyedVectors.load_word2vec_format(emb_file, binary=True)
-			b_set = set(repo.bname_to_brand.keys())
-			w_set = set(keyed_vectors.index2word[1:])
-			o_set = w_set - b_set
-			assert b_set <= w_set
-
-			self.word_index = {w: i+1 for i, b in enumerate(repo.brand_set) for w in b}
-			n = len(repo.brand_set)+1
-			self.word_index.update({w: i+n for i, w in enumerate(o_set)})
-			n+=len(o_set)
-
-			self.word_vector = np.zeros((n, keyed_vectors.vector_size), dtype='float32')
-			for b in repo.brand_set:
-				self.word_vector[self.word_index[b[0]]] = np.mean(keyed_vectors[b], axis=0)
-			for w in o_set:
-				self.word_vector[self.word_index[w]] = keyed_vectors[w]
-
-			# Save product ID and brand names
-			self.pids   = list(repo.id_to_product.keys())
-			self.bnames = list(b[0] for b in repo.brand_set)
-
-	@staticmethod
-	def new(repo, corpus, emb_file):
-		return DataSetMeta(DataSetMeta.Core(repo, corpus, emb_file))
-
-	def __init__(self, core):
-
-		# Initlaize core
-		self.core = core
-		for k, v in vars(self.core).items():
-			setattr(self, k, v)
-
-		# Prepare tokenizer
-		self.tokenizer = Tokenizer(self.word_index)
-		num_vocab = len(self.tokenizer.classes_)+1
-		print(f'num_vocab   = {num_vocab}')
-		assert num_vocab == self.word_vector.shape[0]
-
-		# Prepare padder
-		self.padder = Padder()
-
-		# Prepare product encoder
-		self.p_encoder = LabelEncoder()
-		self.p_encoder.fit(self.pids)
-		num_product = len(self.p_encoder.classes_)
-		print(f'num_product = {num_product}')
-
-		# Prepare brand encoder
-		self.b_encoder = LabelEncoder()
-		self.b_encoder.fit(self.bnames)
-		num_brand = len(self.b_encoder.classes_)
-		print(f'num_brand   = {num_brand}')
-
-		# Prepare product binarizer
-		self.p_binarizer = LabelBinarizer()
-		self.p_binarizer.fit(self.p_encoder.classes_)
-		np.testing.assert_array_equal(self.p_encoder.classes_, self.p_binarizer.classes_)
-
-		# Prepare brand binarizer
-		self.b_binarizer = LabelBinarizer()
-		self.b_binarizer.fit(self.b_encoder.classes_)
-		np.testing.assert_array_equal(self.b_encoder.classes_, self.b_binarizer.classes_)
-
-		# Prepare product multi-binarizer
-		self.p_multibinarizer = MultiLabelBinarizer(classes=self.p_encoder.classes_)
-		self.p_multibinarizer.fit([])
-		np.testing.assert_array_equal(self.p_encoder.classes_, self.p_multibinarizer.classes_)
-
-		# Prepare brand multi-binarizer
-		self.b_multibinarizer = MultiLabelBinarizer(classes=self.b_encoder.classes_)
-		self.b_multibinarizer.fit([])
-		np.testing.assert_array_equal(self.b_encoder.classes_, self.b_multibinarizer.classes_)
-
-	def dump(self, file):
-		os.makedirs(os.path.dirname(file), exist_ok=True)
-		print(f'Dump data meta into {file}')
-		with open(file, 'wb') as fout:
-			pickle.dump(self.core, fout, protocol=4)
-
-	@staticmethod
-	def load(file):
-		print(f'Load data meta from {file}')
-		with open(file, 'rb') as fin:
-			return DataSetMeta(pickle.load(fin))

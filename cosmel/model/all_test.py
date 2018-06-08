@@ -32,7 +32,7 @@ if __name__ == '__main__':
 
 	arggroup = argparser.add_mutually_exclusive_group()
 	arggroup.add_argument('-v', '--ver', metavar='<ver>#<date>', \
-			help='set <dir> as "result/<ver>_<date>"')
+			help='set <dir> as "data/<ver>/model/<date>"')
 	arggroup.add_argument('-D', '--dir', metavar='<dir>', \
 			help='prepend <dir> to data and model path')
 
@@ -56,25 +56,26 @@ if __name__ == '__main__':
 	args = argparser.parse_args()
 
 	vers          = args.ver.split('#')
+	assert len(vers) == 2, argparser.format_usage()
 	ver           = vers[0]
-	date          = ''
-	if len(vers) > 1:
-		date        = f'_{vers[1]}'
+	date          = vers[1]
+
+	data_root     = f'data/{ver}'
 
 	result_root = ''
 	if args.ver != None:
-		result_root = f'result/{ver}{date}/'
+		result_root = f'{data_root}/model/{date}'
 	if args.dir != None:
-		result_root = f'{args.dir}/'
+		result_root = f'{args.dir}'
 
-	data_file     = f'{result_root}{args.data}.list.txt'
-	model_file    = f'{result_root}{args.weight}.{args.model}.pt'
+	data_file     = f'{result_root}/{args.data}.list.txt'
+	model_file    = f'{result_root}/{args.weight}.{args.model}.pt'
 	weight0 = args.weight
 	if args.weight0 != None:
 		weight0 = args.weight0
-	model0_file   = f'{result_root}{weight0}.{args.model0}.pt'
+	model0_file   = f'{result_root}/{weight0}.{args.model0}.pt'
 
-	meta_file     = f'{result_root}meta.pkl'
+	meta_file     = f'{result_root}/meta.pkl'
 	if args.meta != None:
 		meta_file = args.meta
 
@@ -170,8 +171,8 @@ if __name__ == '__main__':
 	for t in range(max(total_test, 1)):
 
 		if num_test:
-			model_file  = f'{result_root}{args.weight}.{t}.{args.model}.pt'
-			model0_file = f'{result_root}{weight0}.{t}.{args.model0}.pt'
+			model_file  = f'{result_root}/{args.weight}.{t}.{args.model}.pt'
+			model0_file = f'{result_root}/{weight0}.{t}.{args.model0}.pt'
 
 		# Load model
 		model.load(model_file)
