@@ -29,55 +29,62 @@ if __name__ == '__main__':
 	# Parse arguments
 	argparser = argparse.ArgumentParser(description='Apply CosmEL model.')
 
-	arggroup = argparser.add_mutually_exclusive_group()
-	arggroup.add_argument('-v', '--ver', metavar='<ver>#<date>', \
-			help='set <dir> as "data/<ver>/model/<date>"')
-	arggroup.add_argument('-D', '--dir', metavar='<dir>', \
-			help='prepend <dir> to data and model path')
+	argparser.add_argument('-v', '--ver', metavar='<ver>#<cver>#<mver>', required=True, \
+		help='load repo from "data/<ver>/", load corpus data from "data/<ver>/corpus/<cver>/", ' + \
+				'and load/save model data from/into "data/<ver>/model/<mver>/"; the default value of <mver> is <cver>')
 
-	argparser.add_argument('-d', '--data', metavar='<data_name>', required=True, \
-			help='input data path; load data from "[<dir>/]<data_name>.list.txt"')
+	argparser.add_argument('-i', '--input', metavar='<in_dir>', type=str, default='purged_article_gid', \
+			help='load mention from "data/<ver>/corpus/<cver>/mention/<in_dir>"; default is "purged_article_gid"')
+	argparser.add_argument('-o', '--output', metavar='<out_dir>', type=str, default='purged_article_nid', \
+			help='svae mention into "data/<ver>/corpus/<cver>/mention/<out_dir>"; default is "purged_article_nid"')
+
 	argparser.add_argument('-w', '--weight', metavar='<weight_name>', required=True, \
-			help='model weight path; load model weight from "[<dir>/]<weight_name>.<model_type>.weight.pt"')
+			help='load model weight "data/<ver>/model/<mver>/<weight_name>.<model_type>.weight.pt"')
 	argparser.add_argument('-m', '--model', metavar='<model_type>', required=True, \
-		  help='use model <model_type>')
+			help='use model <model_type>')
+
 	argparser.add_argument('-w0', '--weight0', metavar='<weight0_name>', \
-		  help='use model <weight0_name>; default is "<weight_name>"')
+			help='load model weight "data/<ver>/model/<mver>/<weight_0name>.<model0_type>.weight.pt"')
 	argparser.add_argument('-m0', '--model0', metavar='<model0_type>', default='model0', \
 		  help='use model <model0_type>; default is "model0"')
+
 	argparser.add_argument('--meta', metavar='<meta_name>', \
-			help='dataset meta path; default is "[<dir>/]meta.pkl"')
-	argparser.add_argument('-o', '--output', metavar='<out_dir>', required=True, \
-			help='output data path; load data from "[<dir>/]<out_dir>"')
+			help='dataset meta path; default is "data/<ver>/model/<mver>/meta.pkl"')
 
 	argparser.add_argument('-c', '--check', action='store_true', help='Check arguments')
 
 	args = argparser.parse_args()
 
 	vers = args.ver.split('#')
-	assert len(vers) == 2, argparser.format_usage()
+	assert 2 <= len(vers) <= 3, argparser.format_usage()
 	ver  = vers[0]
-	date = vers[1]
+	cver = vers[1]
+	mver = vers[-1]
+	assert len(ver)  > 0
+	assert len(cver) > 0
+	assert len(mver) > 0
 
-	data_root = f'data/{ver}'
-	tmp_root  = f'data/tmp'
+	data_root   = f'data/{ver}'
+	corpus_root = f'data/{ver}/corpus/{cver}'
+	model_root  = f'data/{ver}/model/{mver}'
 
-	result_root = ''
-	if args.ver != None:
-		result_root = f'{data_root}/model/{date}'
-	if args.dir != None:
-		result_root = f'{args.dir}'
+	in_dir  = args.input
+	out_dir = args.output
 
-	data_file   = f'{result_root}/{args.data}.list.txt'
-	model_file  = f'{result_root}/{args.weight}.{args.model}.pt'
-	weight0 = args.weight
+	target       = f'purged_article'
+	article_root = f'{corpus_root}/article/{target}_role'
+	input_root   = f'{corpus_root}/mention/{in_dir}'
+	output_root  = f'{corpus_root}/mention/{out_dir}'
+	bad_article  = f'{corpus_root}/article/bad_article.txt'
+
+	model_file  = f'{model_root}/{args.weight}.{args.model}.pt'
+
+	weight0_name = args.weight
 	if args.weight0 != None:
-		weight0 = args.weight0
-	model0_file = f'{result_root}/{weight0}.{args.model0}.pt'
+		weight0_name = args.weight0
+	model0_file = f'{model_root}/{weight0_name}.{args.model0}.pt'
 
-	output_file = f'{result_root}/output/{args.output}.list.txt'
-
-	meta_file   = f'{result_root}/meta.pkl'
+	meta_file = f'{model_root}/meta.pkl'
 	if args.meta != None:
 		meta_file = args.meta
 
@@ -93,12 +100,16 @@ if __name__ == '__main__':
 	print()
 	print(args)
 	print()
-	print(f'model       = {args.model}')
-	print(f'data_file   = {data_file}')
-	print(f'model_file  = {model_file}')
-	print(f'model0_file = {model0_file}')
-	print(f'meta_file   = {meta_file}')
-	print(f'output_file = {output_file}')
+	print(f'article_root = {article_root}')
+	print(f'input_root   = {input_root}')
+	print(f'output_root  = {output_root}')
+	print(f'bad_article  = {bad_article}')
+	print()
+	print(f'model         = {model_cls_name}')
+	print(f'model0        = {model0_cls_name}')
+	print(f'model_file    = {model_file}')
+	print(f'model0_file   = {model0_file}')
+	print(f'meta_file     = {meta_file}')
 	print()
 
 	if args.check: exit()
@@ -107,9 +118,12 @@ if __name__ == '__main__':
 	# Load data
 	#
 
-	meta        = DataSetMeta.load(meta_file)
-	asmid_list  = AsmidList.load(data_file)
-	asmid_list0 = asmid_list.copy()
+	corpus     = Corpus(article_root, mention_root=input_root, skip_file=bad_article)
+	corpus0    = Corpus(article_root, mention_root=input_root, skip_file=bad_article)
+	ment_list  = MentionList(corpus, [m for m in corpus.mention_set  if not m.nid])
+	ment0_list = MentionList(corpus, [m for m in corpus0.mention_set if not m.nid])
+	meta      = DataSetMeta.load(meta_file)
+	print()
 
 	############################################################################################################################
 	# Create model
@@ -137,7 +151,7 @@ if __name__ == '__main__':
 	# DataSet
 	#
 
-	data    = model.ment_data_all(asmid_list)
+	data    = model.ment_data_all(ment_list)
 	dataset = torch.utils.data.TensorDataset(*data.inputs)
 	print(f'#mention = {len(dataset)}')
 	loader  = torch.utils.data.DataLoader(
@@ -151,7 +165,7 @@ if __name__ == '__main__':
 	# DataSet of Model0
 	#
 
-	data0    = model0.ment_data_all(asmid_list0)
+	data0    = model0.ment_data_all(ment0_list)
 	dataset0 = torch.utils.data.TensorDataset(*data0.inputs)
 	print(f'#mention = {len(dataset0)}')
 	loader0  = torch.utils.data.DataLoader(
@@ -203,9 +217,19 @@ if __name__ == '__main__':
 	# Writing Results
 	#
 
-	asmid_list_output = AsmidList.load(data_file)
-	for asmid, nid in zip(asmid_list_output, pred_nid):
-		asmid.nid = nid
-	asmid_list_output.dump(output_file)
+	del corpus
+	del corpus0
+
+	corpus    = Corpus(article_root, mention_root=input_root, skip_file=bad_article)
+	ment_list = MentionList(corpus, [m for m in corpus.mention_set  if not m.nid])
+	for m, nid in zip(ment_list, pred_nid):
+		m.set_nid(nid)
+
+	n = str(len(corpus.mention_bundle_set))
+	for i, bundle in enumerate(corpus.mention_bundle_set):
+		output_file = transform_path(bundle.path, input_root, output_root, '.json')
+		printr(f'{i+1:0{len(n)}}/{n}\t{output_file}')
+		bundle.save(output_file)
+	print()
 
 	pass

@@ -25,13 +25,13 @@ def main():
 	# Parse arguments
 	argparser = argparse.ArgumentParser(description='CosmEL: Decode XML.')
 
-	argparser.add_argument('-v', '--ver', metavar='<ver>#<date>', required=True, \
-			help='load repo from "data/<ver>", and load/save corpus data from/into "data/<ver>/corpus/<date>"')
+	argparser.add_argument('-v', '--ver', metavar='<ver>#<cver>', required=True, \
+			help='load repo from "data/<ver>", and load/save corpus data from/into "data/<ver>/corpus/<cver>"')
 
 	argparser.add_argument('-iw', '--input_ws', metavar='<in_ws_dir>', \
-			help='load word-segmented XML from "data/<ver>/xml/<in_ws_dir>"')
+			help='load word-segmented XML from "data/<ver>/corpus/<cver>/xml/<in_ws_dir>"')
 	argparser.add_argument('-i', '--input', metavar='<in_dir>', required=True, \
-			help='load XML from "data/<ver>/xml/<in_dir>"')
+			help='load XML from "data/<ver>/corpus/<cver>/xml/<in_dir>"')
 	argparser.add_argument('-o', '--output', metavar='<out_dir>', \
 			help='dump mention into "data/<ver>/mention/<out_dir>"; default is <in_dir>')
 
@@ -43,9 +43,9 @@ def main():
 	vers = args.ver.split('#')
 	assert len(vers) == 2, argparser.format_usage()
 	ver  = vers[0]
-	date = vers[1]
+	cver = vers[1]
 	assert len(ver)  > 0
-	assert len(date) > 0
+	assert len(cver) > 0
 
 	in_ws_dir = args.input_ws
 	in_dir    = args.input
@@ -61,12 +61,12 @@ def main():
 
 	import multiprocessing
 	with multiprocessing.Pool(nth) as pool:
-		results = [pool.apply_async(submain, args=(ver, date, in_ws_dir, in_dir, out_dir, nth, thrank,)) for thrank in range(nth)]
+		results = [pool.apply_async(submain, args=(ver, cver, in_ws_dir, in_dir, out_dir, nth, thrank,)) for thrank in range(nth)]
 		[result.get() for result in results]
 		del results
 
 
-def submain(ver, date, in_ws_dir, in_dir, out_dir, nth=None, thrank=0):
+def submain(ver, cver, in_ws_dir, in_dir, out_dir, nth=None, thrank=0):
 
 	textualized = (in_ws_dir == None)
 	get_mention = False
@@ -74,7 +74,7 @@ def submain(ver, date, in_ws_dir, in_dir, out_dir, nth=None, thrank=0):
 	target       = f'purged_article'
 	tmp_root     = f'data/tmp'
 	data_root    = f'data/{ver}'
-	corpus_root  = f'data/{ver}/corpus/{date}'
+	corpus_root  = f'data/{ver}/corpus/{cver}'
 	repo_root    = f'{data_root}/repo'
 	ws_xml_root  = f'{corpus_root}/xml/{in_ws_dir}'
 	xml_root     = f'{corpus_root}/xml/{in_dir}'

@@ -21,12 +21,13 @@ class CoreData:
 
 class MentionData(CoreData):
 
-	def __init__(self, model, asmid_list, _all):
+	def __init__(self, model, ment_list, _all):
 
 		super().__init__(model)
 
-		self.repo,   _              = model.meta.new_repo()
-		self.corpus, self.ment_list = asmid_list.new_corpus()
+		self.repo, _   = model.meta.new_repo()
+		self.corpus    = ment_list.corpus
+		self.ment_list = ment_list
 
 		# Load label
 		raw_gid    = [m.gid for m in self.ment_list]

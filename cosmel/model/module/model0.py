@@ -24,11 +24,11 @@ class Model0(Model):
 
 	class MentionData(Model.MentionData):
 
-		def __init__(self, model, asmid_list, _all):
+		def __init__(self, model, ment_list, _all):
 
-			asmid_list.gid_to_mtype()
+			ment_list.gid_to_mtype()
 
-			super().__init__(model, asmid_list, _all)
+			super().__init__(model, ment_list, _all)
 
 			self.inputs += model.text_encoder.data(self.ment_list, self.repo, self.corpus)
 

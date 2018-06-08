@@ -25,8 +25,8 @@ def main():
 	# Parse arguments
 	argparser = argparse.ArgumentParser(description='CosmEL: Preprocesses HTML.')
 
-	argparser.add_argument('-v', '--ver', metavar='<ver>#<date>', required=True, \
-			help='load repo from "data/<ver>", and load/save corpus data from/into "data/<ver>/corpus/<date>"')
+	argparser.add_argument('-v', '--ver', metavar='<ver>#<cver>', required=True, \
+			help='load repo from "data/<ver>", and load/save corpus data from/into "data/<ver>/corpus/<cver>"')
 	argparser.add_argument('-t', '--thread', metavar='<thread>', type=int, \
 			help='use <thread> threads; default is `os.cpu_count()`')
 
@@ -35,9 +35,9 @@ def main():
 	vers = args.ver.split('#')
 	assert len(vers) == 2, argparser.format_usage()
 	ver  = vers[0]
-	date = vers[1]
+	cver = vers[1]
 	assert len(ver)  > 0
-	assert len(date) > 0
+	assert len(cver) > 0
 
 	nth = args.thread
 	if not nth: nth = os.cpu_count()
@@ -47,19 +47,19 @@ def main():
 
 	import multiprocessing
 	with multiprocessing.Pool(nth) as pool:
-		results = [pool.apply_async(submain, args=(ver, date, nth, thrank,)) for thrank in range(nth)]
+		results = [pool.apply_async(submain, args=(ver, cver, nth, thrank,)) for thrank in range(nth)]
 		[result.get() for result in results]
 		del results
 
 
-def submain(ver, date, nth=None, thrank=0):
+def submain(ver, cver, nth=None, thrank=0):
 
 	replaced  = False
 	parsed    = False
 
 	etc_root     = f'etc'
 	data_root    = f'data/{ver}'
-	corpus_root  = f'data/{ver}/corpus/{date}'
+	corpus_root  = f'data/{ver}/corpus/{cver}'
 	html_root    = f'{corpus_root}/html/html_article'
 	article_root = f'{corpus_root}/article/original_article'
 	notag_root   = f'{corpus_root}/html/html_article_notag'

@@ -26,8 +26,8 @@ def main():
 	# Parse arguments
 	argparser = argparse.ArgumentParser(description='CosmEL: Word2Vec.')
 
-	argparser.add_argument('-v', '--ver', metavar='<ver>#<date>', required=True, \
-			help='load repo from "data/<ver>", and load/save corpus data from/into "data/<ver>/corpus/<date>"')
+	argparser.add_argument('-v', '--ver', metavar='<ver>#<cver>', required=True, \
+			help='load repo from "data/<ver>", and load/save corpus data from/into "data/<ver>/corpus/<cver>"')
 	argparser.add_argument('-t', '--thread', metavar='<thread>', type=int, \
 			help='use <thread> threads; default is `os.cpu_count()`')
 
@@ -36,9 +36,9 @@ def main():
 	vers = args.ver.split('#')
 	assert len(vers) == 2, argparser.format_usage()
 	ver  = vers[0]
-	date = vers[1]
+	cver = vers[1]
 	assert len(ver)  > 0
-	assert len(date) > 0
+	assert len(cver) > 0
 
 	nth = args.thread
 	if not nth: nth = os.cpu_count()
@@ -47,7 +47,7 @@ def main():
 	print(f'Use {nth} threads')
 
 	data_root    = f'data/{ver}'
-	corpus_root  = f'data/{ver}/corpus/{date}'
+	corpus_root  = f'data/{ver}/corpus/{cver}'
 	target       = f'purged_article'
 	dim          = 300
 	repo_root    = f'{data_root}/repo'
@@ -127,6 +127,7 @@ def main():
 	word2vec_train(model, sentences)
 
 	# Save embedding
+	os.makedirs(os.path.dirname(emb_file), exist_ok=True)
 	model.wv.save_word2vec_format(emb_file, binary=True)
 	print(f'Output Word2Vec embedding to "{emb_file}"')
 

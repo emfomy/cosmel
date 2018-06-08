@@ -43,14 +43,14 @@ class Model(torch.nn.Module):
 	def predict(self, *args, **kwargs):
 		raise NotImplementedError
 
-	def ment_data(self, asmid_list):
-		return self.MentionData(self, asmid_list, _all=False)
+	def ment_data(self, ment_list):
+		return self.MentionData(self, ment_list, _all=False)
 
 	def prod_data(self):
 		return self.ProductData(self)
 
-	def ment_data_all(self, asmid_list):
-		return self.MentionData(self, asmid_list, _all=True)
+	def ment_data_all(self, ment_list):
+		return self.MentionData(self, ment_list, _all=True)
 
 	def save(self, file):
 		os.makedirs(os.path.dirname(file), exist_ok=True)

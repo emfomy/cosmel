@@ -32,22 +32,25 @@ if __name__ == '__main__':
 	# Parse arguments
 	argparser = argparse.ArgumentParser(description='Train CosmEL model.')
 
-	arggroup = argparser.add_mutually_exclusive_group()
-	arggroup.add_argument('-v', '--ver', metavar='<ver>#<date>', \
-			help='set <dir> as "data/<ver>/model/<date>"')
-	arggroup.add_argument('-D', '--dir', metavar='<dir>', \
-			help='prepend <dir> to data and model path')
+	argparser.add_argument('-v', '--ver', metavar='<ver>#<cver>#<mver>', required=True, \
+		help='load repo from "data/<ver>/", load corpus data from "data/<ver>/corpus/<cver>/", ' + \
+				'and load/save model data from/into "data/<ver>/model/<mver>/"; the default value of <mver> is <cver>')
 
-	argparser.add_argument('-d', '--data', metavar='<data_name>', required=True, \
-			help='training data path; load data list from "[<dir>/]<data_name>.list.txt"')
-	argparser.add_argument('-w', '--weight', metavar='<weight_name>', required=True, \
-			help='output weight path; output model weight into "[<dir>/]<weight_name>.<model_type>.weight.pt"')
+	argparser.add_argument('-i', '--input', metavar='<in_dir>', type=str, default='purged_article_gid', \
+			help='load mention from "data/<ver>/corpus/<cver>/mention/<in_dir>"; default is "purged_article_gid"')
+	argparser.add_argument('-l', '--label', metavar='<label_type>', choices=['gid', 'nid', 'rid'], required=True, \
+			help='training label type')
+
+	argparser.add_argument('-w', '--weight', metavar='<weight_name>', \
+			help='output weight path; output model weight into "data/<ver>/model/<mver>/<weight_name>.<model_type>.weight.pt"; ' + \
+					'default "[<pretrained_name>+]<label_type>"')
 	argparser.add_argument('-p', '--pretrain', metavar='<pretrained_name>', \
-			help='pretrained weight path; load model weight from "[<dir>/]<pretrained_name>.weight.pt"')
+			help='pretrained weight path; load model weight from "data/<ver>/model/<mver>/<pretrained_name>.<model_type>.weight.pt"')
 	argparser.add_argument('-m', '--model', metavar='<model_type>', required=True, \
 			help='use model <model_type>')
+
 	argparser.add_argument('--meta', metavar='<meta_name>', \
-			help='dataset meta path; default is "[<dir>/]meta.pkl"')
+			help='dataset meta path; default is "data/<ver>/model/<mver>/meta.pkl"')
 	argparser.add_argument('-e', '--epoch', metavar='<num_epoch>', type=int, default=10, \
 			help='train <num_epoch> times; default is 10')
 	argparser.add_argument('--test_size', metavar='<test_size>', type=float, default=0.3, \
@@ -58,26 +61,40 @@ if __name__ == '__main__':
 	args = argparser.parse_args()
 
 	vers = args.ver.split('#')
-	assert len(vers) == 2, argparser.format_usage()
+	assert 2 <= len(vers) <= 3, argparser.format_usage()
 	ver  = vers[0]
-	date = vers[1]
+	cver = vers[1]
+	mver = vers[-1]
+	assert len(ver)  > 0
+	assert len(cver) > 0
+	assert len(mver) > 0
 
-	data_root = f'data/{ver}'
+	data_root   = f'data/{ver}'
+	corpus_root = f'data/{ver}/corpus/{cver}'
+	model_root  = f'data/{ver}/model/{mver}'
 
-	result_root = ''
-	if args.ver != None:
-		result_root = f'{data_root}/model/{date}'
-	if args.dir != None:
-		result_root = f'{args.dir}'
+	in_dir = args.input
 
-	data_file     = f'{result_root}/{args.data}.list.txt'
-	model_file    = f'{result_root}/{args.weight}.{args.model}.pt'
+	target       = f'purged_article'
+	article_root = f'{corpus_root}/article/{target}_role'
+	mention_root = f'{corpus_root}/mention/{in_dir}'
+	bad_article  = f'{corpus_root}/article/bad_article.txt'
+
+	label_type = args.label
+
+	if args.weight != None:
+		weight_name = args.weight
+	elif args.pretrain != None:
+		weight_name = f'{args.pretrain}+{label_type}'
+	else:
+		weight_name = f'{label_type}'
+	model_file = f'{model_root}/{weight_name}.{args.model}.pt'
 
 	pretrain_file = ''
 	if args.pretrain != None:
-		pretrain_file = f'{result_root}/{args.pretrain}.{args.model}.pt'
+		pretrain_file = f'{model_root}/{args.pretrain}.{args.model}.pt'
 
-	meta_file     = f'{result_root}/meta.pkl'
+	meta_file = f'{model_root}/meta.pkl'
 	if args.meta != None:
 		meta_file = args.meta
 
@@ -92,8 +109,11 @@ if __name__ == '__main__':
 	print()
 	print(args)
 	print()
-	print(f'model         = {args.model}')
-	print(f'data_file     = {data_file}')
+	print(f'article_root  = {article_root}')
+	print(f'mention_root  = {mention_root}')
+	print(f'bad_article   = {bad_article}')
+	print()
+	print(f'model         = {model_cls_name}')
 	print(f'model_file    = {model_file}')
 	print(f'pretrain_file = {pretrain_file}')
 	print(f'meta_file     = {meta_file}')
@@ -108,10 +128,20 @@ if __name__ == '__main__':
 	#
 
 	# Load data
-	meta       = DataSetMeta.load(meta_file)
-	asmid_list = AsmidList.load(data_file)
+	corpus = Corpus(article_root, mention_root=mention_root, skip_file=bad_article)
 
-	train_asmid_list, test_asmid_list = asmid_list.train_test_split(test_size=test_size, random_state=0, shuffle=True)
+	for m in corpus.mention_set:
+		if m.gid == 'NAP': m.set_gid('GP')
+		if m.nid == 'NAP': m.set_nid('GP')
+		if m.rid == 'NAP': m.set_rid('GP')
+		m.set_gid(getattr(m, label_type))
+
+	ment_list = MentionList(corpus, [m for m in corpus.mention_set if m.gid])
+	meta      = DataSetMeta.load(meta_file)
+	print()
+
+	# Split training and testing data
+	train_ment_list, test_ment_list = ment_list.train_test_split(test_size=test_size, random_state=0, shuffle=True)
 
 	# Create model
 	model = Model(meta)
@@ -131,7 +161,7 @@ if __name__ == '__main__':
 	#
 
 	# Create training mention dataset and dataloader
-	ment_data    = model.ment_data(train_asmid_list)
+	ment_data    = model.ment_data(train_ment_list)
 	ment_dataset = torch.utils.data.TensorDataset(*ment_data.inputs, ment_data.label)
 	print(f'#train_mention = {len(ment_dataset)}')
 	ment_loader  = torch.utils.data.DataLoader(
@@ -201,7 +231,7 @@ if __name__ == '__main__':
 	#
 
 	# Create testing mention dataset and dataloader
-	test_data    = model.ment_data(test_asmid_list)
+	test_data    = model.ment_data(test_ment_list)
 	test_dataset = torch.utils.data.TensorDataset(*test_data.inputs)
 	print(f'#test_mention = {len(test_dataset)}')
 	test_loader  = torch.utils.data.DataLoader(

@@ -15,12 +15,12 @@ class Model2c(Model2):
 
 	class MentionData(Model2.MentionData):
 
-		def __init__(self, model, asmid_list, _all):
+		def __init__(self, model, ment_list, _all):
 
 			if not _all:
-				asmid_list.filter_sp()
+				ment_list.filter_sp()
 
-			super().__init__(model, asmid_list, _all)
+			super().__init__(model, ment_list, _all)
 
 			self.inputs += model.text_encoder.data(self.ment_list, self.repo, self.corpus)
 
