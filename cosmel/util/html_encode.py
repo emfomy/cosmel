@@ -56,12 +56,11 @@ def main():
 	print(args)
 	print(f'Use {nth} threads')
 
-	# import multiprocessing
-	# with multiprocessing.Pool(nth) as pool:
-	# 	results = [pool.apply_async(submain, args=(ver, cver, in_dir, out_dir, nth, thrank,)) for thrank in range(nth)]
-	# 	[result.get() for result in results]
-	# 	del results
-	submain(ver, cver, in_dir, out_dir)
+	import multiprocessing
+	with multiprocessing.Pool(nth) as pool:
+		results = [pool.apply_async(submain, args=(ver, cver, in_dir, out_dir, nth, thrank,)) for thrank in range(nth)]
+		[result.get() for result in results]
+		del results
 
 
 def submain(ver, cver, in_dir, out_dir, nth=None, thrank=0):
