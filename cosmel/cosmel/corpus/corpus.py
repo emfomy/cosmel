@@ -22,6 +22,7 @@ class Corpus:
 		mention_root (str):    the path to the folder containing mention files.
 		parts (list):          the list of article/mention parts.
 		skips (list):          the list of articles to be ignored.
+		skip_file (str):       the file of list of articles to be ignored.
 
 	Notes:
 		* Load all articles       from ``article_root``/``part`` for all ``part`` in ``parts``.
@@ -29,11 +30,15 @@ class Corpus:
 		* Load all mentions       from ``mention_root``/``part`` for all ``part`` in ``parts``.
 	"""
 
-	def __init__(self, article_root, *args, parsed_root=None, mention_root=None, parts=[''], skips=[]):
+	def __init__(self, article_root, *args, parsed_root=None, mention_root=None, parts=[''], skips=[], skip_file=''):
 
 		if len(args) != 0:
 			print('Please use mention_root=<mention_root> instead of using it directly.')
 			assert len(args) == 0
+
+		if skip_file:
+			with open(skip_file) as fin:
+				skips += fin.read().strip().split('\n')
 
 		self.__article_set          = ArticleSet(article_root, parts=parts, skips=skips)
 		self.__id_to_article        = Id2Article(self.__article_set)

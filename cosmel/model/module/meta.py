@@ -138,38 +138,15 @@ class DataSetMeta:
 
 
 ################################################################################################################################
-# ASMID
+# Mention List
 #
 
-class Asmid:
+class MentionList(collections.abc.Sequence):
 
-	def __init__(self, aid, sid, mid, gid='', nid='', rid='', rule=''):
-		self.aid  = aid
-		self.sid  = int(sid)
-		self.mid  = int(mid)
-		self.gid  = gid
-		self.nid  = nid
-		self.rid  = rid
-		self.rule = rule
-
-	def __str__(self):
-		return str(self.__dict__)
-
-	def __repr__(self):
-		return str(self)
-
-	@property
-	def asmid(self):
-		return (self.aid, self.sid, self.mid,)
-
-
-class AsmidList(collections.abc.Sequence):
-
-	def __init__(self, article_path, mention_path, data):
+	def __init__(self, corpus, data):
 		super().__init__()
-		self.article_path = article_path
-		self.mention_path = mention_path
-		self.__data         = list(data)
+		self.corpus = corpus
+		self.__data = list(data)
 
 	def __contains__(self, item):
 		return item in self.__data
@@ -189,53 +166,25 @@ class AsmidList(collections.abc.Sequence):
 	def __repr__(self):
 		return str(self)
 
-	def dump(self, file):
-		os.makedirs(os.path.dirname(file), exist_ok=True)
-		print(f'Dump asmid list into {file}')
-		with open(file, 'w') as fout:
-			fout.write(self.article_path+'\n')
-			fout.write(self.mention_path+'\n')
-			for asmid in self.__data:
-				fout.write(json.dumps(vars(asmid))+'\n')
-
-	@staticmethod
-	def load(file):
-		print(f'Load asmid list from {file}')
-		with open(file) as fin:
-			article_path = fin.readline().strip()
-			mention_path = fin.readline().strip()
-			return AsmidList(article_path, mention_path, (Asmid(**json.loads(s)) for s in fin))
-
-	def copy(self):
-		return AsmidList(self.article_path, self.mention_path, self.__data)
-
 	def train_test_split(self, **kwargs):
 		from sklearn.model_selection import train_test_split
 		train_list, test_list = train_test_split(self.__data, **kwargs)
-		return AsmidList(self.article_path, self.mention_path, train_list), \
-				AsmidList(self.article_path, self.mention_path, test_list)
-
-	def new_corpus(self):
-		parts  = list(set(m.aid for m in self))
-		corpus = Corpus(self.article_path, mention_root=self.mention_path, parts=parts)
-		ment_list = [corpus.id_to_mention[asmid.asmid] for asmid in self]
-		for m, asmid in zip(ment_list, self):
-			m.set_gid(asmid.gid)
-			m.set_nid(asmid.nid)
-			m.set_rid(asmid.rid)
-			m.set_rule(asmid.rule)
-		return corpus, ment_list
+		return MentionList(self.corpus, train_list), MentionList(self.corpus, test_list)
 
 	def gid_to_mtype(self):
-		for asmid in self.__data:
-			if asmid.gid.isdigit(): asmid.gid = 'PID'
+		for mention in self.__data:
+			if mention.gid.isdigit(): mention.set_gid('PID')
+
+	def nid_to_mtype(self):
+		for mention in self.__data:
+			if mention.nid.isdigit(): mention.set_nid('PID')
 
 	def rid_to_mtype(self):
-		for asmid in self.__data:
-			if asmid.rid.isdigit(): asmid.rid = 'PID'
+		for mention in self.__data:
+			if mention.rid.isdigit(): mention.set_rid('PID')
 
 	def filter_sp(self):
-		self.__data = [asmid for asmid in self.__data if asmid.gid.isdigit()]
+		self.__data = [mention for mention in self.__data if mention.gid.isdigit()]
 
 
 ################################################################################################################################

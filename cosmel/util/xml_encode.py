@@ -21,11 +21,11 @@ def main():
 	# Parse arguments
 	argparser = argparse.ArgumentParser(description='CosmEL: Encode XML.')
 
-	argparser.add_argument('-v', '--ver', metavar='<ver>#<date>', required=True, \
-			help='load repo from "data/<ver>", and load/save corpus data from/into "data/<ver>/corpus/<date>"')
+	argparser.add_argument('-v', '--ver', metavar='<ver>#<cver>', required=True, \
+			help='load repo from "data/<ver>", and load/save corpus data from/into "data/<ver>/corpus/<cver>"')
 
 	argparser.add_argument('-i', '--input', metavar='<in_dir>', required=True, \
-			help='load mention from "data/<ver>/mention/<in_dir>"')
+			help='load mention from "data/<ver>/corpus/<cver>/mention/<in_dir>"')
 	argparser.add_argument('-o', '--output', metavar='<out_dir>', \
 			help='dump XML into "data/<ver>/xml/<out_dir>"; default is <in_dir>')
 
@@ -37,9 +37,9 @@ def main():
 	vers = args.ver.split('#')
 	assert len(vers) == 2, argparser.format_usage()
 	ver  = vers[0]
-	date = vers[1]
+	cver = vers[1]
 	assert len(ver)  > 0
-	assert len(date) > 0
+	assert len(cver) > 0
 
 	in_dir  = args.input
 	out_dir = args.output
@@ -54,16 +54,16 @@ def main():
 
 	import multiprocessing
 	with multiprocessing.Pool(nth) as pool:
-		results = [pool.apply_async(submain, args=(ver, date, in_dir, out_dir, nth, thrank,)) for thrank in range(nth)]
+		results = [pool.apply_async(submain, args=(ver, cver, in_dir, out_dir, nth, thrank,)) for thrank in range(nth)]
 		[result.get() for result in results]
 		del results
 
 
-def submain(ver, date, in_dir, out_dir, nth=None, thrank=0):
+def submain(ver, cver, in_dir, out_dir, nth=None, thrank=0):
 
 	target       = f'purged_article'
 	data_root    = f'data/{ver}'
-	corpus_root  = f'data/{ver}/corpus/{date}'
+	corpus_root  = f'data/{ver}/corpus/{cver}'
 	repo_root    = f'{data_root}/repo'
 	article_root = f'{corpus_root}/article/{target}_role'
 	mention_root = f'{corpus_root}/mention/{in_dir}'
