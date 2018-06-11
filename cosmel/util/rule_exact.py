@@ -2,7 +2,7 @@
 # -*- coding:utf-8 -*-
 
 
-__author__    = 'Mu Yang <emfomy@gmail.com>'
+__author__    = 'Chi-Yen Chen <jina199312@gmail.com>'
 __copyright__ = 'Copyright 2017-2018'
 
 
@@ -42,12 +42,11 @@ def main():
 	print(args)
 	print(f'Use {nth} threads')
 
-	# import multiprocessing
-	# with multiprocessing.Pool(nth) as pool:
-	# 	results = [pool.apply_async(submain, args=(ver, cver, nth, thrank,)) for thrank in range(nth)]
-	# 	[result.get() for result in results]
-	# 	del results
-	submain(ver, cver)
+	import multiprocessing
+	with multiprocessing.Pool(nth) as pool:
+		results = [pool.apply_async(submain, args=(ver, cver, nth, thrank,)) for thrank in range(nth)]
+		[result.get() for result in results]
+		del results
 
 
 def submain(ver, cver, nth=None, thrank=0):
@@ -67,18 +66,20 @@ def submain(ver, cver, nth=None, thrank=0):
 	repo   = Repo(repo_root)
 	corpus = Corpus(article_root, mention_root=mention_root, parts=parts)
 
+
 	n = str(len(corpus.mention_bundle_set))
 	for i, bundle in enumerate(corpus.mention_bundle_set):
 		output_file = transform_path(bundle.path, mention_root, output_root, '.json')
 		printr(f'{i+1:0{len(n)}}/{n}\t{output_file}')
 		for mention in bundle:
 			try:
-				bidx = len(mention.sentence_pre.roles) - list(reversed(mention.sentence_pre.roles)).index('Brand') - 1
+				bidx  = len(mention.sentence_pre.roles) - list(reversed(mention.sentence_pre.roles)).index('Brand') - 1
+				brand = mention.sentence_pre.txts[bidx]
 			except ValueError:
 				continue
 			else:
 				m_infix = ''.join(mention.sentence_pre.txts[bidx+1:])
-				candidates = repo.bname_head_to_product_list[mention.sentence_pre.txts[bidx], mention.head]
+				candidates = repo.bname_head_to_product_list[brand, mention.head]
 				for c in candidates:
 					if ''.join(c.infix_ws.txts) == m_infix:
 						mention.set_rid(c.pid)
