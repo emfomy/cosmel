@@ -33,9 +33,9 @@ if __name__ == '__main__':
 		help='load repo from "data/<ver>/", load corpus data from "data/<ver>/corpus/<cver>/", ' + \
 				'and load/save model data from/into "data/<ver>/model/<mver>/"; the default value of <mver> is <cver>')
 
-	argparser.add_argument('-i', '--input', metavar='<in_dir>', type=str, default='purged_article_gid', \
+	argparser.add_argument('-i', '--input', metavar='<in_dir>', default='purged_article_gid', \
 			help='load mention from "data/<ver>/corpus/<cver>/mention/<in_dir>"; default is "purged_article_gid"')
-	argparser.add_argument('-o', '--output', metavar='<out_dir>', type=str, default='purged_article_nid', \
+	argparser.add_argument('-o', '--output', metavar='<out_dir>', default='purged_article_nid', \
 			help='svae mention into "data/<ver>/corpus/<cver>/mention/<out_dir>"; default is "purged_article_nid"')
 
 	argparser.add_argument('-w', '--weight', metavar='<weight_name>', required=True, \
@@ -112,7 +112,7 @@ if __name__ == '__main__':
 	print(f'meta_file     = {meta_file}')
 	print()
 
-	if args.check: exit()
+	if args.check: sys.exit()
 
 	############################################################################################################################
 	# Load data

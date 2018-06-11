@@ -42,11 +42,12 @@ def main():
 	print(args)
 	print(f'Use {nth} threads')
 
-	import multiprocessing
-	with multiprocessing.Pool(nth) as pool:
-		results = [pool.apply_async(submain, args=(ver, cver, nth, thrank,)) for thrank in range(nth)]
-		[result.get() for result in results]
-		del results
+	# import multiprocessing
+	# with multiprocessing.Pool(nth) as pool:
+	# 	results = [pool.apply_async(submain, args=(ver, cver, nth, thrank,)) for thrank in range(nth)]
+	# 	[result.get() for result in results]
+	# 	del results
+	submain(ver, cver)
 
 
 def submain(ver, cver, nth=None, thrank=0):
@@ -54,24 +55,35 @@ def submain(ver, cver, nth=None, thrank=0):
 	target       = f'purged_article'
 	data_root    = f'data/{ver}'
 	corpus_root  = f'data/{ver}/corpus/{cver}'
+	repo_root    = f'{data_root}/repo'
 	article_root = f'{corpus_root}/article/{target}_role'
 	mention_root = f'{corpus_root}/mention/{target}'
 	output_root  = f'{corpus_root}/mention/{target}_rid'
 	# parts        = ['']
 	# parts        = list(f'part-{x:05}' for x in range(1))
-	parts        = sorted(rm_ext_all(file) for file in os.listdir(parsed_root))
+	parts        = sorted(rm_ext_all(file) for file in os.listdir(article_root))
 	if nth: parts = parts[thrank:len(parts):nth]
 
+	repo   = Repo(repo_root)
 	corpus = Corpus(article_root, mention_root=mention_root, parts=parts)
 
 	n = str(len(corpus.mention_bundle_set))
 	for i, bundle in enumerate(corpus.mention_bundle_set):
-		output_file = transform_path(bundle.path, article_root, output_root, '.json')
+		output_file = transform_path(bundle.path, mention_root, output_root, '.json')
 		printr(f'{i+1:0{len(n)}}/{n}\t{output_file}')
 		for mention in bundle:
-			##########################################################################################################################
-			# TODO
-			##########################################################################################################################
+			try:
+				bidx = len(mention.sentence_pre.roles) - list(reversed(mention.sentence_pre.roles)).index('Brand') - 1
+			except ValueError:
+				continue
+			else:
+				m_infix = ''.join(mention.sentence_pre.txts[bidx+1:])
+				candidates = repo.bname_head_to_product_list[mention.sentence_pre.txts[bidx], mention.head]
+				for c in candidates:
+					if ''.join(c.infix_ws.txts) == m_infix:
+						mention.set_rid(c.pid)
+						mention.set_rule('P_rule1')
+						break
 		bundle.save(output_file)
 	if not thrank: print()
 

@@ -82,7 +82,7 @@ class CkipWsCore():
 class CkipWs():
 	"""The word segmentation driver."""
 
-	def __init__(self, ini_file, lex_files, compound_files, input_encoding=None, output_encoding=None):
+	def __init__(self, ini_file, lex_files, compound_files, input_encoding=None, output_encoding=None, verbose=True):
 
 		with open(ini_file, encoding=input_encoding) as fin:
 			lines = fin.read().splitlines()
@@ -110,7 +110,7 @@ class CkipWs():
 		self.__regexes.append((re.compile(r'　□\(SP\)'), '', '□'))
 
 		self.__core = CkipWsCore(ini_file)
-		print(f'Initialize CKIPWS with INI "{ini_file}" using lexicon "{lex_file}"')
+		if verbose: print(f'Initialize CKIPWS with INI "{ini_file}" using lexicon "{lex_file}"')
 
 		self.__ini_file = ini_file
 

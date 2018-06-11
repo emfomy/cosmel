@@ -96,7 +96,6 @@ def submain(ver, cver, nth=None, thrank=0):
 		# Compile Regex Driver
 		re_url     = re.compile(r'(?:http[s]?:)?//(?:[a-z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+')
 		re_script  = re.compile(r'<script(?:.|\s)*</script>')
-		# re_variant = ReplaceVariant()
 
 		orig_files = glob_files(orig_root, parts=parts)
 		n = str(len(orig_files))
@@ -108,7 +107,6 @@ def submain(ver, cver, nth=None, thrank=0):
 				lines = fin.read()
 				lines = re_url.sub('', lines)
 				lines = re_script.sub('', lines)
-				# lines = re_variant.sub(lines)
 				lines = SegmentPunctuation.sub(lines)
 				lines = purge_string(lines+'\n')
 				fout.write(lines.strip()+'\n')
@@ -156,16 +154,6 @@ def submain(ver, cver, nth=None, thrank=0):
 			article.save(ws_re2_file, str)
 
 		if not thrank: print()
-
-
-class ReplaceVariant():
-	"""The driver of replacing(removing) variants in the article."""
-
-	def __init__(self):
-		pass
-
-	def sub(self, chars):
-		return chars.encode('big5', errors='ignore').decode('big5')
 
 
 class SegmentPunctuation():

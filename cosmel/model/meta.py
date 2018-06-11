@@ -69,7 +69,7 @@ if __name__ == '__main__':
 	print(f'meta_file   = {meta_file}')
 	print()
 
-	if args.check: exit()
+	if args.check: sys.exit()
 
 	# Prepare dataset meta
 	repo = Repo(repo_root)

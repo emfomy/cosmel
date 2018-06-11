@@ -36,7 +36,7 @@ if __name__ == '__main__':
 		help='load repo from "data/<ver>/", load corpus data from "data/<ver>/corpus/<cver>/", ' + \
 				'and load/save model data from/into "data/<ver>/model/<mver>/"; the default value of <mver> is <cver>')
 
-	argparser.add_argument('-i', '--input', metavar='<in_dir>', type=str, default='purged_article_gid', \
+	argparser.add_argument('-i', '--input', metavar='<in_dir>', default='purged_article_gid', \
 			help='load mention from "data/<ver>/corpus/<cver>/mention/<in_dir>"; default is "purged_article_gid"')
 	argparser.add_argument('-l', '--label', metavar='<label_type>', choices=['gid', 'nid', 'rid'], required=True, \
 			help='training label type')
@@ -121,7 +121,7 @@ if __name__ == '__main__':
 	print(f'test_size     = {test_size}')
 	print()
 
-	if args.check: exit()
+	if args.check: sys.exit()
 
 	############################################################################################################################
 	# Initialize model
