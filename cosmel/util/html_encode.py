@@ -25,25 +25,20 @@ def main():
 	# Parse arguments
 	argparser = argparse.ArgumentParser(description='CosmEL: Encode HTML.')
 
-	argparser.add_argument('-v', '--ver', metavar='<ver>#<cver>', required=True, \
-			help='load repo from "data/<ver>", and load/save corpus data from/into "data/<ver>/corpus/<cver>"')
+	argparser.add_argument('-c', '--corpus', required=True,
+		help='store corpus data in directory "<CORPUS>/"')
 
-	argparser.add_argument('-i', '--input', metavar='<in_dir>', required=True, \
-			help='load mention from "data/<ver>/corpus/<cver>/mention/<in_dir>"')
-	argparser.add_argument('-o', '--output', metavar='<out_dir>', \
-			help='dump XML into "data/<ver>/html/<out_dir>"; default is <in_dir>')
+	argparser.add_argument('-i', '--input', required=True, \
+			help='load mention from "<CORPUS>/mention/<INPUT>/"')
+	argparser.add_argument('-o', '--output', \
+			help='dump XML into "<CORPUS>/html/<OUTPUT>/"; default is <INPUT>')
 
-	argparser.add_argument('-t', '--thread', metavar='<thread>', type=int, \
-			help='use <thread> threads; default is `os.cpu_count()`')
+	argparser.add_argument('-t', '--thread', type=int, \
+			help='use <THREAD> threads; default is `os.cpu_count()`')
 
 	args = argparser.parse_args()
 
-	vers = args.ver.split('#')
-	assert len(vers) == 2, argparser.format_usage()
-	ver  = vers[0]
-	cver = vers[1]
-	assert len(ver)  > 0
-	assert len(cver) > 0
+	corpus_root = os.path.normpath(args.corpus)
 
 	in_dir  = args.input
 	out_dir = args.output
@@ -58,17 +53,15 @@ def main():
 
 	import multiprocessing
 	with multiprocessing.Pool(nth) as pool:
-		results = [pool.apply_async(submain, args=(ver, cver, in_dir, out_dir, nth, thrank,)) for thrank in range(nth)]
+		results = [pool.apply_async(submain, args=(corpus_root, in_dir, out_dir, nth, thrank,)) for thrank in range(nth)]
 		[result.get() for result in results]
 		del results
 
 
-def submain(ver, cver, in_dir, out_dir, nth=None, thrank=0):
+def submain(corpus_root, in_dir, out_dir, nth=None, thrank=0):
 
 	target       = f'purged_article'
-	data_root    = f'data/{ver}'
-	corpus_root  = f'data/{ver}/corpus/{cver}'
-	repo_root    = f'{data_root}/repo'
+	repo_root    = f'{corpus_root}/repo'
 	html_root    = f'{corpus_root}/html/html_article'
 	idx_root     = f'{corpus_root}/html/{target}_idx'
 	mention_root = f'{corpus_root}/mention/{in_dir}'

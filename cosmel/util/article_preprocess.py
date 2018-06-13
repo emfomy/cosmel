@@ -22,19 +22,14 @@ def main():
 	# Parse arguments
 	argparser = argparse.ArgumentParser(description='CosmEL: Preprocesses Article.')
 
-	argparser.add_argument('-v', '--ver', metavar='<ver>#<cver>', required=True, \
-			help='load repo from "data/<ver>", and load/save corpus data from/into "data/<ver>/corpus/<cver>"')
-	argparser.add_argument('-t', '--thread', metavar='<thread>', type=int, \
-			help='use <thread> threads; default is `os.cpu_count()`')
+	argparser.add_argument('-c', '--corpus', required=True,
+		help='store corpus data in directory "<CORPUS>/"')
+	argparser.add_argument('-t', '--thread', type=int, \
+			help='use <THREAD> threads; default is `os.cpu_count()`')
 
 	args = argparser.parse_args()
 
-	vers = args.ver.split('#')
-	assert len(vers) == 2, argparser.format_usage()
-	ver  = vers[0]
-	cver = vers[1]
-	assert len(ver)  > 0
-	assert len(cver) > 0
+	corpus_root = os.path.normpath(args.corpus)
 
 	nth = args.thread
 	if not nth: nth = os.cpu_count()
@@ -44,14 +39,12 @@ def main():
 
 	import multiprocessing
 	with multiprocessing.Pool(nth) as pool:
-		results = [pool.apply_async(submain, args=(ver, cver, nth, thrank,)) for thrank in range(nth)]
+		results = [pool.apply_async(submain, args=(corpus_root, nth, thrank,)) for thrank in range(nth)]
 		[result.get() for result in results]
 		del results
 
 	# Generate Bad-Article List
 	target       = f'purged_article'
-	data_root    = f'data/{ver}'
-	corpus_root  = f'data/{ver}/corpus/{cver}'
 	bad_article  = f'{corpus_root}/article/bad_article.txt'
 	purged_root  = f'{corpus_root}/article/{target}'
 
@@ -68,7 +61,7 @@ def main():
 		print()
 
 
-def submain(ver, cver, nth=None, thrank=0):
+def submain(corpus_root, nth=None, thrank=0):
 
 	purged         = False
 	segmented      = False
@@ -76,10 +69,7 @@ def submain(ver, cver, nth=None, thrank=0):
 
 	target       = f'purged_article'
 	etc_root     = f'etc'
-	tmp_root     = f'data/tmp'
-	data_root    = f'data/{ver}'
-	corpus_root  = f'data/{ver}/corpus/{cver}'
-	repo_root    = f'{data_root}/repo'
+	repo_root    = f'{corpus_root}/repo'
 	orig_root    = f'{corpus_root}/article/original_article'
 	purged_root  = f'{corpus_root}/article/{target}'
 	ws_re0_root  = f'{corpus_root}/article/{target}_ws_re0'

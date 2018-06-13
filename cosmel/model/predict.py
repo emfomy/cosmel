@@ -29,44 +29,31 @@ if __name__ == '__main__':
 	# Parse arguments
 	argparser = argparse.ArgumentParser(description='Apply CosmEL model.')
 
-	argparser.add_argument('-v', '--ver', metavar='<ver>#<cver>#<mver>', required=True, \
-		help='load repo from "data/<ver>/", load corpus data from "data/<ver>/corpus/<cver>/", ' + \
-				'and load/save model data from/into "data/<ver>/model/<mver>/"; the default value of <mver> is <cver>')
+	argparser.add_argument('-c', '--corpus', required=True,
+		help='store corpus data in directory "<CORPUS>/"')
+	argparser.add_argument('-m', '--model', required=True,
+		help='store model data in directory "<MODEL>/"; default is "<CORPUS>/model/"')
 
-	argparser.add_argument('-i', '--input', metavar='<in_dir>', default='purged_article_gid', \
-			help='load mention from "data/<ver>/corpus/<cver>/mention/<in_dir>"; default is "purged_article_gid"')
-	argparser.add_argument('-o', '--output', metavar='<out_dir>', default='purged_article_nid', \
-			help='svae mention into "data/<ver>/corpus/<cver>/mention/<out_dir>"; default is "purged_article_nid"')
+	argparser.add_argument('-i', '--input', default='purged_article_rid', \
+			help='load mention from "<CORPUS>/mention/<INPUT>/"; default is "purged_article_rid"')
+	argparser.add_argument('-o', '--output', default='purged_article_nrid', \
+			help='save mention into "<CORPUS>/mention/<OUTPUT>/"; default is "purged_article_nrid"')
 
-	argparser.add_argument('-w', '--weight', metavar='<weight_name>', required=True, \
-			help='load model weight "data/<ver>/model/<mver>/<weight_name>.<model_type>.weight.pt"')
-	argparser.add_argument('-m', '--model', metavar='<model_type>', required=True, \
-			help='use model <model_type>')
+	argparser.add_argument('-s', '--structure-eem', \
+			help='use model structure <STRUCTURE-EEM> for entity embedding model')
+	argparser.add_argument('-S', '--structure-mtc', \
+			help='use model structure <STRUCTURE-MTC> for mention type classifier')
+	argparser.add_argument('-l', '--label-eem', \
+			help='use label type <LABEL-EEM> for entity embedding model')
+	argparser.add_argument('-L', '--label-mtc', \
+			help='use label type <LABEL-MTC> for mention type classifier')
 
-	argparser.add_argument('-w0', '--weight0', metavar='<weight0_name>', \
-			help='load model weight "data/<ver>/model/<mver>/<weight_0name>.<model0_type>.weight.pt"')
-	argparser.add_argument('-m0', '--model0', metavar='<model0_type>', default='model0', \
-		  help='use model <model0_type>; default is "model0"')
-
-	argparser.add_argument('--meta', metavar='<meta_name>', \
-			help='dataset meta path; default is "data/<ver>/model/<mver>/meta.pkl"')
-
-	argparser.add_argument('-c', '--check', action='store_true', help='Check arguments')
+	argparser.add_argument('-k', '--check', action='store_true', help='Check arguments')
 
 	args = argparser.parse_args()
 
-	vers = args.ver.split('#')
-	assert 2 <= len(vers) <= 3, argparser.format_usage()
-	ver  = vers[0]
-	cver = vers[1]
-	mver = vers[-1]
-	assert len(ver)  > 0
-	assert len(cver) > 0
-	assert len(mver) > 0
-
-	data_root   = f'data/{ver}'
-	corpus_root = f'data/{ver}/corpus/{cver}'
-	model_root  = f'data/{ver}/model/{mver}'
+	corpus_root = os.path.normpath(args.corpus)
+	model_root  = os.path.normpath(args.model)
 
 	in_dir  = args.input
 	out_dir = args.output
@@ -77,24 +64,18 @@ if __name__ == '__main__':
 	output_root  = f'{corpus_root}/mention/{out_dir}'
 	bad_article  = f'{corpus_root}/article/bad_article.txt'
 
-	model_file  = f'{model_root}/{args.weight}.{args.model}.pt'
-
-	weight0_name = args.weight
-	if args.weight0 != None:
-		weight0_name = args.weight0
-	model0_file = f'{model_root}/{weight0_name}.{args.model0}.pt'
+	model0_file = f'{model_root}/{args.label_mtc}.{args.structure_mtc}.pt'
+	model1_file = f'{model_root}/{args.label_eem}.{args.structure_eem}.pt'
 
 	meta_file = f'{model_root}/meta.pkl'
-	if args.meta != None:
-		meta_file = args.meta
 
-	model_pkg_name = args.model
-	model_cls_name = args.model.capitalize()
-	Model = getattr(__import__('module.'+model_pkg_name, fromlist=model_cls_name), model_cls_name)
-
-	model0_pkg_name = args.model0
-	model0_cls_name = args.model0.capitalize()
+	model0_pkg_name = args.structure_mtc
+	model0_cls_name = args.structure_mtc.capitalize()
 	Model0 = getattr(__import__('module.'+model0_pkg_name, fromlist=model0_cls_name), model0_cls_name)
+
+	model1_pkg_name = args.structure_eem
+	model1_cls_name = args.structure_eem.capitalize()
+	Model1 = getattr(__import__('module.'+model1_pkg_name, fromlist=model1_cls_name), model1_cls_name)
 
 	# Print arguments
 	print()
@@ -105,10 +86,10 @@ if __name__ == '__main__':
 	print(f'output_root  = {output_root}')
 	print(f'bad_article  = {bad_article}')
 	print()
-	print(f'model         = {model_cls_name}')
 	print(f'model0        = {model0_cls_name}')
-	print(f'model_file    = {model_file}')
+	print(f'model1        = {model1_cls_name}')
 	print(f'model0_file   = {model0_file}')
+	print(f'model1_file   = {model1_file}')
 	print(f'meta_file     = {meta_file}')
 	print()
 
@@ -118,26 +99,15 @@ if __name__ == '__main__':
 	# Load data
 	#
 
-	corpus     = Corpus(article_root, mention_root=input_root, skip_file=bad_article)
 	corpus0    = Corpus(article_root, mention_root=input_root, skip_file=bad_article)
-	ment_list  = MentionList(corpus, [m for m in corpus.mention_set  if not m.nid])
+	corpus1    = Corpus(article_root, mention_root=input_root, skip_file=bad_article)
 	ment0_list = MentionList(corpus, [m for m in corpus0.mention_set if not m.nid])
+	ment1_list = MentionList(corpus, [m for m in corpus1.mention_set if not m.nid])
 	meta      = DataSetMeta.load(meta_file)
 	print()
 
 	############################################################################################################################
-	# Create model
-	#
-
-	model = Model(meta)
-	model.cuda()
-	print()
-	print(model)
-	print()
-	model.eval()
-
-	############################################################################################################################
-	# Create model of Model0
+	# Create model0
 	#
 
 	model0 = Model0(meta)
@@ -148,18 +118,15 @@ if __name__ == '__main__':
 	model0.eval()
 
 	############################################################################################################################
-	# DataSet
+	# Create model1
 	#
 
-	data    = model.ment_data_all(ment_list)
-	dataset = torch.utils.data.TensorDataset(*data.inputs)
-	print(f'#mention = {len(dataset)}')
-	loader  = torch.utils.data.DataLoader(
-		dataset=dataset,
-		batch_size=32,
-		shuffle=False,
-		drop_last=False,
-	)
+	model1 = Model1(meta)
+	model1.cuda()
+	print()
+	print(model1)
+	print()
+	model1.eval()
 
 	############################################################################################################################
 	# DataSet of Model0
@@ -176,54 +143,73 @@ if __name__ == '__main__':
 	)
 
 	############################################################################################################################
+	# DataSet of Model1
+	#
+
+	data1    = model1.ment_data_all(ment1_list)
+	dataset1 = torch.utils.data.TensorDataset(*data1.inputs)
+	print(f'#mention = {len(dataset1)}')
+	loader1  = torch.utils.data.DataLoader(
+		dataset=dataset1,
+		batch_size=32,
+		shuffle=False,
+		drop_last=False,
+	)
+
+	############################################################################################################################
 	# Predicting
 	#
 
 	# Load model
-	model.load(model_file)
-	print(f'Loaded model from "{model_file}"')
 	model0.load(model0_file)
 	print(f'Loaded model0 from "{model0_file}"')
-
-	# Apply model
-	pred_label_list = []
-	num_step = len(loader)
-
-	pbar = tqdm.trange(num_step, desc=model_cls_name)
-	for step, inputs_cpu in zip(pbar, loader):
-		inputs = tuple(v.cuda() for v in inputs_cpu)
-		pred_label_list.append(model.predict(*inputs))
-
-	# Concatenate result
-	pred_nid = model.label_encoder.inverse_transform(np.concatenate(pred_label_list))
+	model1.load(model1_file)
+	print(f'Loaded model1 from "{model1_file}"')
 
 	# Apply model0
 	pred_label0_list = []
 	num_step0 = len(loader0)
-
 	pbar0 = tqdm.trange(num_step0, desc=model0_cls_name)
-	for step, inputs0_cpu in zip(pbar0, loader0):
+	for _, inputs0_cpu in zip(pbar0, loader0):
 		inputs0 = tuple(v.cuda() for v in inputs0_cpu)
 		pred_label0_list.append(model0.predict(*inputs0))
 
 	# Concatenate result0
 	pred_nid0 = model0.label_encoder.inverse_transform(np.concatenate(pred_label0_list))
 
+	# Apply model1
+	pred_label1_list = []
+	num_step1 = len(loader1)
+	pbar1 = tqdm.trange(num_step1, desc=model1_cls_name)
+	for _, inputs1_cpu in zip(pbar1, loader1):
+		inputs1 = tuple(v.cuda() for v in inputs1_cpu)
+		pred_label1_list.append(model1.predict(*inputs1))
+
+	# Concatenate result
+	pred_nid1 = model1.label_encoder.inverse_transform(np.concatenate(pred_label1_list))
+
 	# Merge result
 	pred_idx0 = (pred_nid0 != 'PID')
-	pred_nid[pred_idx0] = pred_nid0[pred_idx0]
+	pred_nid1[pred_idx0] = pred_nid0[pred_idx0]
 
 	############################################################################################################################
 	# Writing Results
 	#
 
-	del corpus
+	del corpus1
 	del corpus0
 
 	corpus    = Corpus(article_root, mention_root=input_root, skip_file=bad_article)
-	ment_list = MentionList(corpus, [m for m in corpus.mention_set  if not m.nid])
-	for m, nid in zip(ment_list, pred_nid):
+	ment_list = MentionList(corpus, [m for m in corpus.mention_set if not m.nid])
+
+	# Set NID
+	for m, nid in zip(ment_list, pred_nid1):
 		m.set_nid(nid)
+
+	# Copy RID(P_rule1) to NID
+	for m in ment_list:
+		if m.rule == 'P_rule1' and m.rid:
+			m.set_nid(m.rid)
 
 	n = str(len(corpus.mention_bundle_set))
 	for i, bundle in enumerate(corpus.mention_bundle_set):

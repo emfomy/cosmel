@@ -27,30 +27,23 @@ if __name__ == '__main__':
 	# Parse arguments
 	argparser = argparse.ArgumentParser(description='Generate CosmEL meta data.')
 
-	argparser.add_argument('-v', '--ver', metavar='<ver>#<cver>#<mver>', required=True, \
-		help='load repo from "data/<ver>/", load corpus data from "data/<ver>/corpus/<cver>/", ' + \
-				'and load/save model data from/into "data/<ver>/model/<mver>/"; the default value of <mver> is <cver>')
-	argparser.add_argument('--emb', metavar='<embedding_path>', \
-			help='embedding path; default is "data/<ver>/corpus/<cver>/embedding/purged_article.dim300.emb.bin"')
 
-	argparser.add_argument('-c', '--check', action='store_true', help='check arguments')
+	argparser.add_argument('-c', '--corpus', required=True,
+		help='store corpus data in directory "<CORPUS>/"')
+	argparser.add_argument('-m', '--model', required=True,
+		help='store model data in directory "<MODEL>/"')
+
+	argparser.add_argument('--emb', \
+			help='embedding path; default is "<CORPUS>/embedding/purged_article.dim300.emb.bin"')
+
+	argparser.add_argument('-k', '--check', action='store_true', help='check arguments')
 
 	args = argparser.parse_args()
 
-	vers = args.ver.split('#')
-	assert 2 <= len(vers) <= 3, argparser.format_usage()
-	ver  = vers[0]
-	cver = vers[1]
-	mver = vers[-1]
-	assert len(ver)  > 0
-	assert len(cver) > 0
-	assert len(mver) > 0
+	corpus_root = os.path.normpath(args.corpus)
+	model_root  = os.path.normpath(args.model)
 
-	data_root   = f'data/{ver}'
-	corpus_root = f'data/{ver}/corpus/{cver}'
-	model_root  = f'data/{ver}/model/{mver}'
-
-	repo_root   = f'{data_root}/repo'
+	repo_root   = f'{corpus_root}/repo'
 
 	emb_file = f'{corpus_root}/embedding/purged_article.dim300.emb.bin'
 	if args.emb != None:

@@ -17,7 +17,7 @@ if __name__ == '__main__':
 
 from cosmel import *
 
-class Model2(Model):
+class Model1(Model):
 
 	def __init__(self, meta):
 

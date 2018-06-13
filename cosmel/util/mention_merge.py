@@ -21,27 +21,22 @@ def main():
 	# Parse arguments
 	argparser = argparse.ArgumentParser(description='CosmEL: Merge Mention.')
 
-	argparser.add_argument('-v', '--ver', metavar='<ver>#<cver>', required=True, \
-			help='load repo from "data/<ver>", and load/save corpus data from/into "data/<ver>/corpus/<cver>"')
+	argparser.add_argument('-c', '--corpus', required=True,
+		help='store corpus data in directory "<CORPUS>/"')
 
-	argparser.add_argument('-b', '--base', metavar='<base_dir>', required=True, \
-			help='load mention from "data/<ver>/corpus/<cver>/mention/<base_dir>"')
-	argparser.add_argument('-i', '--input', metavar='<in_dir>', required=True, \
-			help='load mention from "data/<ver>/corpus/<cver>/mention/<in_dir>"')
-	argparser.add_argument('-o', '--output', metavar='<out_dir>', required=True, \
-			help='dump XML into "data/<ver>/html/<out_dir>"; default is <in_dir>')
+	argparser.add_argument('-b', '--base', required=True, \
+			help='load mention from "<CORPUS>/mention/<BASE>/"')
+	argparser.add_argument('-i', '--input', required=True, \
+			help='load mention from "<CORPUS>/mention/<INPUT>/"')
+	argparser.add_argument('-o', '--output', required=True, \
+			help='dump XML into "data/<ver>/html/<OUTPUT>/"; default is <INPUT>')
 
-	argparser.add_argument('-t', '--thread', metavar='<thread>', type=int, \
-			help='use <thread> threads; default is `os.cpu_count()`')
+	argparser.add_argument('-t', '--thread', type=int, \
+			help='use <THREAD> threads; default is `os.cpu_count()`')
 
 	args = argparser.parse_args()
 
-	vers = args.ver.split('#')
-	assert len(vers) == 2, argparser.format_usage()
-	ver  = vers[0]
-	cver = vers[1]
-	assert len(ver)  > 0
-	assert len(cver) > 0
+	corpus_root = os.path.normpath(args.corpus)
 
 	base_dir = args.base
 	in_dir   = args.input
@@ -55,17 +50,15 @@ def main():
 
 	import multiprocessing
 	with multiprocessing.Pool(nth) as pool:
-		results = [pool.apply_async(submain, args=(ver, cver, base_dir, in_dir, out_dir, nth, thrank,)) for thrank in range(nth)]
+		results = [pool.apply_async(submain, args=(corpus_root, base_dir, in_dir, out_dir, nth, thrank,)) for thrank in range(nth)]
 		[result.get() for result in results]
 		del results
 
 
-def submain(ver, cver, base_dir, in_dir, out_dir, nth=None, thrank=0):
+def submain(corpus_root, base_dir, in_dir, out_dir, nth=None, thrank=0):
 
 	target       = f'purged_article'
 	tmp_root     = f'data/tmp'
-	data_root    = f'data/{ver}'
-	corpus_root  = f'data/{ver}/corpus/{cver}'
 	base_root    = f'{corpus_root}/mention/{base_dir}'
 	input_root   = f'{corpus_root}/mention/{in_dir}'
 	output_root  = f'{corpus_root}/mention/{out_dir}'
@@ -89,17 +82,20 @@ def submain(ver, cver, base_dir, in_dir, out_dir, nth=None, thrank=0):
 				data = json.loads(line)
 				data_dict[(int(data['sid']), int(data['mid']),)] = data
 
-		try:
-			with open(input_file) as fin:
+
+			try:
+				fin = open(input_file)
+			except FileNotFoundError as e:
+				printr(colored('0;33', e))
+			except Exception as e:
+				print()
+				print(colored('1;31', e))
+			else:
 				for line in fin:
 					data = json.loads(line)
 					key = (int(data['sid']), int(data['mid']),)
 					data.pop('sid', None)
 					data.pop('mid', None)
-
-					# if 'gid' not in data or not data['gid']:
-					# 	print(colored('1;33', f'[No GID] Remove {input_file}:{key[0]}:{key[1]}'))
-					# 	continue
 
 					data = dict((attr, value,) for attr, value in data.items() if value)
 
@@ -107,10 +103,7 @@ def submain(ver, cver, base_dir, in_dir, out_dir, nth=None, thrank=0):
 						data_dict[key].update(data)
 					else:
 						print(colored('1;31', f'Unknown mention {input_file}:{key[0]}:{key[1]}!'))
-		except Exception as e:
-			print()
-			print(colored('0;33', e))
-			pass
+				fin.close()
 
 		with open(output_file, 'w') as fout:
 			for data in data_dict.values():

@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-$ver=$ARGV[0];
+$repopath=$ARGV[0];
 $inputfile=$ARGV[1];
 $tmpfile=$ARGV[2];
 $outputfile=$ARGV[3];
@@ -22,7 +22,7 @@ if (not -f $inputfile)
 	exit;
 }
 
-$repofile="data/$ver/repo/brand.txt";
+$repofile="$repopath/brand.txt";
 open(IN,$repofile);
 while (<IN>)
 {
@@ -35,7 +35,7 @@ while (<IN>)
 }
 close(IN);
 
-$repofile="data/$ver/repo/head.txt";
+$repofile="$repopath/head.txt";
 open(IN,$repofile);
 while (<IN>)
 {
@@ -45,7 +45,7 @@ while (<IN>)
 }
 close(IN);
 
-$repofile="data/$ver/repo/infix.lex";
+$repofile="$repopath/infix.lex";
 open(IN,$repofile);
 while (<IN>)
 {
@@ -56,7 +56,7 @@ while (<IN>)
 }
 close(IN);
 
-$repofile="data/$ver/repo/infix.txt";
+$repofile="$repopath/infix.txt";
 open(IN,$repofile);
 while (<IN>)
 {
@@ -67,7 +67,7 @@ while (<IN>)
 close(IN);
 
 $count=0;
-$repofile="data/$ver/repo/product.txt";
+$repofile="$repopath/product.txt";
 open(IN,$repofile);
 while (<IN>)
 {
@@ -100,7 +100,7 @@ close(IN);
 
 
 $count=0;
-$repofile="data/$ver/repo/product.tag";
+$repofile="$repopath/product.tag";
 open(IN,$repofile);
 while (<IN>)
 {

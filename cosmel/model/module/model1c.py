@@ -9,11 +9,11 @@ import numpy as np
 
 import torch
 
-from .model2 import Model2
+from .model1 import Model1
 
-class Model2c(Model2):
+class Model1c(Model1):
 
-	class MentionData(Model2.MentionData):
+	class MentionData(Model1.MentionData):
 
 		def __init__(self, model, ment_list, _all):
 
@@ -49,5 +49,5 @@ class Model2c(Model2):
 		return {'C': text_loss}
 
 	def predict(self, *args):
-		text_prob, = Model2c.forward(self, *args)
+		text_prob, = Model1c.forward(self, *args)
 		return np.argmax(text_prob.cpu().data.numpy(), axis=1)

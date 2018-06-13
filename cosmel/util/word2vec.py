@@ -26,19 +26,14 @@ def main():
 	# Parse arguments
 	argparser = argparse.ArgumentParser(description='CosmEL: Word2Vec.')
 
-	argparser.add_argument('-v', '--ver', metavar='<ver>#<cver>', required=True, \
-			help='load repo from "data/<ver>", and load/save corpus data from/into "data/<ver>/corpus/<cver>"')
-	argparser.add_argument('-t', '--thread', metavar='<thread>', type=int, \
-			help='use <thread> threads; default is `os.cpu_count()`')
+	argparser.add_argument('-c', '--corpus', required=True,
+		help='store corpus data in directory "<CORPUS>/"')
+	argparser.add_argument('-t', '--thread', type=int, \
+			help='use <THREAD> threads; default is `os.cpu_count()`')
 
 	args = argparser.parse_args()
 
-	vers = args.ver.split('#')
-	assert len(vers) == 2, argparser.format_usage()
-	ver  = vers[0]
-	cver = vers[1]
-	assert len(ver)  > 0
-	assert len(cver) > 0
+	corpus_root = os.path.normpath(args.corpus)
 
 	nth = args.thread
 	if not nth: nth = os.cpu_count()
@@ -46,11 +41,9 @@ def main():
 	print(args)
 	print(f'Use {nth} threads')
 
-	data_root    = f'data/{ver}'
-	corpus_root  = f'data/{ver}/corpus/{cver}'
 	target       = f'purged_article'
 	dim          = 300
-	repo_root    = f'{data_root}/repo'
+	repo_root    = f'{corpus_root}/repo'
 	article_root = f'{corpus_root}/article/{target}_role'
 	emb_file     = f'{corpus_root}/embedding/{target}.dim{dim}.emb.bin'
 	parts        = ['']

@@ -9,13 +9,13 @@ import numpy as np
 
 import torch
 
-from .model2c import Model2c
-from .model2d import Model2d
-from .model2n import Model2n
+from .model1c import Model1c
+from .model1d import Model1d
+from .model1n import Model1n
 
-class Model2cdn(Model2c, Model2d, Model2n):
+class Model1cdn(Model1c, Model1d, Model1n):
 
-	class ProductData(Model2d.ProductData, Model2n.ProductData):
+	class ProductData(Model1d.ProductData, Model1n.ProductData):
 		pass
 
 	def __init__(self, meta):
@@ -25,9 +25,9 @@ class Model2cdn(Model2c, Model2d, Model2n):
 	def forward(self, pre_pad, post_pad, title_pad, rid_bag, brand_bag, desc_pad, name_pad):
 
 		return \
-			Model2c.forward(self, pre_pad, post_pad, title_pad, rid_bag, brand_bag) + \
-			Model2d.forward(self, desc_pad) + \
-			Model2n.forward(self, name_pad)
+			Model1c.forward(self, pre_pad, post_pad, title_pad, rid_bag, brand_bag) + \
+			Model1d.forward(self, desc_pad) + \
+			Model1n.forward(self, name_pad)
 
 	def loss(self, text_prob, desc_prob, name_prob, ment_label, prod_label):
 

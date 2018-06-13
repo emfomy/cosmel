@@ -7,22 +7,20 @@ __copyright__ = 'Copyright 2017-2018'
 
 
 import argparse
-import itertools
 import os
-import re
+import subprocess
 import sys
 
 if __name__ == '__main__':
 	sys.path.insert(0, os.path.abspath('.'))
 
 from cosmel import *
-from parser import CKIPParser_Client as ckipparser
 
 
 def main():
 
 	# Parse arguments
-	argparser = argparse.ArgumentParser(description='CosmEL: Parse Sentence.')
+	argparser = argparse.ArgumentParser(description='CosmEL: Annotate by Rule (Core).')
 
 	argparser.add_argument('-c', '--corpus', required=True,
 		help='store corpus data in directory "<CORPUS>/"')
@@ -48,34 +46,26 @@ def main():
 
 def submain(corpus_root, nth=None, thrank=0):
 
-	target       = f'purged_article'
-	target_parse = f'parsed_article'
-	ws_re2_root  = f'{corpus_root}/article/{target}_ws_re2'
-	parse_root   = f'{corpus_root}/article/{target_parse}_parse'
+	repo_root    = f'{corpus_root}/repo'
+	parsed_root  = f'{corpus_root}/article/parsed_article_parse'
+	tmp_root     = f'{corpus_root}/article/parsed_article_parse1'
+	xml_root     = f'{corpus_root}/xml/parsed_article_ws_rid'
 	# parts        = ['']
 	# parts        = list(f'part-{x:05}' for x in range(1))
-	parts        = sorted(rm_ext_all(file) for file in os.listdir(ws_re2_root))
+	parts        = sorted(rm_ext_all(file) for file in os.listdir(parsed_root))
 	if nth: parts = parts[thrank:len(parts):nth]
 
-	articles = ArticleSet(ws_re2_root, parts=parts)
+	parsed_files = glob_files(parsed_root, parts=parts)
+	n = str(len(parsed_files))
+	for i, parsed_file in enumerate(parsed_files):
+		tmp_file = transform_path(parsed_file, parsed_root, tmp_root, '.parse1')
+		xml_file = transform_path(parsed_file, parsed_root, xml_root, '.xml')
+		os.makedirs(os.path.dirname(tmp_file), exist_ok=True)
+		os.makedirs(os.path.dirname(xml_file), exist_ok=True)
+		printr(f'{i+1:0{len(n)}}/{n}\t{parsed_file}')
 
-	# Prune Articles
-	n = str(len(articles))
-	for i, article in enumerate(articles):
-		parse_file = transform_path(article.path, ws_re2_root, parse_root, '.parse')
-		os.makedirs(os.path.dirname(parse_file), exist_ok=True)
-		printr(f'{i+1:0{len(n)}}/{n}\t{parse_file}')
-		with open(parse_file, 'w') as fout:
-			for ii, line in enumerate(article):
-				printr(f'{i+1:0{len(n)}}/{n}\t{parse_file}\t{ii}')
-				fout.write('\t'.join(parse(line))+'\n')
+		subprocess.Popen(['util/rule_core.pl', repo_root, parsed_file, tmp_file, xml_file])
 	if not thrank: print()
-
-def parse(line):
-	uname = '_tester'
-	pwd   = 'tester'
-	return list(itertools.chain.from_iterable(ckipparser.parse(str(line[i:i+80]), uname, pwd, True) \
-			for i in range(0, len(line), 80)))
 
 
 if __name__ == '__main__':

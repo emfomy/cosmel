@@ -9,11 +9,11 @@ import numpy as np
 
 import torch
 
-from .model2 import Model2
+from .model1 import Model1
 
-class Model2d(Model2):
+class Model1d(Model1):
 
-	class ProductData(Model2.ProductData):
+	class ProductData(Model1.ProductData):
 
 		def __init__(self, model):
 

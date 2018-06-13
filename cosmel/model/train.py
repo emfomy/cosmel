@@ -32,48 +32,38 @@ if __name__ == '__main__':
 	# Parse arguments
 	argparser = argparse.ArgumentParser(description='Train CosmEL model.')
 
-	argparser.add_argument('-v', '--ver', metavar='<ver>#<cver>#<mver>', required=True, \
-		help='load repo from "data/<ver>/", load corpus data from "data/<ver>/corpus/<cver>/", ' + \
-				'and load/save model data from/into "data/<ver>/model/<mver>/"; the default value of <mver> is <cver>')
 
-	argparser.add_argument('-i', '--input', metavar='<in_dir>', default='purged_article_gid', \
-			help='load mention from "data/<ver>/corpus/<cver>/mention/<in_dir>"; default is "purged_article_gid"')
-	argparser.add_argument('-l', '--label', metavar='<label_type>', choices=['gid', 'nid', 'rid'], required=True, \
+	argparser.add_argument('-c', '--corpus', required=True,
+		help='store corpus data in directory "<CORPUS>/"')
+	argparser.add_argument('-m', '--model', required=True,
+		help='store model data in directory "<MODEL>/"')
+
+	argparser.add_argument('-i', '--input', default='purged_article_grid', \
+			help='load mention from "<CORPUS>/mention/<IN-DIR>/"; default is "purged_article_grid"')
+	argparser.add_argument('-l', '--label', choices=['gid', 'nid', 'rid'], required=True, \
 			help='training label type')
+	argparser.add_argument('-s', '--structure', required=True, \
+			help='model structure')
 
-	argparser.add_argument('-w', '--weight', metavar='<weight_name>', \
-			help='output weight path; output model weight into "data/<ver>/model/<mver>/<weight_name>.<model_type>.weight.pt"; ' + \
-					'default "[<pretrained_name>+]<label_type>"')
-	argparser.add_argument('-p', '--pretrain', metavar='<pretrained_name>', \
-			help='pretrained weight path; load model weight from "data/<ver>/model/<mver>/<pretrained_name>.<model_type>.weight.pt"')
-	argparser.add_argument('-m', '--model', metavar='<model_type>', required=True, \
-			help='use model <model_type>')
+	argparser.add_argument('-w', '--weight', \
+			help='output weight name; output model weight into "<MODEL>/<WEIGHT>.<STRUCTURE>.weight.pt"; ' + \
+					'default "[<PRETRAIN>+]<LABEL>"')
+	argparser.add_argument('-p', '--pretrain', \
+			help='pretrained weight name; load model weight from "<MODEL>/<PRETRAIN>.<STRUCTURE>.weight.pt"')
 
-	argparser.add_argument('--meta', metavar='<meta_name>', \
-			help='dataset meta path; default is "data/<ver>/model/<mver>/meta.pkl"')
-	argparser.add_argument('-e', '--epoch', metavar='<num_epoch>', type=int, default=10, \
-			help='train <num_epoch> times; default is 10')
-	argparser.add_argument('--test_size', metavar='<test_size>', type=float, default=0.3, \
-			help='split <test_size> mentions for testing; default is 0.3')
+	argparser.add_argument('--epoch', type=int, default=10, \
+			help='train <EPOCH> times; default is 10')
+	argparser.add_argument('--test_size', type=float, default=0.3, \
+			help='split <TEST-SIZE> mentions for testing; default is 0.3')
 
-	argparser.add_argument('-c', '--check', action='store_true', help='Check arguments')
+	argparser.add_argument('-k', '--check', action='store_true', help='Check arguments')
 
 	args = argparser.parse_args()
 
-	vers = args.ver.split('#')
-	assert 2 <= len(vers) <= 3, argparser.format_usage()
-	ver  = vers[0]
-	cver = vers[1]
-	mver = vers[-1]
-	assert len(ver)  > 0
-	assert len(cver) > 0
-	assert len(mver) > 0
+	corpus_root = os.path.normpath(args.corpus)
+	model_root  = os.path.normpath(args.model)
 
-	data_root   = f'data/{ver}'
-	corpus_root = f'data/{ver}/corpus/{cver}'
-	model_root  = f'data/{ver}/model/{mver}'
-
-	in_dir = args.input
+	in_dir      = args.input
 
 	target       = f'purged_article'
 	article_root = f'{corpus_root}/article/{target}_role'
@@ -88,21 +78,19 @@ if __name__ == '__main__':
 		weight_name = f'{args.pretrain}+{label_type}'
 	else:
 		weight_name = f'{label_type}'
-	model_file = f'{model_root}/{weight_name}.{args.model}.pt'
+	model_file = f'{model_root}/{weight_name}.{args.structure}.pt'
 
 	pretrain_file = ''
 	if args.pretrain != None:
-		pretrain_file = f'{model_root}/{args.pretrain}.{args.model}.pt'
+		pretrain_file = f'{model_root}/{args.pretrain}.{args.structure}.pt'
 
 	meta_file = f'{model_root}/meta.pkl'
-	if args.meta != None:
-		meta_file = args.meta
 
 	num_epoch = args.epoch
 	test_size = args.test_size
 
-	model_pkg_name = args.model
-	model_cls_name = args.model.capitalize()
+	model_pkg_name = args.structure
+	model_cls_name = args.structure.capitalize()
 	Model = getattr(__import__('module.'+model_pkg_name, fromlist=model_cls_name), model_cls_name)
 
 	# Print arguments

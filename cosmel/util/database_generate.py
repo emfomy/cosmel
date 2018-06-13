@@ -23,17 +23,22 @@ from cosmel import *
 def main():
 
 	# Parse arguments
-	argparser = argparse.ArgumentParser(description='CosmEL: Generate Repository.')
+	argparser = argparse.ArgumentParser(description='CosmEL: Generate Database.')
 
-	argparser.add_argument('-v', '--ver', metavar='<ver>', required=True, \
-			help='load/save data from/into "data/<ver>"')
+	argparser.add_argument('-i', '--input', required=True, \
+		help='load CSV from file <INPUT>')
+	argparser.add_argument('-d', '--database', required=True, \
+		help='save/load database from directory <DATABASE>')
 	argparser.add_argument('--etc', action='store_true', \
-			help='copy "etc" to "data/<ver>/repo/etc"')
+		help='use predefined etc files (from ./etc)')
 
 	args = argparser.parse_args()
 
-	ver      = args.ver
-	copy_etc = args.etc
+	csv_path  = os.path.normpath(args.input)
+	assert os.path.isfile(csv_path)
+
+	repo_root = os.path.normpath(args.database)
+	copy_etc  = args.etc
 
 	print(args)
 
@@ -51,12 +56,8 @@ def main():
 
 	global etc_root
 
-	data_root = f'data/{ver}'
-	repo_root = f'{data_root}/repo'
 	etc_root  = f'{repo_root}/etc'
 	tmp_root  = f'data/tmp'
-
-	csv_path  = f'{data_root}/styleme.csv'
 
 	os.makedirs(repo_root, exist_ok=True)
 	os.makedirs(etc_root,  exist_ok=True)
