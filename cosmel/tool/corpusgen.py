@@ -24,20 +24,20 @@ def main():
 	argparser = argparse.ArgumentParser(description='CosmEL Tool: Corpus Generator.')
 
 	argparser.add_argument('-c', '--corpus', required=True,
-		help='store corpus data in directory "<CORPUS>/"')
+			help='store corpus data in directory "<CORPUS>/"')
 	argparser.add_argument('-d', '--database',
-		help='load product database from directory <DATABASE>; default is "<CORPUS>/repo/"')
+			help='load product database from directory <DATABASE>; default is "<CORPUS>/repo/"')
 	argparser.add_argument('-i', '--input',
-		help='load articles in directory <INPUT>; default is "<CORPUS>/article/original_article/"')
+			help='load articles in directory <INPUT>; default is "<CORPUS>/article/original_article/"')
 	argparser.add_argument('-x', '--xml',
-		help='output rule labeled XML articles into directory <XML>; default is "<CORPUS>/xml/purged_article_rid/"')
+			help='output rule labeled XML articles into directory <XML>; default is "<CORPUS>/xml/purged_article_rid/"')
 
 	arggroup = argparser.add_mutually_exclusive_group()
 
 	arggroup.add_argument('-r', '--rule',
-		help='use file <RULE> as rule')
-	arggroup.add_argument('-e', '--rule-exact', action='store_true',
-		help='use exact-match rule')
+			help='use file <RULE> as rule')
+	arggroup.add_argument('--rule-parser', action='store_true',
+			help='use rule with parser')
 
 	argparser.add_argument('-t', '--thread', type=int, \
 			help='use <THREAD> threads; default is `os.cpu_count()`')
@@ -61,9 +61,9 @@ def main():
 	os.makedirs(xml_root, exist_ok=True)
 	assert os.path.isdir(xml_root)
 
-	rule_file = './util/rule.py'
-	if args.rule_exact:
-		rule_file = './util/rule_exact.py'
+	rule_file = './util/rule_exact.py'
+	if args.rule_parser:
+		rule_file = './util/rule_parser.py'
 	if args.rule:
 		rule_file = os.path.normpath(args.rule)
 	assert os.path.isfile(rule_file)

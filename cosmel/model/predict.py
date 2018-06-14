@@ -30,9 +30,9 @@ if __name__ == '__main__':
 	argparser = argparse.ArgumentParser(description='Apply CosmEL model.')
 
 	argparser.add_argument('-c', '--corpus', required=True,
-		help='store corpus data in directory "<CORPUS>/"')
+			help='store corpus data in directory "<CORPUS>/"')
 	argparser.add_argument('-m', '--model', required=True,
-		help='store model data in directory "<MODEL>/"; default is "<CORPUS>/model/"')
+			help='store model data in directory "<MODEL>/"; default is "<CORPUS>/model/"')
 
 	argparser.add_argument('-i', '--input', default='purged_article_rid', \
 			help='load mention from "<CORPUS>/mention/<INPUT>/"; default is "purged_article_rid"')
@@ -199,7 +199,7 @@ if __name__ == '__main__':
 	del corpus1
 	del corpus0
 
-	corpus    = Corpus(article_root, mention_root=input_root, skip_file=bad_article)
+	corpus    = Corpus(article_root, mention_root=input_root)
 	ment_list = MentionList(corpus, [m for m in corpus.mention_set if not m.nid])
 
 	# Set NID

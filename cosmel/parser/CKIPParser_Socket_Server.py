@@ -317,6 +317,6 @@ if __name__=="__main__":
     #Watiing Client
     while True :
         client, addr = server.accept()
-        print ("[*] Acepted connection from: %s:%d" % (addr[0],addr[1]))
+        print ("[*] Accepted connection from: %s:%d" % (addr[0],addr[1]))
         client_handler = threading.Thread(target=handle_client, args=(client,))
         client_handler.start()

@@ -22,7 +22,7 @@ def main():
 	argparser = argparse.ArgumentParser(description='CosmEL: Merge Mention.')
 
 	argparser.add_argument('-c', '--corpus', required=True,
-		help='store corpus data in directory "<CORPUS>/"')
+			help='store corpus data in directory "<CORPUS>/"')
 
 	argparser.add_argument('-b', '--base', required=True, \
 			help='load mention from "<CORPUS>/mention/<BASE>/"')
@@ -30,6 +30,9 @@ def main():
 			help='load mention from "<CORPUS>/mention/<INPUT>/"')
 	argparser.add_argument('-o', '--output', required=True, \
 			help='dump XML into "data/<ver>/html/<OUTPUT>/"; default is <INPUT>')
+
+	argparser.add_argument('-f', '--flag', choices=['gid', 'nid', 'rid'], nargs='*', default=[], \
+			help='copy <FLAG> only; default is "[]" (all)')
 
 	argparser.add_argument('-t', '--thread', type=int, \
 			help='use <THREAD> threads; default is `os.cpu_count()`')
@@ -42,6 +45,8 @@ def main():
 	in_dir   = args.input
 	out_dir  = args.output
 
+	flags    = set(args.flag)
+
 	nth      = args.thread
 	if not nth: nth = os.cpu_count()
 
@@ -50,12 +55,12 @@ def main():
 
 	import multiprocessing
 	with multiprocessing.Pool(nth) as pool:
-		results = [pool.apply_async(submain, args=(corpus_root, base_dir, in_dir, out_dir, nth, thrank,)) for thrank in range(nth)]
+		results = [pool.apply_async(submain, args=(corpus_root, base_dir, in_dir, out_dir, flags, nth, thrank,)) for thrank in range(nth)]
 		[result.get() for result in results]
 		del results
 
 
-def submain(corpus_root, base_dir, in_dir, out_dir, nth=None, thrank=0):
+def submain(corpus_root, base_dir, in_dir, out_dir, flags=set(), nth=None, thrank=0):
 
 	target       = f'purged_article'
 	tmp_root     = f'data/tmp'
@@ -97,7 +102,10 @@ def submain(corpus_root, base_dir, in_dir, out_dir, nth=None, thrank=0):
 					data.pop('sid', None)
 					data.pop('mid', None)
 
-					data = dict((attr, value,) for attr, value in data.items() if value)
+					if len(flags) == 0:
+						data = dict((attr, value,) for attr, value in data.items() if value)
+					else:
+						data = dict((attr, value,) for attr, value in data.items() if value and attr in flags)
 
 					if key in data_dict:
 						data_dict[key].update(data)

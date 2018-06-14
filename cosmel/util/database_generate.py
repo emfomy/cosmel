@@ -26,11 +26,11 @@ def main():
 	argparser = argparse.ArgumentParser(description='CosmEL: Generate Database.')
 
 	argparser.add_argument('-i', '--input', required=True, \
-		help='load CSV from file <INPUT>')
+			help='load CSV from file <INPUT>')
 	argparser.add_argument('-d', '--database', required=True, \
-		help='save/load database from directory <DATABASE>')
+			help='save/load database from directory <DATABASE>')
 	argparser.add_argument('--etc', action='store_true', \
-		help='use predefined etc files (from ./etc)')
+			help='use predefined etc files (from ./etc)')
 
 	args = argparser.parse_args()
 

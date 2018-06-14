@@ -29,9 +29,9 @@ if __name__ == '__main__':
 
 
 	argparser.add_argument('-c', '--corpus', required=True,
-		help='store corpus data in directory "<CORPUS>/"')
+			help='store corpus data in directory "<CORPUS>/"')
 	argparser.add_argument('-m', '--model', required=True,
-		help='store model data in directory "<MODEL>/"')
+			help='store model data in directory "<MODEL>/"')
 
 	argparser.add_argument('--emb', \
 			help='embedding path; default is "<CORPUS>/embedding/purged_article.dim300.emb.bin"')

@@ -23,11 +23,11 @@ def main():
 	argparser = argparse.ArgumentParser(description='CosmEL Tool: Prediction.')
 
 	argparser.add_argument('-c', '--corpus', required=True,
-		help='store corpus data in directory "<CORPUS>/"')
+			help='store corpus data in directory "<CORPUS>/"')
 	argparser.add_argument('-m', '--model',
-		help='store model data in directory "<MODEL>/"; default is "<CORPUS>/model/"')
+			help='store model data in directory "<MODEL>/"; default is "<CORPUS>/model/"')
 	argparser.add_argument('-o', '--output',
-		help='output predicted XML articles into directory <OUTPUT>; default is "<CORPUS>/xml/purged_article_gnrid/"')
+			help='output predicted XML articles into directory <OUTPUT>; default is "<CORPUS>/xml/purged_article_gnrid/"')
 
 	argparser.add_argument('-s', '--structure-eem', choices=['c', 'cd', 'cn', 'cdn'], default='cdn', \
 			help='use model structure <STRUCTURE-EEM> for entity embedding model; default is "cdn"')
@@ -91,7 +91,7 @@ def main():
 	print(colored('1;96', '################################################################################'))
 	print()
 	if subprocess.call([python, './util/mention_merge.py', '-c', corpus_root, '-t', str(nth), \
-			'-b', 'purged_article_nrid', '-i', 'purged_article_grid', '-o', 'purged_article_gnrid']): sys.exit()
+			'-b', 'purged_article_nrid', '-i', 'purged_article_gid', '-o', 'purged_article_gnrid', '-f', 'gid']): sys.exit()
 
 	print()
 	print(colored('1;96', '################################################################################'))

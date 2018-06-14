@@ -23,14 +23,14 @@ def main():
 	argparser = argparse.ArgumentParser(description='CosmEL Tool: Training.')
 
 	argparser.add_argument('-c', '--corpus', required=True,
-		help='store corpus data in directory "<CORPUS>/"')
+			help='store corpus data in directory "<CORPUS>/"')
 	argparser.add_argument('-m', '--model',
-		help='store model data in directory "<MODEL>/"; default is "<CORPUS>/model/"')
+			help='store model data in directory "<MODEL>/"; default is "<CORPUS>/model/"')
 	argparser.add_argument('-x', '--xml',
-		help='load golden labeled XML articles from directory <XML>; default is "<CORPUS>/xml/purged_article_gid/"')
+			help='load golden labeled XML articles from directory <XML>; default is "<CORPUS>/xml/purged_article_gid/"')
 
 	argparser.add_argument('--emb',
-		help='load pretrained embeddings from file <EMB>; default is "<CORPUS>/embedding/purged_article.dim300.emb.bin"')
+			help='load pretrained embeddings from file <EMB>; default is "<CORPUS>/embedding/purged_article.dim300.emb.bin"')
 	argparser.add_argument('-s', '--structure-eem', choices=['c', 'cd', 'cn', 'cdn'], default='cdn', \
 			help='use model structure <STRUCTURE-EEM> for entity embedding model; default is "cdn"')
 	# argparser.add_argument('-S', '--structure-mtc', choices=[''], default='cdn', \
@@ -114,7 +114,7 @@ def main():
 	print(colored('1;96', '################################################################################'))
 	print()
 	if subprocess.call([python, './util/mention_merge.py', '-c', corpus_root, '-t', str(nth), \
-			'-b', 'purged_article_gid', '-i', 'purged_article_rid', '-o', 'purged_article_grid']): sys.exit()
+			'-b', 'purged_article_rid', '-i', 'purged_article_gid', '-o', 'purged_article_grid', '-f', 'gid']): sys.exit()
 
 	print()
 	print(colored('1;96', '################################################################################'))

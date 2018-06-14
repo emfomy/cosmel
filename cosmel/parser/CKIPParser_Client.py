@@ -105,7 +105,7 @@ def communicate(host, port, info, retry):
 
     return data
 
-def parse(sentence, uname, pwd, ws=False, host='172.16.1.64', port='6400'):
+def parse(sentence, uname, pwd, ws=False, host=None, port=None):
     retry = 3
 
     # Segmentation

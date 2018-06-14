@@ -1,4 +1,3 @@
-===============================
 CosmEL: Cosmetic Entity Linking
 ===============================
 
@@ -11,6 +10,7 @@ CosmEL: Cosmetic Entity Linking
    :maxdepth: 1
 
    src/intro
+   src/tool_usage
 
 .. raw:: latex
 
@@ -22,20 +22,10 @@ CosmEL: Cosmetic Entity Linking
 
    src/ds
    src/xml
-   src/util_usage
    src/util_guide
-
-
-.. raw:: latex
-
-   \part{Model}
-
-.. toctree::
-   :caption: Model
-   :maxdepth: 1
-
-   src/model_usage
+   src/util_usage
    src/model_guide
+   src/model_usage
 
 
 .. raw:: latex

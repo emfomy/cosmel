@@ -20,10 +20,10 @@ from cosmel import *
 def main():
 
 	# Parse arguments
-	argparser = argparse.ArgumentParser(description='CosmEL: Annotate by Rule (Default).')
+	argparser = argparse.ArgumentParser(description='CosmEL: Annotate by Rule (Parser).')
 
 	argparser.add_argument('-c', '--corpus', required=True,
-		help='store corpus data in directory "<CORPUS>/"')
+			help='store corpus data in directory "<CORPUS>/"')
 	argparser.add_argument('-t', '--thread', type=int, \
 			help='use <THREAD> threads; default is `os.cpu_count()`')
 
@@ -39,7 +39,12 @@ def main():
 
 	python = sys.executable
 
-	if subprocess.call([python, './util/parse.py', '-c', corpus_root, '-t', str(nth)]): sys.exit()
+	############################################################################################################################
+	host = '172.16.1.64'
+	port = '6400'
+	############################################################################################################################
+
+	if subprocess.call([python, './util/parse.py', '-c', corpus_root, '-t', str(nth), '-h', host, '-p', port]): sys.exit()
 	if subprocess.call([python, './util/rule_core.py', '-c', corpus_root, '-t', str(nth)]): sys.exit()
 	if subprocess.call([python, './util/xml_decode.py', '-c', corpus_root, '-t', str(nth), \
 			'-iw', 'parsed_article_ws_rid', '-i', 'parsed_article_rid', '-o', 'purged_article_rid']): sys.exit()

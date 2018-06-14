@@ -25,13 +25,20 @@ def main():
 	argparser = argparse.ArgumentParser(description='CosmEL: Parse Sentence.')
 
 	argparser.add_argument('-c', '--corpus', required=True,
-		help='store corpus data in directory "<CORPUS>/"')
+			help='store corpus data in directory "<CORPUS>/"')
 	argparser.add_argument('-t', '--thread', type=int, \
 			help='use <THREAD> threads; default is `os.cpu_count()`')
+	argparser.add_argument('-h', '--host',
+			help='connect to host with IP <HOST>')
+	argparser.add_argument('-p', '--port',
+			help='connect to host with port <PORT>')
 
 	args = argparser.parse_args()
 
 	corpus_root = os.path.normpath(args.corpus)
+
+	host = args.host
+	port = args.port
 
 	nth = args.thread
 	if not nth: nth = os.cpu_count()
@@ -41,12 +48,12 @@ def main():
 
 	import multiprocessing
 	with multiprocessing.Pool(nth) as pool:
-		results = [pool.apply_async(submain, args=(corpus_root, nth, thrank,)) for thrank in range(nth)]
+		results = [pool.apply_async(submain, args=(corpus_root, nth, thrank, host, port)) for thrank in range(nth)]
 		[result.get() for result in results]
 		del results
 
 
-def submain(corpus_root, nth=None, thrank=0):
+def submain(corpus_root, nth=None, thrank=0, host=None, port=None):
 
 	target       = f'purged_article'
 	target_parse = f'parsed_article'
@@ -68,13 +75,13 @@ def submain(corpus_root, nth=None, thrank=0):
 		with open(parse_file, 'w') as fout:
 			for ii, line in enumerate(article):
 				printr(f'{i+1:0{len(n)}}/{n}\t{parse_file}\t{ii}')
-				fout.write('\t'.join(parse(line))+'\n')
+				fout.write('\t'.join(parse(line, host=host, port=port))+'\n')
 	if not thrank: print()
 
-def parse(line):
+def parse(line, host=None, port=None):
 	uname = '_tester'
 	pwd   = 'tester'
-	return list(itertools.chain.from_iterable(ckipparser.parse(str(line[i:i+80]), uname, pwd, True) \
+	return list(itertools.chain.from_iterable(ckipparser.parse(str(line[i:i+80]), uname, pwd, ws=True, host=host, port=port) \
 			for i in range(0, len(line), 80)))
 
 

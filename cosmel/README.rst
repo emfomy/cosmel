@@ -1,4 +1,3 @@
-======
 CosmEL
 ======
 
@@ -44,18 +43,51 @@ Install Conda
 
 .. code-block:: bash
 
-	wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh
-	sh Miniconda3-latest-Linux-x86_64.sh
-	conda create -n cosmel python=3.6
+   wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh
+   sh Miniconda3-latest-Linux-x86_64.sh
+   conda create -n cosmel python=3.6
+
 
 Install Packages
 ''''''''''''''''
 
 .. code-block:: bash
 
-	source activate cosmel
-	conda install pytorch=0.4.0 -c pytorch
-	conda install beautifulsoup4=4.6 gensim=3.4 lxml=4.2 numpy=1.14 scikit-learn=0.19 tqdm=4.23
+   source activate cosmel
+   conda install pytorch=0.4.0 -c pytorch
+   conda install beautifulsoup4=4.6 gensim=3.4 lxml=4.2 numpy=1.14 scikit-learn=0.19 tqdm=4.23
+
+
+CKIPWS
+''''''
+
+Install CKIPWS at **<ckipws-root>**
+
+.. code-block:: bash
+
+   cp <ckipws-root>/lib/libWordSeg.so <cosmel-root>/libWordSeg.so
+   cp <ckipws-root>/Data2             <cosmel-root>/Data2 -r
+
+
+CKIPParser
+''''''''''
+
+At Windows Server
+"""""""""""""""""
+
+Install CKIPWS at **<ckipparser-root>**
+
+.. code-block:: bat
+
+   cd <ckipparser-root>
+   copy <ckipws-root>\parser\CKIPParser_Socket_Server.py .\CKIPParser_Socket_Server.py
+   copy <ckipws-root>\parser\parser.ini                  .\parser.ini
+
+
+At Linux Client
+"""""""""""""""""
+
+Modify **<cosmel-root>/util.rule_parser**. Replace ``host = '172.16.1.64'`` by the IP of the Windows server.
 
 
 Example
@@ -66,25 +98,26 @@ Enter Conda Environment
 
 .. code-block:: bash
 
-	source activate cosmel
-	cd <cosmel-root-path>
+   source activate cosmel
+   cd <cosmel-root>
+
 
 Database Generating
 '''''''''''''''''''
 
 .. code-block:: bash
 
-	python3 ./util/database_generate.py -i data/input/styleme.csv -d data/demo/repo
-	python3 ./util/database_generate.py -i data/input/styleme.csv -d data/demo/repo --etc
+   python3 ./util/database_generate.py -i data/input/styleme.csv -d data/demo/repo
+
 
 Training
 ''''''''
 
 .. code-block:: bash
 
-	python3 ./tool/corpusgen.py -c data/demo/corpus1 -d data/input/repo -i data/input/original_article1 -x data/demo/output/rid1
-	python3 ./util/word2vec.py  -c data/demo/corpus1
-	python3 ./tool/train.py     -c data/demo/corpus1 -m data/demo/model1 -x data/input/purged_article_gid_xml1
+   python3 ./tool/corpusgen.py -c data/demo/corpus1 -d data/input/repo -i data/input/original_article1 -x data/demo/output/rid1
+   python3 ./util/word2vec.py  -c data/demo/corpus1
+   python3 ./tool/train.py     -c data/demo/corpus1 -m data/demo/model1 -x data/input/purged_article_gid_xml1
 
 
 Predicting
@@ -92,6 +125,5 @@ Predicting
 
 .. code-block:: bash
 
-	python3 ./tool/corpusgen.py -c data/demo/corpus2 -d data/input/repo -i data/input/original_article2 --rule-exact
-	python3 ./tool/predict.py   -c data/demo/corpus2 -m data/demo/model1 -o data/demo/output/nid21
-	python3 ./tool/predict.py   -c data/demo/corpus2 -m data/input/model0 -o data/demo/output/nid20
+   python3 ./tool/corpusgen.py -c data/demo/corpus2 -d data/input/repo -i data/input/original_article2
+   python3 ./tool/predict.py   -c data/demo/corpus2 -m data/demo/model1 -o data/demo/output/nid2

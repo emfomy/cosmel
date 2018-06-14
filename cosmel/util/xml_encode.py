@@ -22,7 +22,7 @@ def main():
 	argparser = argparse.ArgumentParser(description='CosmEL: Encode XML.')
 
 	argparser.add_argument('-c', '--corpus', required=True,
-		help='store corpus data in directory "<CORPUS>/"')
+			help='store corpus data in directory "<CORPUS>/"')
 
 	argparser.add_argument('-i', '--input', required=True, \
 			help='load mention from "<CORPUS>/mention/<INPUT>/"')

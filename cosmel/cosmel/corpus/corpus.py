@@ -32,16 +32,18 @@ class Corpus:
 
 	def __init__(self, article_root, *args, parsed_root=None, mention_root=None, parts=[''], skips=[], skip_file=''):
 
+		skips_ = list(skips)
+
 		if len(args) != 0:
 			print('Please use mention_root=<mention_root> instead of using it directly.')
 			assert len(args) == 0
 
 		if skip_file:
 			with open(skip_file) as fin:
-				skips += fin.read().strip().split('\n')
+				skips_ += fin.read().strip().split('\n')
 
-		self.__article_set          = ArticleSet(article_root, parts=parts, skips=skips)
-		self.__id_to_article        = Id2Article(self.__article_set)
+		self.__article_set   = ArticleSet(article_root, parts=parts, skips=skips_)
+		self.__id_to_article = Id2Article(self.__article_set)
 
 		if parsed_root:
 			self.__parsed_article_set   = ParsedArticleSet(parsed_root, self.__article_set)

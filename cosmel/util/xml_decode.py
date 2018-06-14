@@ -26,9 +26,9 @@ def main():
 	argparser = argparse.ArgumentParser(description='CosmEL: Decode XML.')
 
 	argparser.add_argument('-c', '--corpus', required=True,
-		help='store corpus data in directory "<CORPUS>/"')
+			help='store corpus data in directory "<CORPUS>/"')
 
-	argparser.add_argument('-iw', '--input-ws', metavar='<INPUT-WS>', \
+	argparser.add_argument('-iw', '--input-ws', \
 			help='load word-segmented XML from "<CORPUS>/xml/<INPUT-WS>/"')
 	argparser.add_argument('-i', '--input', required=True, \
 			help='load XML from "<CORPUS>/xml/<INPUT>/"')

@@ -34,9 +34,9 @@ if __name__ == '__main__':
 
 
 	argparser.add_argument('-c', '--corpus', required=True,
-		help='store corpus data in directory "<CORPUS>/"')
+			help='store corpus data in directory "<CORPUS>/"')
 	argparser.add_argument('-m', '--model', required=True,
-		help='store model data in directory "<MODEL>/"')
+			help='store model data in directory "<MODEL>/"')
 
 	argparser.add_argument('-i', '--input', default='purged_article_grid', \
 			help='load mention from "<CORPUS>/mention/<IN-DIR>/"; default is "purged_article_grid"')

@@ -23,7 +23,7 @@ def main():
 	argparser = argparse.ArgumentParser(description='CosmEL: Postprocesses HTML.')
 
 	argparser.add_argument('-c', '--corpus', required=True,
-		help='store corpus data in directory "<CORPUS>/"')
+			help='store corpus data in directory "<CORPUS>/"')
 	argparser.add_argument('-t', '--thread', type=int, \
 			help='use <THREAD> threads; default is `os.cpu_count()`')
 
