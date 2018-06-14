@@ -17,7 +17,11 @@ from cosmel.util.core import *
 class PyWordSeg():
 
 	def __init__(self, ini_file):
-		self.__lib = ctypes.CDLL('libWordSeg.so')
+		try:
+			self.__lib = ctypes.CDLL('libWordSeg.so')
+		except OSError as e:
+			self.__lib = ctypes.CDLL(os.path.abspath('./libWordSeg.so'))
+
 		self.__lib.WordSeg_New.restype            = ctypes.c_void_p
 		self.__lib.WordSeg_InitData.restype       = ctypes.c_bool
 		self.__lib.WordSeg_ApplyFile.restype      = ctypes.c_bool

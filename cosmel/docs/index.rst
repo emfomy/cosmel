@@ -10,8 +10,7 @@ CosmEL: Cosmetic Entity Linking
    :caption: Introduction
    :maxdepth: 1
 
-   src/intro.rst
-
+   src/intro
 
 .. raw:: latex
 

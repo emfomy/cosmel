@@ -105,11 +105,7 @@ def communicate(host, port, info, retry):
 
     return data
 
-def parse(sentence, uname, pwd, ws=False):
-    target_host = "172.16.1.64"
-    target_port = 6400
-    # target_host = "192.168.109.32"
-    # target_port = 9998
+def parse(sentence, uname, pwd, ws=False, host='172.16.1.64', port='6400'):
     retry = 3
 
     # Segmentation
@@ -121,7 +117,7 @@ def parse(sentence, uname, pwd, ws=False):
 
     response = []
     # Communication
-    data = communicate(target_host, target_port, info, retry)
+    data = communicate(host, port, info, retry)
     if(data is not None):
         response = data.strip().replace('\r\n', '\n').split('\n')
 
