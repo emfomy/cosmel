@@ -28,9 +28,9 @@ def main():
 			help='store corpus data in directory "<CORPUS>/"')
 	argparser.add_argument('-t', '--thread', type=int, \
 			help='use <THREAD> threads; default is `os.cpu_count()`')
-	argparser.add_argument('-h', '--host',
+	argparser.add_argument('--host',
 			help='connect to host with IP <HOST>')
-	argparser.add_argument('-p', '--port',
+	argparser.add_argument('--port',
 			help='connect to host with port <PORT>')
 
 	args = argparser.parse_args()

@@ -32,11 +32,11 @@ def main():
 	argparser.add_argument('--emb',
 			help='load pretrained embeddings from file <EMB>; default is "<CORPUS>/embedding/purged_article.dim300.emb.bin"')
 	argparser.add_argument('-s', '--structure-eem', choices=['c', 'cd', 'cn', 'cdn'], default='cdn', \
-			help='use model structure <STRUCTURE-EEM> for entity embedding model; default is "cdn"')
+			help='use model structure <STRUCTURE-EEM> for entity embeddings model; default is "cdn"')
 	# argparser.add_argument('-S', '--structure-mtc', choices=[''], default='cdn', \
 	# 		help='use model structure <STRUCTURE-MTC> for mention type classifier')
 	argparser.add_argument('-l', '--label-eem', choices=['gid', 'rid', 'joint'], nargs='*', default=['joint'], \
-			help='use label type <LABEL-EEM> for entity embedding model; default is "joint"')
+			help='use label type <LABEL-EEM> for entity embeddings model; default is "joint"')
 	argparser.add_argument('-L', '--label-mtc', choices=['gid', 'rid', 'joint'], nargs='*', default=['gid'], \
 			help='use label type <LABEL-MTC> for mention type classifier; default is "gid"')
 
@@ -80,8 +80,8 @@ def main():
 	print(f'Embedding File : {emb_file}')
 	print()
 	print(f'Mention Type Classifier Label     : {label0}')
-	print(f'Entity Embedding Model Label      : {label1}')
-	print(f'Entity Embedding Model Structure  : {args.structure_eem.upper()}')
+	print(f'Entity Embeddings Model Label     : {label1}')
+	print(f'Entity Embeddings Model Structure : {args.structure_eem.upper()}')
 
 	python = sys.executable
 
@@ -142,7 +142,7 @@ def main():
 
 	print()
 	print(colored('1;96', '################################################################################'))
-	print(colored('1;96', '#                       Training Entity Embedding Model                        #'))
+	print(colored('1;96', '#                       Training Entity Embeddings Model                       #'))
 	print(colored('1;96', '################################################################################'))
 	print()
 

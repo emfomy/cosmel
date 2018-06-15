@@ -30,11 +30,11 @@ def main():
 			help='output predicted XML articles into directory <OUTPUT>; default is "<CORPUS>/xml/purged_article_gnrid/"')
 
 	argparser.add_argument('-s', '--structure-eem', choices=['c', 'cd', 'cn', 'cdn'], default='cdn', \
-			help='use model structure <STRUCTURE-EEM> for entity embedding model; default is "cdn"')
+			help='use model structure <STRUCTURE-EEM> for entity embeddings model; default is "cdn"')
 	# argparser.add_argument('-S', '--structure-mtc', choices=[''], default='cdn', \
 	# 		help='use model structure <STRUCTURE-MTC> for mention type classifier')
 	argparser.add_argument('-l', '--label-eem', choices=['gid', 'rid', 'joint'], default='joint', \
-			help='use label type <LABEL-EEM> for entity embedding model; default is "joint"')
+			help='use label type <LABEL-EEM> for entity embeddings model; default is "joint"')
 	argparser.add_argument('-L', '--label-mtc', choices=['gid', 'rid', 'joint'], default='gid', \
 			help='use label type <LABEL-MTC> for mention type classifier; default is "gid"')
 
@@ -71,8 +71,8 @@ def main():
 	print(f'Output Path   : {output_root}')
 	print()
 	print(f'Mention Type Classifier Label     : {label0}')
-	print(f'Entity Embedding Model Label      : {label1}')
-	print(f'Entity Embedding Model Structure  : {args.structure_eem.upper()}')
+	print(f'Entity Embeddings Model Label     : {label1}')
+	print(f'Entity Embeddings Model Structure : {args.structure_eem.upper()}')
 
 	python = sys.executable
 

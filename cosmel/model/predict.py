@@ -40,11 +40,11 @@ if __name__ == '__main__':
 			help='save mention into "<CORPUS>/mention/<OUTPUT>/"; default is "purged_article_nrid"')
 
 	argparser.add_argument('-s', '--structure-eem', \
-			help='use model structure <STRUCTURE-EEM> for entity embedding model')
+			help='use model structure <STRUCTURE-EEM> for entity embeddings model')
 	argparser.add_argument('-S', '--structure-mtc', \
 			help='use model structure <STRUCTURE-MTC> for mention type classifier')
 	argparser.add_argument('-l', '--label-eem', \
-			help='use label type <LABEL-EEM> for entity embedding model')
+			help='use label type <LABEL-EEM> for entity embeddings model')
 	argparser.add_argument('-L', '--label-mtc', \
 			help='use label type <LABEL-MTC> for mention type classifier')
 
@@ -86,11 +86,11 @@ if __name__ == '__main__':
 	print(f'output_root  = {output_root}')
 	print(f'bad_article  = {bad_article}')
 	print()
-	print(f'model0        = {model0_cls_name}')
-	print(f'model1        = {model1_cls_name}')
-	print(f'model0_file   = {model0_file}')
-	print(f'model1_file   = {model1_file}')
-	print(f'meta_file     = {meta_file}')
+	print(f'model0       = {model0_cls_name}')
+	print(f'model1       = {model1_cls_name}')
+	print(f'model0_file  = {model0_file}')
+	print(f'model1_file  = {model1_file}')
+	print(f'meta_file    = {meta_file}')
 	print()
 
 	if args.check: sys.exit()
@@ -99,11 +99,8 @@ if __name__ == '__main__':
 	# Load data
 	#
 
-	corpus0    = Corpus(article_root, mention_root=input_root, skip_file=bad_article)
-	corpus1    = Corpus(article_root, mention_root=input_root, skip_file=bad_article)
-	ment0_list = MentionList(corpus, [m for m in corpus0.mention_set if not m.nid])
-	ment1_list = MentionList(corpus, [m for m in corpus1.mention_set if not m.nid])
-	meta      = DataSetMeta.load(meta_file)
+	corpus = Corpus(article_root, skip_file=bad_article)
+	meta   = DataSetMeta.load(meta_file)
 	print()
 
 	############################################################################################################################
@@ -116,6 +113,39 @@ if __name__ == '__main__':
 	print(model0)
 	print()
 	model0.eval()
+	model0.load(model0_file)
+	print(f'Loaded model0 from "{model0_file}"')
+
+	############################################################################################################################
+	# DataSet of model0
+	#
+
+	corpus.reload_mention(input_root)
+	ment0_list = MentionList(corpus, [m for m in corpus.mention_set if not m.nid])
+	data0      = model0.ment_data_all(ment0_list)
+	dataset0   = torch.utils.data.TensorDataset(*data0.inputs)
+	print(f'#mention = {len(dataset0)}')
+	loader0    = torch.utils.data.DataLoader(
+		dataset=dataset0,
+		batch_size=32,
+		shuffle=False,
+		drop_last=False,
+	)
+
+	############################################################################################################################
+	# Predict with model0
+	#
+
+	# Apply model
+	pred_label0_list = []
+	num_step0 = len(loader0)
+	pbar0 = tqdm.trange(num_step0, desc=model0_cls_name)
+	for _, inputs0_cpu in zip(pbar0, loader0):
+		inputs0 = tuple(v.cuda() for v in inputs0_cpu)
+		pred_label0_list.append(model0.predict(*inputs0))
+
+	# Concatenate result
+	pred_nid0 = model0.label_encoder.inverse_transform(np.concatenate(pred_label0_list))
 
 	############################################################################################################################
 	# Create model1
@@ -127,29 +157,19 @@ if __name__ == '__main__':
 	print(model1)
 	print()
 	model1.eval()
+	model1.load(model1_file)
+	print(f'Loaded model1 from "{model1_file}"')
 
 	############################################################################################################################
-	# DataSet of Model0
+	# DataSet of model1
 	#
 
-	data0    = model0.ment_data_all(ment0_list)
-	dataset0 = torch.utils.data.TensorDataset(*data0.inputs)
-	print(f'#mention = {len(dataset0)}')
-	loader0  = torch.utils.data.DataLoader(
-		dataset=dataset0,
-		batch_size=32,
-		shuffle=False,
-		drop_last=False,
-	)
-
-	############################################################################################################################
-	# DataSet of Model1
-	#
-
-	data1    = model1.ment_data_all(ment1_list)
-	dataset1 = torch.utils.data.TensorDataset(*data1.inputs)
+	corpus.reload_mention(input_root)
+	ment1_list = MentionList(corpus, [m for m in corpus.mention_set if not m.nid])
+	data1      = model1.ment_data_all(ment1_list)
+	dataset1   = torch.utils.data.TensorDataset(*data1.inputs)
 	print(f'#mention = {len(dataset1)}')
-	loader1  = torch.utils.data.DataLoader(
+	loader1    = torch.utils.data.DataLoader(
 		dataset=dataset1,
 		batch_size=32,
 		shuffle=False,
@@ -157,27 +177,10 @@ if __name__ == '__main__':
 	)
 
 	############################################################################################################################
-	# Predicting
+	# Predict with model1
 	#
 
-	# Load model
-	model0.load(model0_file)
-	print(f'Loaded model0 from "{model0_file}"')
-	model1.load(model1_file)
-	print(f'Loaded model1 from "{model1_file}"')
-
-	# Apply model0
-	pred_label0_list = []
-	num_step0 = len(loader0)
-	pbar0 = tqdm.trange(num_step0, desc=model0_cls_name)
-	for _, inputs0_cpu in zip(pbar0, loader0):
-		inputs0 = tuple(v.cuda() for v in inputs0_cpu)
-		pred_label0_list.append(model0.predict(*inputs0))
-
-	# Concatenate result0
-	pred_nid0 = model0.label_encoder.inverse_transform(np.concatenate(pred_label0_list))
-
-	# Apply model1
+	# Apply model
 	pred_label1_list = []
 	num_step1 = len(loader1)
 	pbar1 = tqdm.trange(num_step1, desc=model1_cls_name)
@@ -196,8 +199,7 @@ if __name__ == '__main__':
 	# Writing Results
 	#
 
-	del corpus1
-	del corpus0
+	del corpus
 
 	corpus    = Corpus(article_root, mention_root=input_root)
 	ment_list = MentionList(corpus, [m for m in corpus.mention_set if not m.nid])
