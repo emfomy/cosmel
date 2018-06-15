@@ -45,6 +45,7 @@ Install Conda
 
    wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh
    sh ./Miniconda3-latest-Linux-x86_64.sh
+   export PATH="$HOME/miniconda3/bin:$PATH"
    conda create -n cosmel python=3.6
 
 
@@ -54,6 +55,7 @@ Install Packages
 .. code-block:: bash
 
    source activate cosmel
+   conda install python=3.6.2 -c intel
    conda install pytorch=0.4.0 -c pytorch
    conda install beautifulsoup4=4.6 gensim=3.4 lxml=4.2 numpy=1.14 scikit-learn=0.19 tqdm=4.23
 
@@ -61,7 +63,7 @@ Install Packages
 CKIPWS
 """"""
 
-Install CKIPWS at **<ckipws-root>**
+First, install CKIPWS at **<ckipws-root>**. Then,
 
 .. code-block:: bash
 
@@ -75,7 +77,7 @@ CKIPParser
 At Windows Server
 '''''''''''''''''
 
-Install CKIPParser at **<ckipparser-root>**
+First, install CKIPParser at **<ckipparser-root>**. Then,
 
 .. code-block:: bat
 
@@ -110,6 +112,7 @@ Database Generation
 .. code-block:: bash
 
    python3 ./util/database_generate.py -i demo/styleme.csv -d data/demo/repo
+   python3 ./util/database_generate.py -i demo/styleme.csv -d data/demo/repo --etc
 
 
 Training
@@ -119,7 +122,7 @@ Training
 
    python3 ./tool/corpusgen.py -c data/demo/corpus1 -d demo/repo -i demo/original_article1 -x data/demo/output/rid1
    python3 ./util/word2vec.py  -c data/demo/corpus1
-   python3 ./tool/train.py     -c data/demo/corpus1 -m data/demo/model1 -x demo/purged_article_gid_xml1
+   python3 ./tool/train.py     -c data/demo/corpus1 -m data/demo/model1 -x demo/purged_article_gid_xml1 --emb demo/emb1.bin
 
 
 Prediction
