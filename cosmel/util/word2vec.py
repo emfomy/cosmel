@@ -45,7 +45,7 @@ def main():
 	dim          = 300
 	repo_root    = f'{corpus_root}/repo'
 	article_root = f'{corpus_root}/article/{target}_role'
-	emb_file     = f'{corpus_root}/embedding/{target}.dim{dim}.emb.bin'
+	emb_file     = f'{corpus_root}/embeddings/{target}.dim{dim}.emb.bin'
 	parts        = ['']
 	# parts        = sorted(rm_ext_all(file) for file in os.listdir(article_root))
 

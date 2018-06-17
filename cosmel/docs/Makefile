@@ -22,8 +22,6 @@ help:
 
 api:
 	@$(SPHINXAPI) -feTM -o "$(APIDIR)" "../cosmel" $(SPHINXAPIOPTS)
-	# @$(SPHINXAPI) -feTM -o "$(APIDIR)" "../model"  $(SPHINXAPIOPTS)
-	# @$(SPHINXAPI) -feTM -o "$(APIDIR)" "../parser" $(SPHINXAPIOPTS)
 	@perl -i -0pe 's/Subpackages\n-----------//g;s/Submodules\n----------//g' $(APIDIR)/*
 
 clean: Makefile

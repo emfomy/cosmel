@@ -30,7 +30,7 @@ def main():
 			help='load golden labeled XML articles from directory <XML>; default is "<CORPUS>/xml/purged_article_gid/"')
 
 	argparser.add_argument('--emb',
-			help='load pretrained embeddings from file <EMB>; default is "<CORPUS>/embedding/purged_article.dim300.emb.bin"')
+			help='load pretrained embeddings from file <EMB>; default is "<CORPUS>/embeddings/purged_article.dim300.emb.bin"')
 	argparser.add_argument('-s', '--structure-eem', choices=['c', 'cd', 'cn', 'cdn'], default='cdn', \
 			help='use model structure <STRUCTURE-EEM> for entity embeddings model; default is "cdn"')
 	# argparser.add_argument('-S', '--structure-mtc', choices=[''], default='cdn', \
@@ -57,7 +57,7 @@ def main():
 	xml_root = os.path.normpath(args.xml if args.xml else corpus_xml_root)
 	assert os.path.isdir(xml_root)
 
-	emb_file = f'{corpus_root}/embedding/purged_article.dim300.emb.bin'
+	emb_file = f'{corpus_root}/embeddings/purged_article.dim300.emb.bin'
 	if args.emb != None:
 		emb_file = args.emb
 

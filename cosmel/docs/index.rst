@@ -10,8 +10,6 @@ CosmEL: Cosmetic Entity Linking
    :maxdepth: 1
 
    src/readme
-   src/tool_intro
-   src/model_intro
 
 .. raw:: latex
 
@@ -21,8 +19,11 @@ CosmEL: Cosmetic Entity Linking
    :caption: Tutorial
    :maxdepth: 1
 
-   src/ds
+   src/tool_intro
+   src/model_intro
+   src/data_structure
    src/xml
+   src/faq
 
 .. raw:: latex
 

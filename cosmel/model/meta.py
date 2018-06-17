@@ -34,7 +34,7 @@ if __name__ == '__main__':
 			help='store model data in directory "<MODEL>/"')
 
 	argparser.add_argument('--emb', \
-			help='embedding path; default is "<CORPUS>/embedding/purged_article.dim300.emb.bin"')
+			help='embedding path; default is "<CORPUS>/embeddings/purged_article.dim300.emb.bin"')
 
 	argparser.add_argument('-k', '--check', action='store_true', help='check arguments')
 
@@ -45,7 +45,7 @@ if __name__ == '__main__':
 
 	repo_root   = f'{corpus_root}/repo'
 
-	emb_file = f'{corpus_root}/embedding/purged_article.dim300.emb.bin'
+	emb_file = f'{corpus_root}/embeddings/purged_article.dim300.emb.bin'
 	if args.emb != None:
 		emb_file = args.emb
 

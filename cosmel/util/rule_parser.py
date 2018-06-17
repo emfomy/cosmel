@@ -44,7 +44,8 @@ def main():
 	port = '6400'
 	############################################################################################################################
 
-	if subprocess.call([python, './util/parse.py', '-c', corpus_root, '-t', str(nth), '-h', host, '-p', port]): sys.exit()
+	if subprocess.call([python, './util/parse.py', '-c', corpus_root, '-t', str(nth), \
+			'--host', host, '--port', port]): sys.exit()
 	if subprocess.call([python, './util/rule_core.py', '-c', corpus_root, '-t', str(nth)]): sys.exit()
 	if subprocess.call([python, './util/xml_decode.py', '-c', corpus_root, '-t', str(nth), \
 			'-iw', 'parsed_article_ws_rid', '-i', 'parsed_article_rid', '-o', 'purged_article_rid']): sys.exit()
