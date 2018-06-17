@@ -123,7 +123,6 @@ Modify ``<cosmel-root>/util.rule_parser`` by replacing ``host = '172.16.1.64'`` 
 Example
 -------
 
-
 Enter Conda Environment
 ^^^^^^^^^^^^^^^^^^^^^^^
 

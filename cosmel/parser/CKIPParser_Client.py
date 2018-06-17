@@ -75,6 +75,8 @@ class nonblocking_socket:
         return info
 
 def connect(host, port):
+    assert host is not None
+    assert port is not None
     # create socket
     # AF_INET 代表使用標準 IPv4 位址或主機名稱
     # SOCK_STREAM 代表這會是一個 TCP client
@@ -82,7 +84,7 @@ def connect(host, port):
     client.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     # client 建立連線
     client.settimeout(5)
-    client.connect((host, port))
+    client.connect((str(host), int(port)))
     return client
 
 def communicate(host, port, info, retry):
@@ -122,20 +124,6 @@ def parse(sentence, uname, pwd, ws=False, host=None, port=None):
         response = data.strip().replace('\r\n', '\n').split('\n')
 
     return response
-
-def treeConstruct(sentence):
-    treeList = []
-    ResultList = parse(sentence)
-    for result in ResultList:
-        field = result.rstrip().split('#')
-        sentence_parse_result = field[1].split('] ')[1]
-        sentence_parse_result = u"(" + sentence_parse_result + u")"
-        sentence_parse_result = sentence_parse_result.replace(u"|",u")(")
-        syntax_tree = ParentedTree.fromstring(sentence_parse_result)
-        treeList.append(syntax_tree)
-        #TreeView(syntax_tree) #show structure
-        #TreeView(syntax_tree)._cframe.print_to_file('output.ps') #show structure
-    return treeList
 
 def demo():
     uname = '_tester'
