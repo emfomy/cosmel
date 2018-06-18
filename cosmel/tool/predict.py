@@ -81,25 +81,25 @@ def main():
 	print(colored('1;96', '#                                  Prediction                                  #'))
 	print(colored('1;96', '################################################################################'))
 	print()
-	if subprocess.call([python, './model/predict.py', '-c', corpus_root, '-m', model_root, \
+	subprocess.run([python, './model/predict.py', '-c', corpus_root, '-m', model_root, \
 			'-i', 'purged_article_rid', '-o', 'purged_article_nrid', \
-			'-l', label1, '-s', model1, '-L', label0, '-S', model0]): sys.exit()
+			'-l', label1, '-s', model1, '-L', label0, '-S', model0], check=True)
 
 	print()
 	print(colored('1;96', '################################################################################'))
 	print(colored('1;96', '#                               Mention Merging                                #'))
 	print(colored('1;96', '################################################################################'))
 	print()
-	if subprocess.call([python, './util/mention_merge.py', '-c', corpus_root, '-t', str(nth), \
-			'-b', 'purged_article_nrid', '-i', 'purged_article_gid', '-o', 'purged_article_gnrid', '-f', 'gid']): sys.exit()
+	subprocess.run([python, './util/mention_merge.py', '-c', corpus_root, '-t', str(nth), \
+			'-b', 'purged_article_nrid', '-i', 'purged_article_gid', '-o', 'purged_article_gnrid', '-f', 'gid'], check=True)
 
 	print()
 	print(colored('1;96', '################################################################################'))
 	print(colored('1;96', '#                                 XML Encoding                                 #'))
 	print(colored('1;96', '################################################################################'))
 	print()
-	if subprocess.call([python, './util/xml_encode.py', '-c', corpus_root, '-t', str(nth), \
-			'-i', 'purged_article_gnrid', '-o', 'purged_article_gnrid']): sys.exit()
+	subprocess.run([python, './util/xml_encode.py', '-c', corpus_root, '-t', str(nth), \
+			'-i', 'purged_article_gnrid', '-o', 'purged_article_gnrid'], check=True)
 
 	if not os.path.samefile(output_root, corpus_output_root):
 		print()

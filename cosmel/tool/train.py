@@ -105,16 +105,16 @@ def main():
 	print(colored('1;96', '#                                 XML Decoding                                 #'))
 	print(colored('1;96', '################################################################################'))
 	print()
-	if subprocess.call([python, './util/xml_decode.py', '-c', corpus_root, '-t', str(nth), \
-			'-i', 'purged_article_gid', '-o', 'purged_article_gid']): sys.exit()
+	subprocess.run([python, './util/xml_decode.py', '-c', corpus_root, '-t', str(nth), \
+			'-i', 'purged_article_gid', '-o', 'purged_article_gid'], check=True)
 
 	print()
 	print(colored('1;96', '################################################################################'))
 	print(colored('1;96', '#                               Mention Merging                                #'))
 	print(colored('1;96', '################################################################################'))
 	print()
-	if subprocess.call([python, './util/mention_merge.py', '-c', corpus_root, '-t', str(nth), \
-			'-b', 'purged_article_rid', '-i', 'purged_article_gid', '-o', 'purged_article_grid', '-f', 'gid']): sys.exit()
+	subprocess.run([python, './util/mention_merge.py', '-c', corpus_root, '-t', str(nth), \
+			'-b', 'purged_article_rid', '-i', 'purged_article_gid', '-o', 'purged_article_grid', '-f', 'gid'], check=True)
 
 	print()
 	print(colored('1;96', '################################################################################'))
@@ -122,7 +122,7 @@ def main():
 	print(colored('1;96', '################################################################################'))
 	print()
 
-	if subprocess.call([python, './model/meta.py', '-c', corpus_root, '-m', model_root, '--emb', emb_file]): sys.exit()
+	subprocess.run([python, './model/meta.py', '-c', corpus_root, '-m', model_root, '--emb', emb_file], check=True)
 
 	print()
 	print(colored('1;96', '################################################################################'))
@@ -131,14 +131,14 @@ def main():
 	print()
 
 	if 'rid' in label0 or 'joint' in label0:
-		if subprocess.call([python, './model/train.py', '-c', corpus_root, '-m', model_root, \
-				'-i', 'purged_article_grid', '-l', 'rid', '-s', model0]): sys.exit()
+		subprocess.run([python, './model/train.py', '-c', corpus_root, '-m', model_root, \
+				'-i', 'purged_article_grid', '-l', 'rid', '-s', model0], check=True)
 	if 'gid' in label0:
-		if subprocess.call([python, './model/train.py', '-c', corpus_root, '-m', model_root, \
-				'-i', 'purged_article_grid', '-l', 'gid', '-s', model0]): sys.exit()
+		subprocess.run([python, './model/train.py', '-c', corpus_root, '-m', model_root, \
+				'-i', 'purged_article_grid', '-l', 'gid', '-s', model0], check=True)
 	if 'joint' in label0:
-		if subprocess.call([python, './model/train.py', '-c', corpus_root, '-m', model_root, \
-				'-i', 'purged_article_grid', '-l', 'gid', '-p' 'rid', '-w', 'joint', '-s', model0]): sys.exit()
+		subprocess.run([python, './model/train.py', '-c', corpus_root, '-m', model_root, \
+				'-i', 'purged_article_grid', '-l', 'gid', '-p' 'rid', '-w', 'joint', '-s', model0], check=True)
 
 	print()
 	print(colored('1;96', '################################################################################'))
@@ -147,14 +147,14 @@ def main():
 	print()
 
 	if 'rid' in label1 or 'joint' in label1:
-		if subprocess.call([python, './model/train.py', '-c', corpus_root, '-m', model_root, \
-				'-i', 'purged_article_grid', '-l', 'rid', '-s', model1]): sys.exit()
+		subprocess.run([python, './model/train.py', '-c', corpus_root, '-m', model_root, \
+				'-i', 'purged_article_grid', '-l', 'rid', '-s', model1], check=True)
 	if 'gid' in label1:
-		if subprocess.call([python, './model/train.py', '-c', corpus_root, '-m', model_root, \
-				'-i', 'purged_article_grid', '-l', 'gid', '-s', model1]): sys.exit()
+		subprocess.run([python, './model/train.py', '-c', corpus_root, '-m', model_root, \
+				'-i', 'purged_article_grid', '-l', 'gid', '-s', model1], check=True)
 	if 'joint' in label1:
-		if subprocess.call([python, './model/train.py', '-c', corpus_root, '-m', model_root, \
-				'-i', 'purged_article_grid', '-l', 'gid', '-p' 'rid', '-w', 'joint', '-s', model1]): sys.exit()
+		subprocess.run([python, './model/train.py', '-c', corpus_root, '-m', model_root, \
+				'-i', 'purged_article_grid', '-l', 'gid', '-p' 'rid', '-w', 'joint', '-s', model1], check=True)
 
 	print()
 	print(colored('1;93', '********************************************************************************'))

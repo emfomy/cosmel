@@ -99,7 +99,9 @@ if __name__ == '__main__':
 	# Load data
 	#
 
-	corpus = Corpus(article_root, skip_file=bad_article)
+	corpus = Corpus(article_root, mention_root=input_root, skip_file=bad_article)
+	amsid_list = [m.asmid for m in corpus.mention_set]
+	print(f'#mention = {len(amsid_list)}')
 	meta   = DataSetMeta.load(meta_file)
 	print()
 
@@ -121,10 +123,10 @@ if __name__ == '__main__':
 	#
 
 	corpus.reload_mention(input_root)
-	ment0_list = MentionList(corpus, [m for m in corpus.mention_set if not m.nid])
+	ment0_list = MentionList(corpus, [corpus.id_to_mention[asmid] for asmid in amsid_list])
 	data0      = model0.ment_data_all(ment0_list)
 	dataset0   = torch.utils.data.TensorDataset(*data0.inputs)
-	print(f'#mention = {len(dataset0)}')
+	print(f'#mention for model0 = {len(dataset0)}')
 	loader0    = torch.utils.data.DataLoader(
 		dataset=dataset0,
 		batch_size=32,
@@ -165,10 +167,10 @@ if __name__ == '__main__':
 	#
 
 	corpus.reload_mention(input_root)
-	ment1_list = MentionList(corpus, [m for m in corpus.mention_set if not m.nid])
+	ment1_list = MentionList(corpus, [corpus.id_to_mention[asmid] for asmid in amsid_list])
 	data1      = model1.ment_data_all(ment1_list)
 	dataset1   = torch.utils.data.TensorDataset(*data1.inputs)
-	print(f'#mention = {len(dataset1)}')
+	print(f'#mention for model1 = {len(dataset1)}')
 	loader1    = torch.utils.data.DataLoader(
 		dataset=dataset1,
 		batch_size=32,
@@ -202,7 +204,8 @@ if __name__ == '__main__':
 	del corpus
 
 	corpus    = Corpus(article_root, mention_root=input_root)
-	ment_list = MentionList(corpus, [m for m in corpus.mention_set if not m.nid])
+	ment_list = MentionList(corpus, [corpus.id_to_mention[asmid] for asmid in amsid_list])
+	print(f'#mention for output = {len(ment_list)}')
 
 	# Set NID
 	for m, nid in zip(ment_list, pred_nid1):

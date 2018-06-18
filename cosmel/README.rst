@@ -212,3 +212,29 @@ The results are exported to ``data/demo/output/nid2/``.
 See more details in :ref:`UsageToolCorpusGeneration` and :ref:`UsageToolPrediction`.
 
 
+Documentation
+-------------
+
+To build the documentation, please install the following packages.
+
+.. code-block:: bash
+
+   cd <cosmel-root>/docs
+   conda install sphinx=1.7.4 sphinx_rtd_theme=0.3.1
+   conda install sphinxcontrib-programoutput=0.11 -c conda-forge
+
+Next, build the HTML documentation.
+
+.. code-block:: bash
+
+   make html
+
+The outputs are located in ``<cosmel-root>/docs/_build/html/``.
+
+You may also build PDF documentation using LaTeX if you have ``latexmk`` and ``xelatex`` installed.
+
+.. code-block:: bash
+
+   make latex
+
+The outputs are located in ``<cosmel-root>/docs/_build/latex/``.

@@ -37,10 +37,10 @@ def main():
 	print(f'Use {nth} threads')
 
 	import multiprocessing
-	with multiprocessing.Pool(nth) as pool:
-		results = [pool.apply_async(submain, args=(corpus_root, nth, thrank,)) for thrank in range(nth)]
-		[result.get() for result in results]
-		del results
+	jobs = [multiprocessing.Process(target=submain, args=(corpus_root, nth, thrank,)) for thrank in range(nth)]
+	for p in jobs: p.start()
+	for p in jobs: p.join()
+	for p in jobs: assert p.exitcode == 0
 
 
 def submain(corpus_root, nth=None, thrank=0):

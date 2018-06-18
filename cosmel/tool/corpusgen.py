@@ -117,17 +117,17 @@ def main():
 	print(colored('1;96', '#                              Article Processing                              #'))
 	print(colored('1;96', '################################################################################'))
 	print()
-	if subprocess.call([python, './util/article_preprocess.py', '-c', corpus_root, '-t', str(nth)]): sys.exit()
+	subprocess.run([python, './util/article_preprocess.py', '-c', corpus_root, '-t', str(nth)], check=True)
 	print()
 
-	if subprocess.call([python, './util/article_postprocess.py', '-c', corpus_root, '-t', str(nth)]): sys.exit()
+	subprocess.run([python, './util/article_postprocess.py', '-c', corpus_root, '-t', str(nth)], check=True)
 
 	print()
 	print(colored('1;96', '################################################################################'))
 	print(colored('1;96', '#                              Mention Detection                               #'))
 	print(colored('1;96', '################################################################################'))
 	print()
-	if subprocess.call([python, './util/mention_detect.py', '-c', corpus_root, '-t', str(nth)]): sys.exit()
+	subprocess.run([python, './util/mention_detect.py', '-c', corpus_root, '-t', str(nth)], check=True)
 
 	print()
 	print(colored('1;96', '################################################################################'))
@@ -135,15 +135,15 @@ def main():
 	print(colored('1;96', '################################################################################'))
 	print()
 
-	if subprocess.call([python, rule_file, '-c', corpus_root, '-t', str(nth)]): sys.exit()
+	subprocess.run([python, rule_file, '-c', corpus_root, '-t', str(nth)], check=True)
 
 	print()
 	print(colored('1;96', '################################################################################'))
 	print(colored('1;96', '#                                 XML Encoding                                 #'))
 	print(colored('1;96', '################################################################################'))
 	print()
-	if subprocess.call([python, './util/xml_encode.py', '-c', corpus_root, '-t', str(nth), \
-			'-i', 'purged_article_rid', '-o', 'purged_article_rid']): sys.exit()
+	subprocess.run([python, './util/xml_encode.py', '-c', corpus_root, '-t', str(nth), \
+			'-i', 'purged_article_rid', '-o', 'purged_article_rid'], check=True)
 
 	if not os.path.samefile(xml_root, corpus_xml_root):
 		print()

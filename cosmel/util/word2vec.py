@@ -138,6 +138,7 @@ def word2vec_train(model, sentences):
 			self.pbar = tqdm.trange(self.batchs, desc=f'Epoch {self.epoch+1:0{len(str(self.epochs))}}/{self.epochs}')
 
 		def on_epoch_end(self, model):
+			del self.pbar
 			self.epoch += 1
 
 		def on_batch_begin(self, model):

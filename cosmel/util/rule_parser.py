@@ -44,11 +44,11 @@ def main():
 	port = '6400'
 	############################################################################################################################
 
-	if subprocess.call([python, './util/parse.py', '-c', corpus_root, '-t', str(nth), \
-			'--host', host, '--port', port]): sys.exit()
-	if subprocess.call([python, './util/rule_core.py', '-c', corpus_root, '-t', str(nth)]): sys.exit()
-	if subprocess.call([python, './util/xml_decode.py', '-c', corpus_root, '-t', str(nth), \
-			'-iw', 'parsed_article_ws_rid', '-i', 'parsed_article_rid', '-o', 'purged_article_rid']): sys.exit()
+	subprocess.run([python, './util/parse.py', '-c', corpus_root, '-t', str(nth), \
+			'--host', host, '--port', port], check=True)
+	subprocess.run([python, './util/rule_core.py', '-c', corpus_root, '-t', str(nth)], check=True)
+	subprocess.run([python, './util/xml_decode.py', '-c', corpus_root, '-t', str(nth), \
+			'-iw', 'parsed_article_ws_rid', '-i', 'parsed_article_rid', '-o', 'purged_article_rid'], check=True)
 
 
 if __name__ == '__main__':

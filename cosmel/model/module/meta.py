@@ -81,7 +81,7 @@ class DataSetMeta:
 		# Prepare tokenizer
 		self.tokenizer = Tokenizer(self.word_index)
 		num_vocab = len(self.tokenizer.classes_)+1
-		print(f'num_vocab   = {num_vocab}')
+		print(f'#vocab   = {num_vocab}')
 		assert num_vocab == self.word_vector.shape[0]
 
 		# Prepare padder
@@ -91,13 +91,13 @@ class DataSetMeta:
 		self.p_encoder = LabelEncoder()
 		self.p_encoder.fit(self.pids)
 		num_product = len(self.p_encoder.classes_)
-		print(f'num_product = {num_product}')
+		print(f'#product = {num_product}')
 
 		# Prepare brand encoder
 		self.b_encoder = LabelEncoder()
 		self.b_encoder.fit(self.bnames)
 		num_brand = len(self.b_encoder.classes_)
-		print(f'num_brand   = {num_brand}')
+		print(f'#brand   = {num_brand}')
 
 		# Prepare product binarizer
 		self.p_binarizer = LabelBinarizer()
