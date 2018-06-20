@@ -100,13 +100,14 @@ def main():
 			printr(f'{i+1:0{len(n)}}/{n}\tCopying "{corpus_xml_file}"')
 	print()
 
-	print()
-	print(colored('1;96', '################################################################################'))
-	print(colored('1;96', '#                                 XML Decoding                                 #'))
-	print(colored('1;96', '################################################################################'))
-	print()
-	subprocess.run([python, './util/xml_decode.py', '-c', corpus_root, '-t', str(nth), \
-			'-i', 'purged_article_gid', '-o', 'purged_article_gid'], check=True)
+	if os.path.exists(corpus_xml_root):
+		print()
+		print(colored('1;96', '################################################################################'))
+		print(colored('1;96', '#                                 XML Decoding                                 #'))
+		print(colored('1;96', '################################################################################'))
+		print()
+		subprocess.run([python, './util/xml_decode.py', '-c', corpus_root, '-t', str(nth), \
+				'-i', 'purged_article_gid', '-o', 'purged_article_gid'], check=True)
 
 	print()
 	print(colored('1;96', '################################################################################'))

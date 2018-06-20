@@ -1,40 +1,43 @@
 CosmEL: Cosmetic Entity Linking
 ===============================
 
+
 .. raw:: latex
 
-   \part{Introduction}
+   \part{Overview}
 
 .. toctree::
-   :caption: Introduction
+   :caption: Overview
    :maxdepth: 2
 
    src/readme
 
+
 .. raw:: latex
 
-   \part{Tutorial}
+   \part{Notes}
 
 .. toctree::
-   :caption: Tutorial
+   :caption: Notes
    :maxdepth: 2
 
-   src/tool_intro
-   src/model_intro
+   src/tool_note
+   src/model_note
    src/data_structure
    src/faq
 
+
 .. raw:: latex
 
-   \part{Usage}
+   \part{Specification}
 
 .. toctree::
-   :caption: Usage
+   :caption: Specification
    :maxdepth: 2
 
-   src/tool_usage
-   src/util_usage
-   src/model_usage
+   src/tool_spec
+   src/util_spec
+   src/model_spec
 
 
 .. raw:: latex

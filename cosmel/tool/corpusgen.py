@@ -31,6 +31,9 @@ def main():
 			help='load articles in directory <INPUT>; default is "<CORPUS>/article/original_article/"')
 	argparser.add_argument('-x', '--xml',
 			help='output rule labeled XML articles into directory <XML>; default is "<CORPUS>/xml/purged_article_rid/"')
+	argparser.add_argument('-X', '--xml-empty',
+			help='output empty XML articles into directory <XML-EMPTY> for human annotation; ' +
+					'default is "<CORPUS>/xml/purged_article/"')
 
 	arggroup = argparser.add_mutually_exclusive_group()
 
@@ -56,10 +59,15 @@ def main():
 	input_root = os.path.normpath(args.input if args.input else corpus_input_root)
 	assert os.path.isdir(input_root)
 
-	corpus_xml_root = f'{corpus_root}/xml/purged_article_rid'
-	xml_root = os.path.normpath(args.xml if args.xml else corpus_xml_root)
-	os.makedirs(xml_root, exist_ok=True)
-	assert os.path.isdir(xml_root)
+	corpus_xml_rid_root = f'{corpus_root}/xml/purged_article_rid'
+	xml_rid_root = os.path.normpath(args.xml if args.xml else corpus_xml_rid_root)
+	os.makedirs(xml_rid_root, exist_ok=True)
+	assert os.path.isdir(xml_rid_root)
+
+	corpus_xml_nil_root = f'{corpus_root}/xml/purged_article'
+	xml_nil_root = os.path.normpath(args.xml_empty if args.xml else corpus_xml_nil_root)
+	os.makedirs(xml_nil_root, exist_ok=True)
+	assert os.path.isdir(xml_nil_root)
 
 	rule_file = './util/rule_exact.py'
 	if args.rule_parser:
@@ -73,12 +81,13 @@ def main():
 
 	print(args)
 	print()
-	print(f'Thread Number : {nth}')
-	print(f'Corpus Path   : {corpus_root}')
-	print(f'Database Path : {repo_root}')
-	print(f'Input Path    : {input_root}')
-	print(f'XML Path      : {xml_root}')
-	print(f'Rule          : {rule_file}')
+	print(f'Thread Number    : {nth}')
+	print(f'Corpus Path      : {corpus_root}')
+	print(f'Database Path    : {repo_root}')
+	print(f'Input Path       : {input_root}')
+	print(f'XML Path (RID)   : {xml_rid_root}')
+	print(f'XML Path (Empty) : {xml_nil_root}')
+	print(f'Rule             : {rule_file}')
 
 	python = sys.executable
 
@@ -143,26 +152,43 @@ def main():
 	print(colored('1;96', '################################################################################'))
 	print()
 	subprocess.run([python, './util/xml_encode.py', '-c', corpus_root, '-t', str(nth), \
+			'-i', 'purged_article', '-o', 'purged_article'], check=True)
+	subprocess.run([python, './util/xml_encode.py', '-c', corpus_root, '-t', str(nth), \
 			'-i', 'purged_article_rid', '-o', 'purged_article_rid'], check=True)
 
-	if not os.path.samefile(xml_root, corpus_xml_root):
+	if not os.path.samefile(xml_rid_root, corpus_xml_rid_root):
 		print()
 		print(colored('1;96', '################################################################################'))
 		print(colored('1;96', '#                                   XML Copy                                   #'))
 		print(colored('1;96', '################################################################################'))
 		print()
-		corpus_xml_files = glob_files(corpus_xml_root)
-		n = str(len(corpus_xml_files))
-		for i, corpus_xml_file in enumerate(corpus_xml_files):
-			xml_file = transform_path(corpus_xml_file, corpus_xml_root, xml_root)
-			os.makedirs(os.path.dirname(xml_file), exist_ok=True)
-			shutil.copyfile(f'{corpus_xml_file}', f'{xml_file}')
-			printr(f'{i+1:0{len(n)}}/{n}\tCopying "{xml_file}"')
+		corpus_xml_rid_files = glob_files(corpus_xml_rid_root)
+		n = str(len(corpus_xml_rid_files))
+		for i, corpus_xml_rid_file in enumerate(corpus_xml_rid_files):
+			xml_rid_file = transform_path(corpus_xml_rid_file, corpus_xml_rid_root, xml_rid_root)
+			os.makedirs(os.path.dirname(xml_rid_file), exist_ok=True)
+			shutil.copyfile(f'{corpus_xml_rid_file}', f'{xml_rid_file}')
+			printr(f'{i+1:0{len(n)}}/{n}\tCopying "{xml_rid_file}"')
+	print()
+
+	if not os.path.samefile(xml_rid_root, corpus_xml_rid_root):
+		print()
+		print(colored('1;96', '################################################################################'))
+		print(colored('1;96', '#                                   XML Copy                                   #'))
+		print(colored('1;96', '################################################################################'))
+		print()
+		corpus_xml_nil_files = glob_files(corpus_xml_nil_root)
+		n = str(len(corpus_xml_nil_files))
+		for i, corpus_xml_nil_file in enumerate(corpus_xml_nil_files):
+			xml_nil_file = transform_path(corpus_xml_nil_file, corpus_xml_nil_root, xml_nil_root)
+			os.makedirs(os.path.dirname(xml_nil_file), exist_ok=True)
+			shutil.copyfile(f'{corpus_xml_nil_file}', f'{xml_nil_file}')
+			printr(f'{i+1:0{len(n)}}/{n}\tCopying "{xml_nil_file}"')
 	print()
 
 	print()
 	print(colored('1;93', '********************************************************************************'))
-	print(colored('1;93',f'* Please modify "gid" flags in "{xml_root}" if you need manual annotation.'))
+	print(colored('1;93',f'* Please modify "gid" flags in "{xml_nil_root}" if you need manual annotation.'))
 	print(colored('1;93', '*'))
 	print()
 

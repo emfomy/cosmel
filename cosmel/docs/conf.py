@@ -124,7 +124,7 @@ html_sidebars = {
     ]
 }
 
-html_logo    = 'image/cosmel.png'
+html_logo    = 'image/cosmel_logo.png'
 html_favicon = 'image/comel_favicon.png'
 
 
@@ -136,7 +136,7 @@ htmlhelp_basename = 'CosmELDoc'
 
 # -- Options for LaTeX output:------------------------------------------
 
-latex_logo = 'image/cosmel.png'
+latex_logo = 'image/cosmel_logo.png'
 
 latex_engine = 'xelatex'
 
