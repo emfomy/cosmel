@@ -26,7 +26,7 @@ api:
 
 clean: Makefile
 	@$(SPHINXBUILD) -M $@ "$(DOCDIR)" "$(BUILDDIR)" $(SPHINXBUILDOPTS)
-	@$(SPHINXBUILD) -M $@ "$(DOCDIR)" "$(APIDIR)" $(SPHINXBUILDOPTS)
+	@$(SPHINXBUILD) -M $@ "$(DOCDIR)" "$(APIDIR)"   $(SPHINXBUILDOPTS)
 
 html: api Makefile
 	@$(SPHINXBUILD) -M $@ "$(DOCDIR)" "$(BUILDDIR)" $(SPHINXBUILDOPTS)

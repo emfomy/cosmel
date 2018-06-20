@@ -5,6 +5,8 @@ CosmEL
 Author
 ------
 
+`CKIP Lab <http://ckip.iis.sinica.edu.tw/>`_, Institute of Information Science, Academia Sinica, Taipei, Taiwan.
+
 * Mu Yang      <emfomy@gmail.com>
 * Chi-Yen Chen <jina199312@gmail.com>
 * Yi-Hui Lee   <lilyyhlee30@gmail.com>
@@ -152,7 +154,7 @@ You can modify ``data/demo/repo/etc/`` to ameliorate the database. See :ref:`Int
 
 The database are stored in ``data/demo/repo/``.
 
-See more details in :ref:`IntroDatabaseGeneration` and :ref:`UsageDatabaseGeneration`.
+See more details in :ref:`UsageDatabaseGeneration`.
 
 
 Training

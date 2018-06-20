@@ -7,7 +7,7 @@ CosmEL: Cosmetic Entity Linking
 
 .. toctree::
    :caption: Introduction
-   :maxdepth: 1
+   :maxdepth: 2
 
    src/readme
 
@@ -17,12 +17,11 @@ CosmEL: Cosmetic Entity Linking
 
 .. toctree::
    :caption: Tutorial
-   :maxdepth: 1
+   :maxdepth: 2
 
    src/tool_intro
    src/model_intro
    src/data_structure
-   src/xml
    src/faq
 
 .. raw:: latex
@@ -31,7 +30,7 @@ CosmEL: Cosmetic Entity Linking
 
 .. toctree::
    :caption: Usage
-   :maxdepth: 1
+   :maxdepth: 2
 
    src/tool_usage
    src/util_usage
@@ -44,7 +43,7 @@ CosmEL: Cosmetic Entity Linking
 
 .. toctree::
    :caption: Package
-   :maxdepth: 1
+   :maxdepth: 2
 
    _api/cosmel
 
@@ -52,8 +51,7 @@ CosmEL: Cosmetic Entity Linking
 
    .. toctree::
       :hidden:
-      :maxdepth: 1
       :caption: Appendix
+      :maxdepth: 2
 
-      py-modindex
       genindex
