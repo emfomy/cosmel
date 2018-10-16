@@ -65,7 +65,7 @@ class CkipWs():
 			lines = fin.readlines()
 			n = str(len(lines))
 			for i, line in enumerate(lines):
-				if verbose: printr(f'{i+1:0{len(n)}}/{n}\t{line[:8]}...')
+				if verbose: printr(f'{i+1:0{len(n)}}/{n}\t{line[:8].strip()}...')
 				fout.write('　'.join(self.__core.apply_list([line[i:i+80] for i in range(0, len(line), 80)]))+'\n')
 		if verbose: print()
 

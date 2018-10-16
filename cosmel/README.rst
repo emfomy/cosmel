@@ -97,21 +97,21 @@ We split our progress in to four parts:
 Quick Start
 ===========
 
+Installation
+------------
+
 One may install using either pip or Conda
 
-Installation (pip)
-------------------
+Install with pip
+^^^^^^^^^^^^^^^^
 
 .. code-block:: bash
 
    pip install torch==0.4.1 torchvision
    pip install beautifulsoup4==4.6 gensim==3.6 lxml==4.2 numpy==1.15 scikit-learn==0.20 tqdm==4.27
 
-Installation (Conda)
---------------------
-
-Install Conda
-^^^^^^^^^^^^^
+Install with Conda
+^^^^^^^^^^^^^^^^^^
 
 First install the Conda environment. Conda is an open source package management system. It quickly installs, runs and updates packages and their dependencies.
 
@@ -134,7 +134,7 @@ Next, create a new Conda environment for CosmEL, named **cosmel**, with Python v
 
 
 Install Packages
-^^^^^^^^^^^^^^^^
+""""""""""""""""
 
 First activate the CosmEL Conda environment:
 
@@ -159,6 +159,15 @@ Next, install the Python packages:
 
 CKIPWS
 ^^^^^^
+
+Please install the `CKIPWS Cython Package <https://github.com/emfomy/cyckipws>`_.
+
+If one don't have Cython, please following the following instruction.
+
+Install Without Cython
+""""""""""""""""""""""
+
+Replace ``<cosmel-root>/cosmel/util/ckipws.py`` by ``<cosmel-root>/cosmel/util/ckipws-old.py``.
 
 Denote the root path of CosmEL (the folder containing this README) as ``<cosmel-root>``, and the root path of CKIPWS as ``<ckipws-root>``. Copy the following files:
 
