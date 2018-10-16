@@ -15,6 +15,7 @@ if __name__ == '__main__':
 	sys.path.insert(0, os.path.abspath('.'))
 
 from cosmel import *
+from cosmel import __version__ as ver
 
 from xml_encode import add_start_xml
 from xml_encode import add_end_xml
