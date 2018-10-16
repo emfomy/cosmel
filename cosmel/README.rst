@@ -24,6 +24,7 @@ Requirement
 * Program and Tools
    * `Python <http://www.python.org/>`_ 3.6.
    * `CKIPWS <http://otl.sinica.edu.tw/index.php?t=9&group_id=25&article_id=408>`_ Linux version.
+   * `CKIPWS Cython Package <https://github.com/emfomy/cyckipws>`_ 0.1.3.
    * `CKIPParser <http://otl.sinica.edu.tw/index.php?t=9&group_id=25&article_id=1653>`_ Windows version. (Optional)
 * Python Packages
    * `BeautifulSoup <http://www.crummy.com/software/BeautifulSoup/>`_ 4.6.
