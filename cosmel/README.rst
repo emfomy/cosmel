@@ -204,10 +204,7 @@ Modify ``<cosmel-root>/util.rule_parser`` by replacing ``host = '172.16.1.64'`` 
 Example
 -------
 
-Enter Conda Environment
-^^^^^^^^^^^^^^^^^^^^^^^
-
-Goto the root path of CosmEL (``<cosmel-root>``, the folder containing this README), and create the working space for this example (``data/demo/``).
+First, goto the root path of CosmEL (``<cosmel-root>``, the folder containing this README), and create the working space for this example (``data/demo/``).
 
 .. code-block:: bash
 
@@ -261,7 +258,7 @@ If you have CKIPParser, you may add ``--rule-parser`` to use parser-based rule a
 
    python3 ./tool/corpusgen.py -c data/demo/corpus1 -d demo/repo -i demo/original_article1 -x data/demo/output/rid1  -X data/demo/output/nil1 --rule-parser
 
-The rule-labeled articles are exported to ``data/demo/output/rid1/``, and the empty XML articles are exported to ``data/demo/output/nil1/``. You may modify the ``gid`` flags in the empty XML articles for manually annotation.
+The rule-labeled articles are exported to ``data/demo/output/rid1/``, and the empty XML articles are exported to ``data/demo/output/nil1/``. You may modify the ``gid`` flags in the empty XML articles for manually annotation. (For HTML format, please refer :ref:`SpecUtilHTMLEncoding` and :ref:`SpecUtilHTMLDecoding`)
 
 Next, you may train word embeddings from the corpus (stored in ``data/demo/corpus1/embeddings/``):
 

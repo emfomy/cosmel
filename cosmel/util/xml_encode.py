@@ -57,7 +57,6 @@ def main():
 def submain(corpus_root, in_dir, out_dir, nth=None, thrank=0):
 
 	target       = f'purged_article'
-	repo_root    = f'{corpus_root}/repo'
 	article_root = f'{corpus_root}/article/{target}_role'
 	mention_root = f'{corpus_root}/mention/{in_dir}'
 	xml_root     = f'{corpus_root}/xml/{out_dir}'

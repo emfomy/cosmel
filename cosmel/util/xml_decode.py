@@ -102,6 +102,7 @@ def submain(corpus_root, in_ws_dir, in_dir, out_dir, nth=None, thrank=0):
 		for i, article in enumerate(corpus.article_set):
 			xml_file    = transform_path(article.path, article_root, xml_root, '.xml')
 			output_file = transform_path(article.path, article_root, output_root, '.json')
+			os.makedirs(os.path.dirname(output_file), exist_ok=True)
 			bundle      = article.bundle
 			printr(f'{i+1:0{len(n)}}/{n}\t{output_file}')
 

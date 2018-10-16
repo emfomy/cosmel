@@ -47,7 +47,6 @@ def submain(corpus_root, nth=None, thrank=0):
 
 	target       = f'purged_article'
 	tmp_root     = f'data/tmp'
-	repo_root    = f'{corpus_root}/repo'
 	article_root = f'{corpus_root}/article/{target}_role'
 	mention_root = f'{corpus_root}/mention/{target}'
 	# parts        = ['']
