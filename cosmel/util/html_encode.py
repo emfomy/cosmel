@@ -15,6 +15,7 @@ if __name__ == '__main__':
 	sys.path.insert(0, os.path.abspath('.'))
 
 from cosmel import *
+from cosmel import __version__ as ver
 
 from xml_encode import add_start_xml
 from xml_encode import add_end_xml
@@ -31,7 +32,7 @@ def main():
 	argparser.add_argument('-i', '--input', required=True, \
 			help='load mention from "<CORPUS>/mention/<INPUT>/"')
 	argparser.add_argument('-o', '--output', \
-			help='dump XML into "<CORPUS>/html/<OUTPUT>/"; default is <INPUT>')
+			help='dump HTML into "<CORPUS>/html/<OUTPUT>/"; default is <INPUT>')
 
 	argparser.add_argument('-t', '--thread', type=int, \
 			help='use <THREAD> threads; default is `os.cpu_count()`')
@@ -61,7 +62,6 @@ def main():
 def submain(corpus_root, in_dir, out_dir, nth=None, thrank=0):
 
 	target       = f'purged_article'
-	repo_root    = f'{corpus_root}/repo'
 	html_root    = f'{corpus_root}/html/html_article'
 	idx_root     = f'{corpus_root}/html/{target}_idx'
 	mention_root = f'{corpus_root}/mention/{in_dir}'

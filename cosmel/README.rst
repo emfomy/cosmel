@@ -4,7 +4,7 @@ Introduction
 .. only:: html
 
    .. image:: https://img.shields.io/badge/Python-3.6-blue.svg
-   .. image:: https://img.shields.io/badge/PyTorch-0.4.0-blue.svg
+   .. image:: https://img.shields.io/badge/PyTorch-0.4.1-blue.svg
 
 Cosmetic Entity Linking (CosmEL) is an entity linking tool in cosmetic domain.
 
@@ -24,18 +24,19 @@ Requirement
 * Program and Tools
    * `Python <http://www.python.org/>`_ 3.6.
    * `CKIPWS <http://otl.sinica.edu.tw/index.php?t=9&group_id=25&article_id=408>`_ Linux version.
+   * `CKIPWS Cython Package <https://github.com/emfomy/cyckipws>`_ 0.1.3.
    * `CKIPParser <http://otl.sinica.edu.tw/index.php?t=9&group_id=25&article_id=1653>`_ Windows version. (Optional)
 * Python Packages
    * `BeautifulSoup <http://www.crummy.com/software/BeautifulSoup/>`_ 4.6.
-   * `gensim <https://radimrehurek.com/gensim/>`_ 3.4.
+   * `gensim <https://radimrehurek.com/gensim/>`_ 3.6.
    * `lxml <http://lxml.de/>`_ 4.2.
-   * `NumPy <http://numpy.scipy.org/>`_ 1.14.
-   * `PyTorch <http://pytorch.org/>`_ 0.4.0.
-   * `scikit-learn <http://scikit-learn.org/>`_ 0.19.
-   * `tqdm <https://pypi.org/project/tqdm/>`_ 4.23.
+   * `NumPy <http://numpy.scipy.org/>`_ 1.15.
+   * `PyTorch <http://pytorch.org/>`_ 0.4.1.
+   * `scikit-learn <http://scikit-learn.org/>`_ 0.20.
+   * `tqdm <https://pypi.org/project/tqdm/>`_ 4.27.
 * Documentation Packages (Optional)
-   * `sphinx <http://www.sphinx-doc.org/>`_ 1.7.5.
-   * `sphinx_rtd_theme <https://github.com/rtfd/sphinx_rtd_theme/>`_ 0.3.1.
+   * `sphinx <http://www.sphinx-doc.org/>`_ 1.8.1.
+   * `sphinx_rtd_theme <https://github.com/rtfd/sphinx_rtd_theme/>`_ 0.4.2.
    * `sphinxcontrib-programoutput <https://bitbucket.org/birkenfeld/sphinx-contrib>`_ 0.11.
 
 
@@ -99,8 +100,18 @@ Quick Start
 Installation
 ------------
 
-Install Conda
-^^^^^^^^^^^^^
+One may install using either pip or Conda
+
+Install with pip
+^^^^^^^^^^^^^^^^
+
+.. code-block:: bash
+
+   pip install torch==0.4.1 torchvision
+   pip install beautifulsoup4==4.6 gensim==3.6 lxml==4.2 numpy==1.15 scikit-learn==0.20 tqdm==4.27
+
+Install with Conda
+^^^^^^^^^^^^^^^^^^
 
 First install the Conda environment. Conda is an open source package management system. It quickly installs, runs and updates packages and their dependencies.
 
@@ -123,7 +134,7 @@ Next, create a new Conda environment for CosmEL, named **cosmel**, with Python v
 
 
 Install Packages
-^^^^^^^^^^^^^^^^
+""""""""""""""""
 
 First activate the CosmEL Conda environment:
 
@@ -142,12 +153,21 @@ Next, install the Python packages:
 .. code-block:: bash
 
    conda install python=3.6.2 -c intel
-   conda install pytorch=0.4.0 -c pytorch -c intel
-   conda install beautifulsoup4=4.6 gensim=3.4 lxml=4.2 numpy=1.14 scikit-learn=0.19 tqdm=4.23 -c intel
+   conda install pytorch=0.4.1 -c pytorch -c intel
+   conda install beautifulsoup4=4.6 gensim=3.6 lxml=4.2 numpy=1.15 scikit-learn=0.20 tqdm=4.27 -c intel
 
 
 CKIPWS
 ^^^^^^
+
+Please install the `CKIPWS Cython Package <https://github.com/emfomy/cyckipws>`_.
+
+If one don't have Cython, please following the following instruction.
+
+Install Without Cython
+""""""""""""""""""""""
+
+Replace ``<cosmel-root>/cosmel/util/ckipws.py`` by ``<cosmel-root>/cosmel/util/ckipws-old.py``.
 
 Denote the root path of CosmEL (the folder containing this README) as ``<cosmel-root>``, and the root path of CKIPWS as ``<ckipws-root>``. Copy the following files:
 
@@ -184,14 +204,10 @@ Modify ``<cosmel-root>/util.rule_parser`` by replacing ``host = '172.16.1.64'`` 
 Example
 -------
 
-Enter Conda Environment
-^^^^^^^^^^^^^^^^^^^^^^^
-
-Remember to activate the CosmEL Conda environment if not activated. Goto the root path of CosmEL (``<cosmel-root>``, the folder containing this README), and create the working space for this example (``data/demo/``).
+First, goto the root path of CosmEL (``<cosmel-root>``, the folder containing this README), and create the working space for this example (``data/demo/``).
 
 .. code-block:: bash
 
-   source activate cosmel
    cd <cosmel-root>
    mkdir -p data/demo
 
@@ -242,7 +258,7 @@ If you have CKIPParser, you may add ``--rule-parser`` to use parser-based rule a
 
    python3 ./tool/corpusgen.py -c data/demo/corpus1 -d demo/repo -i demo/original_article1 -x data/demo/output/rid1  -X data/demo/output/nil1 --rule-parser
 
-The rule-labeled articles are exported to ``data/demo/output/rid1/``, and the empty XML articles are exported to ``data/demo/output/nil1/``. You may modify the ``gid`` flags in the empty XML articles for manually annotation.
+The rule-labeled articles are exported to ``data/demo/output/rid1/``, and the empty XML articles are exported to ``data/demo/output/nil1/``. You may modify the ``gid`` flags in the empty XML articles for manually annotation. (For HTML format, please refer :ref:`SpecUtilHTMLEncoding` and :ref:`SpecUtilHTMLDecoding`)
 
 Next, you may train word embeddings from the corpus (stored in ``data/demo/corpus1/embeddings/``):
 
@@ -298,16 +314,24 @@ Documentation
 
 To build the documentation, please install the following packages.
 
+(Using pip)
+
 .. code-block:: bash
 
-   cd <cosmel-root>/docs
-   conda install sphinx=1.7.5 sphinx_rtd_theme=0.3.1
+   pip install sphinx==1.8.1 sphinx_rtd_theme==0.4.2 sphinxcontrib-programoutput==0.11
+
+(Using Conda)
+
+.. code-block:: bash
+
+   conda install sphinx=1.8.1 sphinx_rtd_theme=0.4.2
    conda install sphinxcontrib-programoutput=0.11 -c conda-forge
 
 Next, build the HTML documentation.
 
 .. code-block:: bash
 
+   cd <cosmel-root>/docs
    make html
 
 The outputs are located in ``<cosmel-root>/docs/_build/html/``.

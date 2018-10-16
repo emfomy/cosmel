@@ -55,7 +55,8 @@ def main():
 	print(f'Use {nth} threads')
 
 	import multiprocessing
-	jobs = [multiprocessing.Process(target=submain, args=(corpus_root, in_ws_dir, in_dir, out_dir, nth, thrank,)) for thrank in range(nth)]
+	jobs = [multiprocessing.Process(target=submain, args=(corpus_root, in_ws_dir, in_dir, out_dir, nth, thrank,)) \
+			for thrank in range(nth)]
 	for p in jobs: p.start()
 	for p in jobs: p.join()
 	for p in jobs: assert p.exitcode == 0
@@ -71,7 +72,7 @@ def submain(corpus_root, in_ws_dir, in_dir, out_dir, nth=None, thrank=0):
 	xml_root     = f'{corpus_root}/xml/{in_dir}'
 	article_root = f'{corpus_root}/article/{target}_role'
 	mention_root = f'{corpus_root}/mention/{target}'
-	output_root = f'{corpus_root}/mention/{out_dir}'
+	output_root  = f'{corpus_root}/mention/{out_dir}'
 	# parts        = ['']
 	# parts        = list(f'part-{x:05}' for x in range(1))
 	if in_ws_dir: parts = sorted(rm_ext_all(file) for file in os.listdir(ws_xml_root))
@@ -101,6 +102,7 @@ def submain(corpus_root, in_ws_dir, in_dir, out_dir, nth=None, thrank=0):
 		for i, article in enumerate(corpus.article_set):
 			xml_file    = transform_path(article.path, article_root, xml_root, '.xml')
 			output_file = transform_path(article.path, article_root, output_root, '.json')
+			os.makedirs(os.path.dirname(output_file), exist_ok=True)
 			bundle      = article.bundle
 			printr(f'{i+1:0{len(n)}}/{n}\t{output_file}')
 

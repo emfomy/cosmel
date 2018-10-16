@@ -9,3 +9,5 @@ __copyright__ = 'Copyright 2017-2018'
 from cosmel.util import *
 from cosmel.repo import *
 from cosmel.corpus import *
+
+__version__ = '1.1.0'

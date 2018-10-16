@@ -1,3 +1,8 @@
+# Icon
+Icon
+
+################################################################################
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -8,7 +13,6 @@ __pycache__/
 
 # Distribution / packaging
 .Python
-env/
 build/
 develop-eggs/
 dist/
@@ -24,6 +28,7 @@ wheels/
 *.egg-info/
 .installed.cfg
 *.egg
+MANIFEST
 
 # PyInstaller
 #  Usually these files are written by a python script from a template
@@ -45,6 +50,7 @@ nosetests.xml
 coverage.xml
 *.cover
 .hypothesis/
+.pytest_cache/
 
 # Translations
 *.mo
@@ -53,6 +59,7 @@ coverage.xml
 # Django stuff:
 *.log
 local_settings.py
+db.sqlite3
 
 # Flask stuff:
 instance/
@@ -79,13 +86,14 @@ celerybeat-schedule
 # SageMath parsed files
 *.sage.py
 
-# dotenv
+# Environments
 .env
-
-# virtualenv
 .venv
+env/
 venv/
 ENV/
+env.bak/
+venv.bak/
 
 # Spyder project settings
 .spyderproject
@@ -99,29 +107,3 @@ ENV/
 
 # mypy
 .mypy_cache/
-
-################################################################################
-
-.*.swp
-.git/
-src/php/
-src/python/*.pyc
-.DS_Store
-
-ipython/config.ini
-ipython/study_pixnet/config.ini
-
-ipython/.ipynb_checkpoints/
-ipython/study_pixnet/.ipynb_checkpoints/
-ipython/study_sinica/.ipynb_checkpoints/
-
-# console log
-*.out
-*.log
-*.sh
-# article data / label data
-ipython/study_sinica/resources/*
-!ipython/study_sinica/resources/StyleMe.csv
-
-ipython/study_sinica/CKIP*/
-ipython/study_sinica/WSed_pickles/
