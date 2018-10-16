@@ -55,7 +55,8 @@ def main():
 	print(f'Use {nth} threads')
 
 	import multiprocessing
-	jobs = [multiprocessing.Process(target=submain, args=(corpus_root, in_ws_dir, in_dir, out_dir, nth, thrank,)) for thrank in range(nth)]
+	jobs = [multiprocessing.Process(target=submain, args=(corpus_root, in_ws_dir, in_dir, out_dir, nth, thrank,)) \
+			for thrank in range(nth)]
 	for p in jobs: p.start()
 	for p in jobs: p.join()
 	for p in jobs: assert p.exitcode == 0
