@@ -71,7 +71,7 @@ def submain(corpus_root, in_ws_dir, in_dir, out_dir, nth=None, thrank=0):
 	xml_root     = f'{corpus_root}/xml/{in_dir}'
 	article_root = f'{corpus_root}/article/{target}_role'
 	mention_root = f'{corpus_root}/mention/{target}'
-	output_root = f'{corpus_root}/mention/{out_dir}'
+	output_root  = f'{corpus_root}/mention/{out_dir}'
 	# parts        = ['']
 	# parts        = list(f'part-{x:05}' for x in range(1))
 	if in_ws_dir: parts = sorted(rm_ext_all(file) for file in os.listdir(ws_xml_root))

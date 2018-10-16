@@ -31,7 +31,7 @@ def main():
 	argparser.add_argument('-i', '--input', required=True, \
 			help='load mention from "<CORPUS>/mention/<INPUT>/"')
 	argparser.add_argument('-o', '--output', \
-			help='dump XML into "<CORPUS>/html/<OUTPUT>/"; default is <INPUT>')
+			help='dump HTML into "<CORPUS>/html/<OUTPUT>/"; default is <INPUT>')
 
 	argparser.add_argument('-t', '--thread', type=int, \
 			help='use <THREAD> threads; default is `os.cpu_count()`')
