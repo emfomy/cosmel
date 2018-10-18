@@ -43,6 +43,11 @@ def main():
 
 	args = argparser.parse_args()
 
+	model0 = 'model0'
+	model1 = 'model1'+args.structure_eem
+	label0 = args.label_mtc
+	label1 = args.label_eem
+
 	corpus_root = os.path.normpath(args.corpus)
 	assert os.path.isdir(corpus_root)
 
@@ -55,11 +60,6 @@ def main():
 	os.makedirs(output_root, exist_ok=True)
 	assert os.path.isdir(output_root)
 
-	model0 = 'model0'
-	model1 = 'model1'+args.structure_eem
-	label0 = args.label_mtc
-	label1 = args.label_eem
-
 	nth = args.thread
 	if not nth: nth = os.cpu_count()
 
@@ -70,8 +70,8 @@ def main():
 	print(f'Model Path    : {model_root}')
 	print(f'Output Path   : {output_root}')
 	print()
-	print(f'Mention Type Classifier Label     : {label0}')
-	print(f'Entity Embeddings Model Label     : {label1}')
+	print(f'Mention Type Classifier Label     : {", ".join(label0)}')
+	print(f'Entity Embeddings Model Label     : {", ".join(label1)}')
 	print(f'Entity Embeddings Model Structure : {args.structure_eem.upper()}')
 
 	python = sys.executable

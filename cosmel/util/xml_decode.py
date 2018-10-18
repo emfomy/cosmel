@@ -176,6 +176,7 @@ def get_xml_idx(xml_data, word, start_idx):
 def update_mention(mention, txt):
 	soup = BeautifulSoup(txt.split('>', 1)[0]+'>', 'lxml')
 	attrs = soup.product.attrs
+	mention.set_gid(attrs.pop('pid', mention.gid))
 	mention.set_gid(attrs.pop('gid', mention.gid))
 	mention.set_nid(attrs.pop('nid', mention.nid))
 	mention.set_rid(attrs.pop('rid', mention.rid))

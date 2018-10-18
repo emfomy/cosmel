@@ -45,6 +45,12 @@ def main():
 
 	args = argparser.parse_args()
 
+	model0 = 'model0'
+	model1 = 'model1'+args.structure_eem
+	label0 = set(sorted(args.label_mtc))
+	label1 = set(sorted(args.label_eem))
+	assert len(label0)+len(label1) > 0
+
 	corpus_root = os.path.normpath(args.corpus)
 	assert os.path.isdir(corpus_root)
 
@@ -55,18 +61,12 @@ def main():
 
 	corpus_xml_root = f'{corpus_root}/xml/purged_article_gid'
 	xml_root = os.path.normpath(args.xml if args.xml else corpus_xml_root)
-	assert os.path.isdir(xml_root)
+	if {'gid', 'joint'} & (label0 | label1):
+		assert os.path.isdir(xml_root)
 
 	emb_file = f'{corpus_root}/embeddings/purged_article.dim300.emb.bin'
 	if args.emb != None:
 		emb_file = args.emb
-
-	model0 = 'model0'
-	model1 = 'model1'+args.structure_eem
-	label0 = set(sorted(args.label_mtc))
-	label1 = set(sorted(args.label_eem))
-
-	assert len(label0)+len(label1) > 0
 
 	nth = args.thread
 	if not nth: nth = os.cpu_count()
@@ -79,8 +79,8 @@ def main():
 	print(f'XML Path       : {xml_root}')
 	print(f'Embedding File : {emb_file}')
 	print()
-	print(f'Mention Type Classifier Label     : {label0}')
-	print(f'Entity Embeddings Model Label     : {label1}')
+	print(f'Mention Type Classifier Label     : {", ".join(label0)}')
+	print(f'Entity Embeddings Model Label     : {", ".join(label1)}')
 	print(f'Entity Embeddings Model Structure : {args.structure_eem.upper()}')
 
 	python = sys.executable
