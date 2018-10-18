@@ -126,7 +126,7 @@ class CkipWs():
 	def ws_list(self, input_file, output_file, verbose=True):
 		if verbose: print(f'Processing Word Segment on {input_file} to {output_file}')
 		with open(input_file) as fin, open(output_file, 'w') as fout:
-			fout.write('\n'.join(self.__core.apply_list(fin.readlines())))
+			fout.write('\n'.join(self.__core.apply_article(fin.readlines())))
 		self.__core.reload()
 
 	def ws_line(self, input_file, output_file, verbose=True):
@@ -136,7 +136,7 @@ class CkipWs():
 			n = str(len(lines))
 			for i, line in enumerate(lines):
 				if verbose: printr(f'{i+1:0{len(n)}}/{n}\t{line[:8].strip()}...')
-				fout.write('　'.join(self.__core.apply_list([line[i:i+80] for i in range(0, len(line), 80)]))+'\n')
+				fout.write('　'.join(self.__core.apply_article([line[i:i+80] for i in range(0, len(line), 80)]))+'\n')
 		if verbose: print()
 		self.__core.reload()
 

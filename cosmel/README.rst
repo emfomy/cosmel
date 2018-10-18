@@ -17,6 +17,11 @@ Author
    * Yi-Hui Lee   <lilyyhlee30@gmail.com>
    * Wei-Yun Ma   <ma@iis.sinica.edu.tw>
 
+Git
+---
+
+* <https://github.com/emfomy/cosmel>
+
 
 Requirement
 -----------
@@ -24,7 +29,7 @@ Requirement
 * Program and Tools
    * `Python <http://www.python.org/>`_ 3.6.
    * `CKIPWS <http://otl.sinica.edu.tw/index.php?t=9&group_id=25&article_id=408>`_ Linux version.
-   * `CKIPWS Cython Package <https://github.com/emfomy/cyckipws>`_ 0.1.3.
+   * `CKIPWS Cython Package <https://github.com/emfomy/cyckipws>`_ 0.2.
    * `CKIPParser <http://otl.sinica.edu.tw/index.php?t=9&group_id=25&article_id=1653>`_ Windows version. (Optional)
 * Python Packages
    * `BeautifulSoup <http://www.crummy.com/software/BeautifulSoup/>`_ 4.6.
@@ -100,7 +105,7 @@ Quick Start
 Installation
 ------------
 
-One may install using either pip or Conda
+One may install using either pip or Conda.
 
 Install with pip
 ^^^^^^^^^^^^^^^^
@@ -152,17 +157,24 @@ Next, install the Python packages:
 
 .. code-block:: bash
 
-   conda install python=3.6.2 -c intel
-   conda install pytorch=0.4.1 -c pytorch -c intel
-   conda install beautifulsoup4=4.6 gensim=3.6 lxml=4.2 numpy=1.15 scikit-learn=0.20 tqdm=4.27 -c intel
+   conda install pytorch=0.4.1 -c pytorch
+   conda install beautifulsoup4=4.6 gensim=3.6 lxml=4.2 numpy=1.15 scikit-learn=0.20 tqdm=4.27
 
 
 CKIPWS
 ^^^^^^
 
-Please install the `CKIPWS Cython Package <https://github.com/emfomy/cyckipws>`_.
+Please install the `CKIPWS Cython Package <https://github.com/emfomy/cyckipws>`_. Choose one of the following instruction.
 
-If one don't have Cython, please following the following instruction.
+Install With Cython
+"""""""""""""""""""
+
+Denote the root path of CKIPWS as ``<ckipws-root>``.
+
+.. code-block:: bash
+
+   pip install cython
+   LIBRARY_PATH=<ckipws-root>/lib:$LIBRARY_PATH pip install ckipws>=0.2
 
 Install Without Cython
 """"""""""""""""""""""
