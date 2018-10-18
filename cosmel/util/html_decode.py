@@ -102,6 +102,7 @@ def submain(corpus_root, in_dir, out_dir, nth=None, thrank=0):
 					print()
 					print(colored('1;31', e))
 				else:
+					mention.set_gid(attrs.pop('pid', mention.gid))
 					mention.set_gid(attrs.pop('gid', mention.gid))
 					mention.set_nid(attrs.pop('nid', mention.nid))
 					mention.set_rid(attrs.pop('rid', mention.rid))
