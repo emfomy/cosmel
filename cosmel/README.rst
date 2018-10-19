@@ -17,10 +17,10 @@ Author
    * Yi-Hui Lee   <lilyyhlee30@gmail.com>
    * Wei-Yun Ma   <ma@iis.sinica.edu.tw>
 
-Git
----
+Links
+-----
 
-* <https://github.com/emfomy/cosmel>
+* GitHub https://github.com/emfomy/cosmel
 
 
 Requirement
