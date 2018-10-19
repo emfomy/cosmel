@@ -39,6 +39,8 @@ def main():
 
 	arggroup.add_argument('-r', '--rule',
 			help='use file <RULE> as rule')
+	arggroup.add_argument('--rule-exact', action='store_true',
+			help='use rule with only exact-match')
 	arggroup.add_argument('--rule-parser', action='store_true',
 			help='use rule with parser')
 
@@ -69,7 +71,9 @@ def main():
 	os.makedirs(xml_nil_root, exist_ok=True)
 	assert os.path.isdir(xml_nil_root)
 
-	rule_file = './util/rule_exact.py'
+	rule_file = './util/rule_default.py'
+	if args.rule_exact:
+		rule_file = './util/rule_exact.py'
 	if args.rule_parser:
 		rule_file = './util/rule_parser.py'
 	if args.rule:
