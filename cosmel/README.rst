@@ -17,10 +17,10 @@ Author
    * Yi-Hui Lee   <lilyyhlee30@gmail.com>
    * Wei-Yun Ma   <ma@iis.sinica.edu.tw>
 
-Git
----
+Links
+-----
 
-* <https://github.com/emfomy/cosmel>
+* GitHub https://github.com/emfomy/cosmel
 
 
 Requirement
@@ -30,7 +30,6 @@ Requirement
    * `Python <http://www.python.org/>`_ 3.6.
    * `CKIPWS <http://otl.sinica.edu.tw/index.php?t=9&group_id=25&article_id=408>`_ Linux version.
    * `CKIPWS Cython Package <https://github.com/emfomy/cyckipws>`_ 0.2.
-   * `CKIPParser <http://otl.sinica.edu.tw/index.php?t=9&group_id=25&article_id=1653>`_ Windows version. (Optional)
 * Python Packages
    * `BeautifulSoup <http://www.crummy.com/software/BeautifulSoup/>`_ 4.6.
    * `gensim <https://radimrehurek.com/gensim/>`_ 3.6.
@@ -191,28 +190,6 @@ Denote the root path of CosmEL (the folder containing this README) as ``<cosmel-
 You may add ``<ckipws-root>/lib/`` to ``LD_LIBRARY_PATH`` instead of copying ``libWordSeg.so``.
 
 
-CKIPParser (Optional)
-^^^^^^^^^^^^^^^^^^^^^
-
-At Windows Server
-"""""""""""""""""
-
-Denote the root path of CKIPParser as ``<ckipparser-root>``. Then,
-
-.. code-block:: bat
-
-   cd <ckipparser-root>
-   copy <ckipws-root>\parser\CKIPParser_Socket_Server.py .\CKIPParser_Socket_Server.py
-   copy <ckipws-root>\parser\parser.ini                  .\parser.ini
-   python3 .\CKIPParser_Socket_Server.py
-
-
-At Linux Client
-"""""""""""""""
-
-Modify ``<cosmel-root>/util.rule_parser`` by replacing ``host = '172.16.1.64'`` by the IP of the Windows server.
-
-
 Example
 -------
 
@@ -263,12 +240,6 @@ In training step, first generate the corpus (``data/demo/corpus1/``) from the ar
 .. code-block:: bash
 
    python3 ./tool/corpusgen.py -c data/demo/corpus1 -d demo/repo -i demo/original_article1 -x data/demo/output/rid1  -X data/demo/output/nil1
-
-If you have CKIPParser, you may add ``--rule-parser`` to use parser-based rule annotation:
-
-.. code-block:: bash
-
-   python3 ./tool/corpusgen.py -c data/demo/corpus1 -d demo/repo -i demo/original_article1 -x data/demo/output/rid1  -X data/demo/output/nil1 --rule-parser
 
 The rule-labeled articles are exported to ``data/demo/output/rid1/``, and the empty XML articles are exported to ``data/demo/output/nil1/``. You may modify the ``gid`` flags in the empty XML articles for manually annotation. (For HTML format, please refer :ref:`SpecUtilHTMLEncoding` and :ref:`SpecUtilHTMLDecoding`)
 
