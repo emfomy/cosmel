@@ -124,7 +124,7 @@ def submain(corpus_root, in_ws_dir, in_dir, out_dir, nth=None, thrank=0):
 
 					# Map Index
 					xml_idx = -1
-					txt_list = ['*']  * len(xml_line)
+					txt_list = ['*'] * len(xml_line)
 					start_mid_list = [len(line)-1] * len(xml_line)
 					end_mid_list   = [-1] * len(xml_line)
 					for mid, word in enumerate(line.txts):

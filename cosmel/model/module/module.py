@@ -112,8 +112,8 @@ class LocalContextEncoder(torch.nn.Module):
 		post_code = self.meta.tokenizer.transform_sequences(raw_post)
 
 		# Pad
-		pre_pad  = self.meta.padder(pre_code,   padding='pre')
-		post_pad = self.meta.padder(post_code,  padding='post')
+		pre_pad  = self.meta.padder(pre_code,  padding='pre')
+		post_pad = self.meta.padder(post_code, padding='post')
 
 		# Combine inputs
 		pre_pad_var   = torch.from_numpy(pre_pad).long()

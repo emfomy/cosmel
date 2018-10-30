@@ -157,7 +157,7 @@ Next, install the Python packages:
 .. code-block:: bash
 
    conda install pytorch=0.4.1 -c pytorch
-   conda install beautifulsoup4=4.6 gensim=3.6 lxml=4.2 numpy=1.15 scikit-learn=0.20 tqdm=4.27
+   conda install beautifulsoup4=4.6 gensim=3.4 lxml=4.2 numpy=1.15 scikit-learn=0.20 tqdm=4.26
 
 
 CKIPWS
