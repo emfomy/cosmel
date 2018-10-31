@@ -130,6 +130,8 @@ if __name__ == '__main__':
 
 	# Split training and testing data
 	train_ment_list, test_ment_list = ment_list.train_test_split(test_size=test_size, random_state=0, shuffle=True)
+	assert len(train_ment_list) > 0
+	assert len(test_ment_list)  > 0
 
 	# Create model
 	model = Model(meta)
@@ -149,7 +151,7 @@ if __name__ == '__main__':
 	#
 
 	# Create training mention dataset and dataloader
-	ment_data    = model.ment_data(train_ment_list)
+	ment_data    = model.ment_data(len(train_ment_list))
 	ment_dataset = torch.utils.data.TensorDataset(*ment_data.inputs, ment_data.label)
 	print(f'#train_mention = {len(ment_dataset)}')
 	ment_loader  = torch.utils.data.DataLoader(
