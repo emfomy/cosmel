@@ -54,12 +54,15 @@ def main():
 	print(args)
 	print(f'Use {nth} threads')
 
-	import multiprocessing
-	jobs = [multiprocessing.Process(target=submain, args=(corpus_root, in_ws_dir, in_dir, out_dir, nth, thrank,)) \
-			for thrank in range(nth)]
-	for p in jobs: p.start()
-	for p in jobs: p.join()
-	for p in jobs: assert p.exitcode == 0
+	if nth <= 1:
+		submain(corpus_root, in_ws_dir, in_dir, out_dir)
+	else:
+		import multiprocessing
+		jobs = [multiprocessing.Process(target=submain, args=(corpus_root, in_ws_dir, in_dir, out_dir, nth, thrank,)) \
+				for thrank in range(nth)]
+		for p in jobs: p.start()
+		for p in jobs: p.join()
+		for p in jobs: assert p.exitcode == 0
 
 
 def submain(corpus_root, in_ws_dir, in_dir, out_dir, nth=None, thrank=0):
@@ -121,7 +124,7 @@ def submain(corpus_root, in_ws_dir, in_dir, out_dir, nth=None, thrank=0):
 
 					# Map Index
 					xml_idx = -1
-					txt_list = ['*']  * len(xml_line)
+					txt_list = ['*'] * len(xml_line)
 					start_mid_list = [len(line)-1] * len(xml_line)
 					end_mid_list   = [-1] * len(xml_line)
 					for mid, word in enumerate(line.txts):

@@ -10,4 +10,4 @@ from cosmel.util import *
 from cosmel.repo import *
 from cosmel.corpus import *
 
-__version__ = '1.2.0'
+__version__ = '1.2.1'

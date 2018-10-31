@@ -100,6 +100,7 @@ if __name__ == '__main__':
 	#
 
 	corpus = Corpus(article_root, mention_root=input_root, skip_file=bad_article)
+	assert len(corpus.mention_set) > 0
 	amsid_list = [m.asmid for m in corpus.mention_set]
 	print(f'#mention = {len(amsid_list)}')
 	meta   = DataSetMeta.load(meta_file)
