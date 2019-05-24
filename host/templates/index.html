@@ -29,7 +29,6 @@
 				position: fixed;
 				top: 10%;
 				right: 10%;
-				cursor: pointer;
 			}
 
 			#main > article > .article {
@@ -42,7 +41,7 @@
 				cursor: pointer;
 			}
 
-			product[gid]:not([gid=""]) {
+			product[nid]:not([nid=""]) {
 				background-color: #ddffdd;
 				border-left: 6px solid #43f436;
 			}
@@ -61,19 +60,19 @@
 				top: unset;
 			}
 
-			product[gid]:not([gid=""])::before {
+			product[nid]:not([nid=""])::before {
 				content: "　😍";
 			}
 
 			product::after {
 				color: #aa0000;
 				/*content: "Here!";*/
-				content: "(" attr(rid) "?)";
+				content: "(" attr(gid) "!)";
 			}
 
-			product[gid]:not([gid=""])::after {
+			product[nid]:not([nid=""])::after {
 				color: #00aa00;
-				content: attr(gid) "(" attr(rid) "?)";
+				content: attr(nid) "(" attr(gid) "!)";
 			}
 		</style>
 	</head>
@@ -199,12 +198,7 @@
 
 				function updateCounter() {
 					var e = $('#main > article > .counter');
-					e.text($('product:not([gid]:not([gid=""]))').length + '/' + $('product').length);
-					e.click(function() {
-						const top = $('product:not([gid]:not([gid=""])), #footer').offset().top;
-						const middle = top - (window.innerHeight / 2);
-						window.scrollTo(0, middle);
-					});
+					e.text($('product').length);
 				}
 
 				w3.includeHTML(function(){
@@ -262,88 +256,33 @@
 								const text = this.innerText;
 								const rid  = $(this).attr('rid');
 								const gid  = $(this).attr('gid');
+								const nid  = $(this).attr('nid');
 								const sid  = $(this).attr('sid');
 								const mid  = $(this).attr('mid');
 								const rule = $(this).attr('rule');
-								const hint_orig = $(this).attr('hint');
-								const hint = hint_orig ? hint_orig : '';
 
-								const rgh = rid+';'+gid+';'+hint;
+								const rgnh = rid+';'+gid+';'+nid;
 
 								res = $.ajax({
-									url: '/repo/product?rid='+rgh,
+									url: '/repo/product?pid='+rgnh,
 									type: 'get',
 									error: customStatusError
-								}).done(rgh_name => {
-									rgh_list  = rgh_name.split('<hr>');
-									rid_name  = rgh_list[0].replace(/<br>/g, '\n');
-									gid_name  = rgh_list[1].replace(/<br>/g, '\n');
-									hint_name = rgh_list[2].replace(/<br>/g, '\n');
-
-									var buttons = {
-										'~': true,
-										OSP: true,
-										GP: true,
-										NAP: true,
-										delete: true,
-										cancel: true
-									}
-									for ( var h of (rid+','+gid+','+hint).split(',') ) {
-										if ( h && h != '~' ) {
-											buttons[h] = true;
-										}
-									}
+								}).done(rgnh_name => {
+									rgnh_list  = rgnh_name.split('<hr>');
+									rid_name  = rgnh_list[0].replace(/<br>/g, '\n');
+									gid_name  = rgnh_list[1].replace(/<br>/g, '\n');
+									nid_name  = rgnh_list[2].replace(/<br>/g, '\n');
 
 									swal({
 										title: text,
 										text:
 											'rid='+rid_name +'\n'+
 											'gid='+gid_name +'\n'+
+											'nid='+nid_name +'\n'+
 											'sid='+sid +'\n'+
 											'mid='+mid +'\n'+
-											'rule='+rule +'\n'+
-											'hint='+hint +'\n'+hint_name,
-										content: "input",
-										buttons: buttons
-									}).then((value) => {
-										if ( value === null ) {
-											return;
-										}
-										switch (value) {
-											case 'delete':
-												value = ''
-											case 'OSP':
-											case 'GP':
-											case 'NAP':
-											default:
-
-												$(this).attr('gid', value);
-												updateCounter();
-
-												const data = {
-													rid:  rid,
-													gid:  value,
-													sid:  sid,
-													mid:  mid,
-													rule: rule,
-													hint: hint
-												};
-
-												fetch('/save?part={{ part }}&aid={{ aid }}', {
-													method: 'POST',
-													body: JSON.stringify(data)
-												})
-												.then(res => {
-													if (res.ok) {
-														res.json().then(customStatusSuccess);
-													} else {
-														res.json().then(res2 => customStatusError2(res, res2));
-													}
-												}).catch(customError);
-										}
+											'rule='+rule +'\n'
 									});
-									$('button.swal-button--cancel').parent().before('<hr>')
-									$('button.swal-button--OSP').parent().before('<hr>')
 								});
 
 							} catch(error) {
