@@ -30,13 +30,9 @@ class Corpus:
 		* Load all mentions       from ``mention_root``/``part`` for all ``part`` in ``parts``.
 	"""
 
-	def __init__(self, article_root, *args, parsed_root=None, mention_root=None, parts=[''], skips=[], skip_file=''):
+	def __init__(self, article_root, *, parsed_root=None, mention_root=None, parts=[''], skips=[], skip_file=''):
 
 		skips_ = list(skips)
-
-		if len(args) != 0:
-			print('Please use mention_root=<mention_root> instead of using it directly.')
-			assert len(args) == 0
 
 		if skip_file:
 			with open(skip_file) as fin:

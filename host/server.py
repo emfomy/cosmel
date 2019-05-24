@@ -94,15 +94,17 @@ def product_route():
 	pid   = request.args.get('pid')
 	brand = request.args.get('brand', default=slice(None))
 	head  = request.args.get('head',  default=slice(None))
+	print(pid, brand, head)
 	def id_to_product_get(pid):
 		if pid == '':      return ''
 		elif pid == 'OSP': return 'OSP [Other-Specific-Product]'
 		elif pid == 'GP':  return 'GP [Genreal-Product]'
 		elif pid == 'NAP': return 'NAP [Not-A-Product]'
 		else:              return str(repo.id_to_product.get(pid, f'{pid} [KeyError]'))
-	if pid:   return '<hr>'.join('<br>'.join(id_to_product_get(p) for p in pp.split(',')) for pp in pid.split(';'))
-	else:     return '\t'.join(repo.bname_to_brand[brand])+'<br>'+\
-			'<br>'.join(map(str, repo.bname_head_to_product_list[brand, head]))
+	if pid: return '<hr>'.join('<br>'.join(id_to_product_get(p) for p in pp.split(',')) for pp in pid.split(';'))
+	else:   return '<br>'.join(map(str, repo.bname_head_to_product_list[brand, head]))
+	# else: return '\t'.join(repo.bname_to_brand[brand])+'<br>' + \
+	# 		'<br>'.join(map(str, repo.bname_head_to_product_list[brand, head]))
 
 @app.route('/article/<path:path>')
 def article_route(path):

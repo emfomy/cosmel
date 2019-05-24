@@ -30,9 +30,7 @@ class Mention:
 		idxs    (slice):             the indix slice of this mention.
 	"""
 
-	def __init__(self, article, sid, mid, *args, gid='', nid='', rid='', rule='', **kwargs):
-
-		assert len(args) == 0
+	def __init__(self, article, sid, mid, *, gid='', nid='', rid='', rule='', **kwargs):
 
 		super().__init__()
 
@@ -54,7 +52,7 @@ class Mention:
 		return f'{repr(self.sentence_pre)}　[{colored("0;95", repr(self.mention))}]　{repr(self.sentence_post)}'
 
 	def __txtstr__(self):
-		return f'{txtstr(self.sentence_pre)}　[{colored("0;95", txtstr(self.mention))}]　{txtstr(self.sentence_post)}'
+		return f'{txtstr(self.sentence_pre)}[{colored("0;95", txtstr(self.mention))}]{txtstr(self.sentence_post)}'
 
 	def __roledstr__(self):
 		return f'{roledstr(self.sentence_pre)}　[{colored("0;95", roledstr(self.mention))}]　{roledstr(self.sentence_post)}'

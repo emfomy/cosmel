@@ -173,7 +173,8 @@ Denote the root path of CKIPWS as ``<ckipws-root>``.
 .. code-block:: bash
 
    pip install cython
-   LIBRARY_PATH=<ckipws-root>/lib:$LIBRARY_PATH pip install ckipws>=0.2
+   LIBRARY_PATH=<ckipws-root>/lib:$LIBRARY_PATH pip install ckipws
+   export CKIPWS_DATA2=<ckipws-root>/Data2
 
 Install Without Cython
 """"""""""""""""""""""
