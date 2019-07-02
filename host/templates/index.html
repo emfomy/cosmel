@@ -9,16 +9,16 @@
 		<title>[{{ ver }}] {{ part }}/{{ aid }}</title>
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
-		<link rel="apple-touch-icon" sizes="180x180" href="/static/favicon/apple-touch-icon.png">
-		<link rel="icon" type="image/png" sizes="32x32" href="/static/favicon/favicon-32x32.png">
-		<link rel="icon" type="image/png" sizes="16x16" href="/static/favicon/favicon-16x16.png">
-		<link rel="manifest" href="/static/favicon/site.webmanifest">
-		<link rel="mask-icon" href="/static/favicon/safari-pinned-tab.svg" color="#5bbad5">
-		<link rel="shortcut icon" href="/static/favicon/favicon.ico">
+		<link rel="apple-touch-icon" sizes="180x180" href="./static/favicon/apple-touch-icon.png">
+		<link rel="icon" type="image/png" sizes="32x32" href="./static/favicon/favicon-32x32.png">
+		<link rel="icon" type="image/png" sizes="16x16" href="./static/favicon/favicon-16x16.png">
+		<link rel="manifest" href="./static/favicon/site.webmanifest">
+		<link rel="mask-icon" href="./static/favicon/safari-pinned-tab.svg" color="#5bbad5">
+		<link rel="shortcut icon" href="./static/favicon/favicon.ico">
 		<meta name="msapplication-TileColor" content="#2b5797">
-		<meta name="msapplication-config" content="/static/favicon/browserconfig.xml">
+		<meta name="msapplication-config" content="./static/favicon/browserconfig.xml">
 		<meta name="theme-color" content="#ffffff">
-		<link rel="stylesheet" href="static/assets/css/main.css" />
+		<link rel="stylesheet" href="./static/assets/css/main.css" />
 		<style>
 			img {
 				max-width: 100%;
@@ -117,10 +117,10 @@
 								<li><a href="?part={{ part }}&aid={{ aid }}&act=next" title="Next" class="icon fa-angle-double-right"></a></li>
 							</ul>
 							<ul>
-								<li><a href="/repo/product?brand=sk2" target="_blank">?brand=sk2</a></li>
-								<li><a href="/repo/product?head=面膜" target="_blank">?head=面膜</a></li>
-								<li><a href="/repo/product?brand=sk2&head=面膜" target="_blank">?brand=sk2&amp;head=面膜</a></li>
-								<li><a href="/repo/product?pid=8,11" target="_blank">?pid=8,11</a></li>
+								<li><a href="./repo/product?brand=sk2" target="_blank">?brand=sk2</a></li>
+								<li><a href="./repo/product?head=面膜" target="_blank">?head=面膜</a></li>
+								<li><a href="./repo/product?brand=sk2&head=面膜" target="_blank">?brand=sk2&amp;head=面膜</a></li>
+								<li><a href="./repo/product?pid=8,11" target="_blank">?pid=8,11</a></li>
 							</ul>
 						</form>
 					</nav>
@@ -131,9 +131,9 @@
 						<article>
 							<span class="counter"></span>
 							<br>
-							<div class="article" w3-include-html="/article/{{ part }}/{{ aid }}"></div>
+							<div class="article" w3-include-html="./article/{{ part }}/{{ aid }}"></div>
 							<hr>
-							<center><div class="json" w3-include-html="/json/{{ part }}/{{ aid }}"></div></center>
+							<center><div class="json" w3-include-html="./json/{{ part }}/{{ aid }}"></div></center>
 							<br>
 						</article>
 
@@ -169,10 +169,10 @@
 								</select>
 							</form>
 							<p>
-								<a href="/repo/product?brand=sk2" target="_blank">?brand=sk2</a>&emsp;
-								<a href="/repo/product?head=面膜" target="_blank">?head=面膜</a>&emsp;
-								<a href="/repo/product?brand=sk2&head=面膜" target="_blank">?brand=sk2&amp;head=面膜</a>&emsp;
-								<a href="/repo/product?pid=8,11" target="_blank">?pid=8,11</a>
+								<a href="./repo/product?brand=sk2" target="_blank">?brand=sk2</a>&emsp;
+								<a href="./repo/product?head=面膜" target="_blank">?head=面膜</a>&emsp;
+								<a href="./repo/product?brand=sk2&head=面膜" target="_blank">?brand=sk2&amp;head=面膜</a>&emsp;
+								<a href="./repo/product?pid=8,11" target="_blank">?pid=8,11</a>
 							</p>
 							<p class="copyright">Copyright © Mu Yang. All rights reserved.</p>
 						</section>
@@ -181,14 +181,14 @@
 			</div>
 
 		<!-- Scripts -->
-			<script src="static/assets/js/jquery.min.js"></script>
-			<script src="static/assets/js/jquery.scrollex.min.js"></script>
-			<script src="static/assets/js/jquery.scrolly.min.js"></script>
-			<script src="static/assets/js/skel.min.js"></script>
-			<script src="static/assets/js/util.js"></script>
-			<script src="static/assets/js/main.js"></script>
-			<script src="static/assets/js/sweetalert.modified.min.js"></script>
-			<script src="https://www.w3schools.com/lib/w3.js"></script>
+			<script src="./static/assets/js/jquery.min.js"></script>
+			<script src="./static/assets/js/jquery.scrollex.min.js"></script>
+			<script src="./static/assets/js/jquery.scrolly.min.js"></script>
+			<script src="./static/assets/js/skel.min.js"></script>
+			<script src="./static/assets/js/util.js"></script>
+			<script src="./static/assets/js/main.js"></script>
+			<script src="./static/assets/js/sweetalert.modified.min.js"></script>
+			<script src="//www.w3schools.com/lib/w3.js"></script>
 
 			<script type="text/javascript">
 				$('#part').change(function() { this.form.submit(); });

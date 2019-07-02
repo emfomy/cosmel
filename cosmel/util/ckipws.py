@@ -12,7 +12,7 @@ import os
 import re
 import sys
 
-from ckipws import CkipWS
+from ckipws import CkipWS as Core
 
 from cosmel.util.core import *
 
@@ -47,7 +47,7 @@ class CkipWs():
 			self.__regexes.append((re.compile(rf'(\A|(?<=\n|　)){re.escape(seg[0])}\([A-Za-z0-9]*?\)'), seg[1], seg[0]))
 		self.__regexes.append((re.compile(r'　□\(SP\)'), '', '□'))
 
-		self.__core = CkipWS(ini_file)
+		self.__core = Core(ini_file)
 		if verbose: print(f'Initialize CKIPWS with INI "{ini_file}" using lexicon "{lex_file}"')
 
 	def ws_file(self, input_file, output_file, verbose=True):
