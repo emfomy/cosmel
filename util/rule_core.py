@@ -57,6 +57,7 @@ def submain(corpus_root, nth=None, thrank=0):
 	# parts        = list(f'part-{x:05}' for x in range(1))
 	parts        = sorted(rm_ext_all(file) for file in os.listdir(parsed_root))
 	if nth: parts = parts[thrank:len(parts):nth]
+	if not parts: return
 
 	parsed_files = glob_files(parsed_root, parts=parts)
 	n = str(len(parsed_files))

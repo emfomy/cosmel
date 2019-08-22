@@ -81,6 +81,7 @@ def submain(corpus_root, in_ws_dir, in_dir, out_dir, nth=None, thrank=0):
 	if in_ws_dir: parts = sorted(rm_ext_all(file) for file in os.listdir(ws_xml_root))
 	else:         parts = sorted(rm_ext_all(file) for file in os.listdir(xml_root))
 	if nth: parts = parts[thrank:len(parts):nth]
+	if not parts: return
 
 	# Textualize
 	if not textualized:

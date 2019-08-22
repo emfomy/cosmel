@@ -142,6 +142,20 @@ def main():
 	if not saved_descri:
 		products.save_descr(repo_root+'/product.descr')
 
+	# Create CKIPWS Driver
+	ckipws = CkipWs(
+		lex_files = [
+			repo_root+'/core.lex',
+			repo_root+'/brand.lex',
+			repo_root+'/head.lex',
+			repo_root+'/infix.lex',
+			repo_root+'/compound.lex',
+		],
+		compound_files = [
+			repo_root+'/compound.txt',
+		],
+	)
+
 	# Load Heads / Infixes
 	head_set     = set(WordSet(repo_root+'/head.lex'))
 	infix_set    = set(WordSet(repo_root+'/infix.lex'))
@@ -155,9 +169,6 @@ def main():
 
 	# Word-Segment Product
 	if not segmented_product:
-		ckipws = CkipWs(main_etc_root+'/for_product.ini', \
-				[repo_root+'/core.lex', repo_root+'/brand.lex', repo_root+'/head.lex', \
-					repo_root+'/infix.lex', repo_root+'/compound.lex'], [repo_root+'/compound.txt'])
 		with open(repo_root+'/product.lex') as fin, open(tmp_root+'/product.lex', 'w', encoding=None) as fout:
 			fout.write(re.sub(r'\t.*', '', fin.read().strip()+'\n', flags=re.MULTILINE))
 		ckipws.ws_file(tmp_root+'/product.lex', tmp_root+'/product.tag')
@@ -296,9 +307,6 @@ def main():
 
 	# Word-Segment Description
 	if not segmented_descr:
-		ckipws = CkipWs(main_etc_root+'/for_article.ini', \
-				[repo_root+'/core.lex', repo_root+'/brand.lex', repo_root+'/head.lex', \
-					repo_root+'/infix.lex', repo_root+'/compound.lex'], [repo_root+'/compound.txt'])
 		with open(repo_root+'/product.descr') as fin, open(tmp_root+'/product.descr', 'w', encoding=None) as fout:
 			fout.write(re.sub(r'(\A|(?<=\n)).*\t', '', fin.read().strip()+'\n', flags=re.MULTILINE))
 		ckipws.ws_line(tmp_root+'/product.descr', tmp_root+'/product.descr.tag')

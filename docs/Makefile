@@ -4,8 +4,7 @@
 # You can set these variables from the command line.
 SPHINXBUILD     = sphinx-build
 SPHINXBUILDOPTS =
-SPHINXAPI       = sphinx-apidoc
-SPHINXAPIENVS   = "SPHINX_APIDOC_OPTIONS=special-members"
+SPHINXAPI       = SPHINX_APIDOC_OPTIONS=special-members sphinx-apidoc
 SPHINXAPIOPTS   =
 
 PROJ = CosmEL

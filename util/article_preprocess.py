@@ -44,7 +44,7 @@ def main():
 		jobs = [multiprocessing.Process(target=submain, args=(corpus_root, nth, thrank,)) for thrank in range(nth)]
 		for p in jobs: p.start()
 		for p in jobs: p.join()
-		for p in jobs: assert p.exitcode == 0
+		for thrank, p in enumerate(jobs): assert p.exitcode == 0, (thrank, p)
 
 	# Generate Bad-Article List
 	target       = f'purged_article'
@@ -82,6 +82,24 @@ def submain(corpus_root, nth=None, thrank=0):
 	# parts        = list(f'part-{x:05}' for x in range(1))
 	parts        = sorted(rm_ext_all(file) for file in os.listdir(orig_root))
 	if nth: parts = parts[thrank:len(parts):nth]
+	if not parts: return
+
+	repo = Repo(repo_root)
+
+	# Create CKIPWS Driver
+	ckipws = CkipWs(
+		lex_files = [
+			repo_root+'/core.lex',
+			repo_root+'/brand.lex',
+			repo_root+'/product.lex',
+			repo_root+'/head.lex',
+			repo_root+'/infix.lex',
+			repo_root+'/compound.lex',
+		],
+		compound_files = [
+			repo_root+'/compound.txt',
+		],
+	)
 
 	# Prune Articles
 	if not purged:
@@ -107,12 +125,6 @@ def submain(corpus_root, nth=None, thrank=0):
 
 	# Word-Segment Articles
 	if not segmented:
-
-		ckipws = CkipWs(etc_root+'/for_article.ini', \
-				[repo_root+'/core.lex', repo_root+'/brand.lex', repo_root+'/product.lex', \
-					repo_root+'/head.lex', repo_root+'/infix.lex', repo_root+'/compound.lex'], \
-				[repo_root+'/compound.txt'])
-
 		purged_files = glob_files(purged_root, parts=parts)
 		n = str(len(purged_files))
 		for i, purged_file in enumerate(purged_files):
@@ -129,7 +141,6 @@ def submain(corpus_root, nth=None, thrank=0):
 	# Replace Brand
 	if not replaced_brand:
 
-		repo     = Repo(repo_root)
 		articles = ArticleSet(ws_re1_root, parts=parts)
 
 		n = str(len(articles))
@@ -147,8 +158,6 @@ def submain(corpus_root, nth=None, thrank=0):
 			article.save(ws_re2_file, str)
 
 		if not thrank: print()
-
-	return True
 
 
 class SegmentPunctuation():

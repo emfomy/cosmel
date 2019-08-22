@@ -264,7 +264,7 @@
 								const rgnh = rid+';'+gid+';'+nid;
 
 								res = $.ajax({
-									url: '/repo/product?pid='+rgnh,
+									url: './repo/product?pid='+rgnh,
 									type: 'get',
 									error: customStatusError
 								}).done(rgnh_name => {

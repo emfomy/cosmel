@@ -29,7 +29,7 @@ Requirement
 * Program and Tools
    * `Python <http://www.python.org/>`_ 3.6.
    * `CKIPWS <http://otl.sinica.edu.tw/index.php?t=9&group_id=25&article_id=408>`_ Linux version.
-   * `CKIPWS Cython Package <https://github.com/emfomy/cyckipws>`_ 0.2.
+   * `CKIPNLP Python Package <https://ckipnlp.readthedocs.io>`_ 0.6.
 * Python Packages
    * `BeautifulSoup <http://www.crummy.com/software/BeautifulSoup/>`_ 4.6.
    * `gensim <https://radimrehurek.com/gensim/>`_ 3.6.
@@ -163,33 +163,16 @@ Next, install the Python packages:
 CKIPWS
 ^^^^^^
 
-Please install the `CKIPWS Cython Package <https://github.com/emfomy/cyckipws>`_. Choose one of the following instruction.
+Please install the `CKIPNLP Python Package <https://ckipnlp.readthedocs.io>`_.
 
-Install With Cython
-"""""""""""""""""""
-
-Denote the root path of CKIPWS as ``<ckipws-root>``.
+Denote the root path of CKIPWS as ``<ckipws-linux-root>``.
 
 .. code-block:: bash
 
-   pip install cython
-   LIBRARY_PATH=<ckipws-root>/lib:$LIBRARY_PATH pip install ckipws
-   export CKIPWS_DATA2=<ckipws-root>/Data2
-
-Install Without Cython
-""""""""""""""""""""""
-
-Replace ``<cosmel-root>/cosmel/util/ckipws.py`` by ``<cosmel-root>/cosmel/util/ckipws-old.py``.
-
-Denote the root path of CosmEL (the folder containing this README) as ``<cosmel-root>``, and the root path of CKIPWS as ``<ckipws-root>``. Copy the following files:
-
-.. code-block:: bash
-
-   cp <ckipws-root>/lib/libWordSeg.so <cosmel-root>/libWordSeg.so
-   cp <ckipws-root>/Data2             <cosmel-root>/Data2 -r
-
-You may add ``<ckipws-root>/lib/`` to ``LD_LIBRARY_PATH`` instead of copying ``libWordSeg.so``.
-
+   pip install --upgrade ckipnlp
+   pip install --no-deps --force-reinstall --upgrade ckipnlp \
+      --install-option='--ws' \
+      --install-option='--ws-dir=<ckipws-linux-root>'
 
 Example
 -------

@@ -70,8 +70,8 @@ def main():
 	print(f'Model Path    : {model_root}')
 	print(f'Output Path   : {output_root}')
 	print()
-	print(f'Mention Type Classifier Label     : {", ".join(label0)}')
-	print(f'Entity Embeddings Model Label     : {", ".join(label1)}')
+	print(f'Mention Type Classifier Label     : {label0}')
+	print(f'Entity Embeddings Model Label     : {label1}')
 	print(f'Entity Embeddings Model Structure : {args.structure_eem.upper()}')
 
 	python = sys.executable

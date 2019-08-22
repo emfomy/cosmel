@@ -75,6 +75,7 @@ def submain(corpus_root, base_dir, in_dir, out_dir, flags=set(), nth=None, thran
 	# parts        = list(f'part-{x:05}' for x in range(1))
 	parts        = sorted(rm_ext_all(file) for file in os.listdir(base_root))
 	if nth: parts = parts[thrank:len(parts):nth]
+	if not parts: return
 
 	# Embed input mention
 	base_files = glob_files(base_root, parts)

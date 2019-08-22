@@ -63,6 +63,7 @@ def submain(corpus_root, nth=None, thrank=0):
 	# parts        = list(f'part-{x:05}' for x in range(1))
 	parts        = sorted(rm_ext_all(file) for file in os.listdir(html_root))
 	if nth: parts = parts[thrank:len(parts):nth]
+	if not parts: return
 
 	# Replace html tags
 	if not replaced:
