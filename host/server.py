@@ -16,8 +16,8 @@ from flask import url_for
 
 import json
 import os
+import sys
 import time
-import operator
 
 from cosmel import *
 
@@ -178,4 +178,4 @@ if __name__ == '__main__':
 				sorted([file.replace(ext, '') for file in os.listdir(f'{root()}/article/{part}') if file.endswith(ext)], \
 					key=lambda v: v.upper())
 
-	app.run(host=host, port=5000, threaded=True, debug=True)
+	app.run(host=host, port=5000, threaded=True, debug=False)
