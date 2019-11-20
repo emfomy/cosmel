@@ -374,7 +374,7 @@ class MentionBundleSet(collections.abc.Collection):
 	@staticmethod
 	def __mention_bundle(article, article_root, mention_root, i, n):
 		file_path = transform_path(article.path, article_root, mention_root, '.json')
-		printr(f'{i+1:0{len(n)}}/{n}\tReading {file_path}')
+		printr(f'{i+1:0{len(n)}}/{n}\tReading {file_path[-80:]}')
 		bundle = MentionBundle(file_path, article)
 		article._Article__bundle = bundle
 		return bundle

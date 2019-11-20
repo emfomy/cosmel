@@ -96,7 +96,7 @@ class ParsedArticleSet(collections.abc.Collection):
 	@staticmethod
 	def __parsed_article(article, article_root, parsed_root, i, n):
 		file_path = transform_path(article.path, article_root, parsed_root, '.parse')
-		printr(f'{i+1:0{len(n)}}/{n}\tReading {file_path}')
+		printr(f'{i+1:0{len(n)}}/{n}\tReading {file_path[-80:]}')
 		parsed = ParsedArticle(file_path, article)
 		article._Article__parsed = parsed
 		return parsed

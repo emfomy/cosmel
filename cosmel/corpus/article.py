@@ -122,7 +122,7 @@ class ArticleSet(collections.abc.Collection):
 
 	@classmethod
 	def __article(self, file, root, i, n):
-		printr(f'{i+1:0{len(n)}}/{n}\tReading {file}')
+		printr(f'{i+1:0{len(n)}}/{n}\tReading {file[-80:]}')
 		return Article(file, root)
 
 	def __contains__(self, item):

@@ -11,9 +11,11 @@ import os
 import re
 import tempfile
 
-from ckipnlp.ws import CkipWs as Core
-
 from cosmel.util.core import *
+
+def Core(*args, **kwargs):
+	from ckipnlp.ws import CkipWs as _Core
+	return _Core(*args, **kwargs)
 
 
 class CkipWs():
