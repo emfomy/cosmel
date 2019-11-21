@@ -36,7 +36,7 @@ Author / Maintainer
    * Yi-Hui Lee   <lilyyhlee30@gmail.com>
    * Wei-Yun Ma   <ma@iis.sinica.edu.tw>
 
-Detail
-------
+Brief Intro
+-----------
 
-* `Detail <./docs/src/readme.rst>`_
+* `Link <./docs/src/readme.rst>`_
