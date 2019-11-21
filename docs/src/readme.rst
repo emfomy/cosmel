@@ -287,14 +287,14 @@ To build the documentation, please install the following packages.
 
 .. code-block:: bash
 
-   pip install sphinx==1.8.1 sphinx_rtd_theme==0.4.2 sphinxcontrib-programoutput==0.11
+   pip install sphinx==1.8.5 sphinx_rtd_theme==0.4.3 sphinxcontrib-programoutput==0.15
 
 (Using Conda)
 
 .. code-block:: bash
 
-   conda install sphinx=1.8.1 sphinx_rtd_theme=0.4.2
-   conda install sphinxcontrib-programoutput=0.11 -c conda-forge
+   conda install sphinx=1.8.5 sphinx_rtd_theme=0.4.3
+   conda install sphinxcontrib-programoutput=0.15 -c conda-forge
 
 Next, build the HTML documentation.
 
