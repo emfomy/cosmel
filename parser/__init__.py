@@ -2,5 +2,5 @@
 # -*- coding:utf-8 -*-
 
 
-__author__    = 'Mu Yang <emfomy@gmail.com>'
+__author__    = 'Mu Yang <http://muyang.pro>'
 __copyright__ = 'Copyright 2017-2018'
