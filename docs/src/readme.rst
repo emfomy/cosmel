@@ -41,9 +41,9 @@ Requirement
    * `scikit-learn <http://scikit-learn.org/>`_ 0.20.
    * `tqdm <https://pypi.org/project/tqdm/>`_ 4.27.
 * Documentation Packages (Optional)
-   * `sphinx <http://www.sphinx-doc.org/>`_ 1.8.1.
-   * `sphinx_rtd_theme <https://github.com/rtfd/sphinx_rtd_theme/>`_ 0.4.2.
-   * `sphinxcontrib-programoutput <https://bitbucket.org/birkenfeld/sphinx-contrib>`_ 0.11.
+   * `sphinx <http://www.sphinx-doc.org/>`_ 1.8.5.
+   * `sphinx_rtd_theme <https://github.com/rtfd/sphinx_rtd_theme/>`_ 0.4.3.
+   * `sphinxcontrib-programoutput <https://bitbucket.org/birkenfeld/sphinx-contrib>`_ 0.15.
 
 
 About
