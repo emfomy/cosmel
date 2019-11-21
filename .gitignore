@@ -1,5 +1,6 @@
 # Other
-docs/_*
+docs/_api
+docs/_build
 data
 Data2
 
