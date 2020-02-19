@@ -1,7 +1,8 @@
-# Icon
-Icon
-
-################################################################################
+# Other
+docs/_api
+docs/_build
+data
+Data2
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
