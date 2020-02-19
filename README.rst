@@ -4,8 +4,8 @@ CosmEL
 |GitHub Version| |GitHub Release| |GitHub License|
 
 * GitHub https://github.com/emfomy/cosmel
-* Documentation https://emfomy.github.io/cosmel-data/
-* Dataset https://github.com/emfomy/cosmel-data/
+* Documentation https://emfomy.github.io/cosmel-data
+* Dataset https://github.com/emfomy/cosmel-data
 
 .. |GitHub Version| image:: https://img.shields.io/github/v/release/emfomy/cosmel.svg?maxAge=3600
    :target: https://github.com/emfomy/cosmel/releases
